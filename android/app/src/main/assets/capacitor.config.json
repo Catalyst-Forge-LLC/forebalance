@@ -1,0 +1,6 @@
+{
+	"appId": "com.acmegeek.mybalanceforecaster",
+	"appName": "My Balance Forecaster",
+	"webDir": "build",
+	"bundledWebRuntime": false
+}

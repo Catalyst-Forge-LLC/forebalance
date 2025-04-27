@@ -1,0 +1,19 @@
+npm install @capacitor/core @capacitor/cli
+
+npm i @capacitor/ios @capacitor/android
+
+npm i @capacitor/geolocation @capacitor/filesystem
+
+
+npm install @capacitor/camera
+
+npx cap init
+
+npx cap add android
+npx cap add ios
+
+npm run build
+
+npx cap open android
+npx cap run android
+npm cap sync android

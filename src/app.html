@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="theme-color" content="#009900">
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+		<link rel="stylesheet" href="%sveltekit.assets%/bootstrap-reboot.min.css">
+		<link rel="icon" href="/favicon.ico" />
+		<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+
+		<script>
+			// Force HTTPS
+			let address = window.location.href;
+			if (address.startsWith('http:') && !address.includes('://localhost')) {
+				window.location = address.replace(/^http/, 'https') + '?cb=' + (new Date()).getTime();
+			}
+		</script>
+
+		<style>
+			#svelte {
+				display: flex;
+				flex-direction: column;
+				height: 100vh;
+			}
+		</style>
+	
+		<script src="%sveltekit.assets%/dayjs.min.js"></script>
+
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div id="svelte">%sveltekit.body%</div>
+	</body>
+</html>

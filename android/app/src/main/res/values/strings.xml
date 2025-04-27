@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">My Balance Forecaster</string>
+    <string name="title_activity_main">My Balance Forecaster</string>
+    <string name="package_name">com.acmegeek.mybalanceforecaster</string>
+    <string name="custom_url_scheme">com.acmegeek.mybalanceforecaster</string>
+</resources>
