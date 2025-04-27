@@ -4,8 +4,12 @@
   import { onMount } from 'svelte';
   import { fmt } from '../scripts/fmt';
   import { logd } from '../scripts/util';
+  import Tooltip from './Tooltip.svelte';
 
   export let tableEntries = [];
+  export let accounts = {};
+
+  const mainAccount = Object.values(accounts).find((account) => account.isMain);
 
   $: entryCount = tableEntries.length;
 
@@ -85,6 +89,19 @@
     e.stopPropagation();
     showEntryEdit = null;
   }
+
+  function getAccountSummary(entry) {
+    const account = accounts[entry.accountId];
+    if (account && account !== mainAccount && account.startingBal > 0) {
+      return `
+AccountId: ${entry.accountId}<br>
+Starting Balance: ${fmt.curr(account.startingBal)}<br>
+Running Balance: ${fmt.curr(entry.subAccountRunningBal)}<br>
+${entry.monthlyInterest ? `Monthly Interest: ${fmt.curr(entry.monthlyInterest)}<br>` : ''}
+${account.interestRate ? `Interest Rate: ${account.interestRate}%<br>` : ''}`;
+    }
+    return '';
+  }
 </script>
 
 <table>
@@ -139,11 +156,11 @@
             >
           </td>
         {:else}
-          <td>{entry.formattedDate}</td>
-          <td align="left">{entry.desc} {entry.account}</td>
-          <td align="right">{entry.formattedCredit}</td>
-          <td align="right">{entry.formattedDebit}</td>
-          <td align="right">{entry.formattedBalance}</td>
+          <td>{fmt.date(entry.date)}</td>
+          <td align="left"><Tooltip content={getAccountSummary(entry)}>{entry.desc}</Tooltip></td>
+          <td align="right">{entry.type === 'C' ? fmt.curr(entry.amount) : ''}</td>
+          <td align="right">{entry.type === 'D' ? fmt.curr(entry.amount) : ''}</td>
+          <td align="right">{fmt.curr(entry.mainBalance)}</td>
         {/if}
       </tr>
       {#if showMonthFooter(i)}
@@ -205,6 +222,11 @@
 
     .balance-uncomfortable {
       color: #aa9900;
+      font-weight: 700;
+    }
+
+    .balance-paid-off {
+      background-color: #00cc00 !important;
       font-weight: 700;
     }
 

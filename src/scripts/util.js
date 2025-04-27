@@ -48,7 +48,7 @@ export const getBalanceFlag = (bal, balanceFlags) => {
 };
 
 export const sortEntries = (entries) => {
-  entries.sort((a, b) => (a.date.valueOf() > b.date.valueOf() ? 1 : a.date.valueOf() === b.date.valueOf() ? (a.type > b.type ? 1 : -1) : -1));
+  return entries.toSorted((a, b) => (a.date.valueOf() > b.date.valueOf() ? 1 : a.date.valueOf() === b.date.valueOf() ? (a.type > b.type ? 1 : -1) : -1));
 };
 
 export class Recur {

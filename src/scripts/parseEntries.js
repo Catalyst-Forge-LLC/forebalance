@@ -61,36 +61,45 @@ let parseRawEntries = (rawEntries) => {
             amount: null,
             desc: null,
             rawEntry,
-            account: null,
+            accountId: null,
             isMain: false,
             recur: null,
           };
         }
         const entry = rawEntry.split('|');
-        let [type, account, main] = entry[0].toUpperCase().split('-');
+        let [type, accountId, main] = entry[0].toUpperCase().split('-');
         let parsedEntry = {
           id: getRandomId(),
           date: null,
           type,
           amount: entry[2],
           desc: entry[3],
+          accountId: accountId && accountId.length > 0 ? accountId : entry[4] || undefined,
           endDate: null,
           rawEntry,
-          account: undefined,
           isMain: false,
           recur: null,
         };
-        if (account && account.length > 0) {
-          parsedEntry.account = account;
-        }
-        if (parsedEntry.type === 'B' && parsedEntry.account) {
+        if (parsedEntry.type === 'B' && parsedEntry.accountId) {
           parsedEntry.isMain = main === 'MAIN';
-          accounts[parsedEntry.account] = {
-            id: parsedEntry.account,
+          accounts[parsedEntry.accountId] = {
+            id: parsedEntry.accountId,
             isMain: parsedEntry.isMain,
-            startBal: +parsedEntry.amount,
+            startingBal: +parsedEntry.amount,
             runningBal: +parsedEntry.amount,
           };
+        } else if (parsedEntry.accountId) {
+          parsedEntry.accountId = parsedEntry.accountId.toUpperCase();
+          if (!accounts[parsedEntry.accountId]) {
+            logd('account not found', parsedEntry.accountId, parsedEntry);
+            accounts[parsedEntry.accountId] = {
+              id: parsedEntry.accountId,
+              isMain: false,
+              startingBal: +entry[5],
+              runningBal: +entry[5],
+              interestRate: +entry[6] || 0,
+            };
+          }
         }
         [parsedEntry.date, parsedEntry.recur, parsedEntry.rawRecur, parsedEntry.endDate] = parseDate(entry[1]);
         if (!recurringEntries[parsedEntry.id]) {
@@ -138,6 +147,7 @@ export let parseEntries = (rawEntries, monthsToForecast, balanceFlags) => {
 
   const balanceDate = parsedEntries.filter((entry) => entry?.type === 'B')[0]?.date;
   const endDate = dayjs(balanceDate).add(monthsToForecast, 'month').endOf('month').toDate();
+  let mainAccount = Object.values(accounts).filter((account) => account.isMain)[0];
 
   sortEntries(parsedEntries);
 
@@ -160,38 +170,74 @@ export let parseEntries = (rawEntries, monthsToForecast, balanceFlags) => {
           parsedEntries.push(newEntry);
         }
       }
+      if (entry?.accountId !== mainAccount.id) {
+        let account = accounts[entry.accountId];
+        if (account && account.startingBal > 0) {
+          if (account.runningBal > 0) {
+            if (account.runningBal < entry.amount) {
+              entry.amount = account.runningBal;
+              entry.flag = 'paid-off';
+            }
+            logd(
+              `[accountId1] ${entry.accountId} ${account.runningBal} ${entry.type} ${entry.amount}`,
+              entry,
+              entry.accountId,
+              mainAccount.id,
+              entry.amount,
+              account,
+            );
+            if (+account.interestRate > 0) {
+              const interest = (account.interestRate / 100 / 12) * account.runningBal;
+              logd(`[interest] ${account.interestRate} ${account.runningBal} ${interest}`);
+              tableEntries.at(-1).monthlyInterest = +interest;
+              account.runningBal += interest;
+            }
+            account.runningBal += entry.type === 'C' ? +entry.amount : -entry.amount;
+            tableEntries.at(-1).subAccountRunningBal = account.runningBal;
+            logd(`[accountId2] ${entry.accountId} ${account.runningBal}`);
+          } else {
+            logd(`[accountId3] ${entry.accountId} ${account.runningBal} ${entry.type} ${entry.amount}`, entry);
+            tableEntries.at(-1).subAccountRunningBal = 0;
+            entry.amount = 0;
+            entry.flag = 'paid-off';
+          }
+        }
+      }
       parsedEntries.splice(i, 1);
     });
   }
 
-  sortEntries(tableEntries);
+  const sortedTableEntries = sortEntries(tableEntries);
 
-  let defaultAccount = Object.values(accounts).filter((account) => account.isMain)[0];
-  logd('[tableEntries]', { tableEntries, accounts, defaultAccount });
+  logd('[sortedTableEntries]', { sortedTableEntries, accounts, mainAccount });
 
   const accountEntries = {};
 
-  tableEntries.forEach((entry, i) => {
-    const account = entry.account === undefined ? defaultAccount : accounts[entry.account];
+  sortedTableEntries.forEach((entry, i) => {
+    const account = entry.accountId === undefined ? mainAccount : accounts[entry.accountId];
     if (!accountEntries[account?.id]) {
       accountEntries[account?.id] = [];
     }
     if (entry.type === 'C') {
-      account.runningBalance += +entry.amount;
+      mainAccount.runningBal += +entry.amount;
     } else if (entry.type === 'D') {
-      account.runningBalance -= +entry.amount;
+      mainAccount.runningBal -= +entry.amount;
     } else if (entry.type === 'B') {
-      account.runningBalance = +entry.amount;
-      account.balanceIndex = accountEntries[account.id].length;
+      mainAccount.runningBal = +entry.amount;
+      mainAccount.balanceIndex = accountEntries[account.id].length;
     }
-    entry.account = account.id;
-    entry.balance = +account.runningBalance;
+    entry.accountId = account.id;
+    entry.balance = +account.runningBal;
+    entry.mainBalance = +mainAccount.runningBal;
     entry.formattedDate = fmt.date(entry.date);
     entry.formattedCredit = entry.type === 'C' ? fmt.curr(entry.amount) : '';
     entry.formattedDebit = entry.type === 'D' ? fmt.curr(entry.amount) : '';
     entry.formattedBalance = fmt.curr(entry.balance);
-    entry.flag = getBalanceFlag(entry.balance, balanceFlags);
-    accountEntries[account.id].push(entry);
+    entry.flag = entry.flag ?? getBalanceFlag(entry.mainBalance, balanceFlags);
+    accountEntries[mainAccount.id].push(entry);
+    if (mainAccount.id !== account.id) {
+      accountEntries[account.id].push(entry);
+    }
   });
   Object.entries(accountEntries).forEach(([accountId, entries]) => {
     logd('[account-entries]', accountId, entries.length, accounts[accountId].balanceIndex);

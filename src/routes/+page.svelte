@@ -66,7 +66,7 @@
       </TabPanel>
       <TabPanel showLoader="true">
         {#if accountEntries[activeAccount.id]}
-          <ForecastTable bind:tableEntries={accountEntries[activeAccount.id]}></ForecastTable>
+          <ForecastTable bind:tableEntries={accountEntries[activeAccount.id]} {accounts}></ForecastTable>
         {/if}
       </TabPanel>
       <TabPanel>
