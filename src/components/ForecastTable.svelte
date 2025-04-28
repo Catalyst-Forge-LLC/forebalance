@@ -157,7 +157,9 @@ ${account.interestRate ? `Interest Rate: ${account.interestRate}%<br>` : ''}`;
           </td>
         {:else}
           <td>{fmt.date(entry.date)}</td>
-          <td align="left"><Tooltip content={getAccountSummary(entry)}>{entry.desc}</Tooltip></td>
+          <td align="left"
+            ><Tooltip content={getAccountSummary(entry)}>{entry.desc}{mainAccount.id !== entry.accountId ? ` [${entry.accountId}]` : ''}</Tooltip></td
+          >
           <td align="right">{entry.type === 'C' ? fmt.curr(entry.amount) : ''}</td>
           <td align="right">{entry.type === 'D' ? fmt.curr(entry.amount) : ''}</td>
           <td align="right">{fmt.curr(entry.mainBalance)}</td>
@@ -182,8 +184,12 @@ ${account.interestRate ? `Interest Rate: ${account.interestRate}%<br>` : ''}`;
     font-family: monospace;
     font-size: 0.75rem;
     transform: opacity 2s;
-    tr:hover {
-      // border-bottom: 2px solid yellow;
+    tr {
+      opacity: 0.85;
+      transition: opacity 0.125s;
+      &:hover {
+        opacity: 1;
+      }
     }
     td {
       padding: 0 3px;
@@ -192,6 +198,9 @@ ${account.interestRate ? `Interest Rate: ${account.interestRate}%<br>` : ''}`;
         box-shadow: none;
       }
       margin-top: 1px;
+      > :global(div) {
+        display: block !important;
+      }
     }
     .headings {
       background-color: #990099 !important;
@@ -226,7 +235,9 @@ ${account.interestRate ? `Interest Rate: ${account.interestRate}%<br>` : ''}`;
     }
 
     .balance-paid-off {
-      background-color: #00cc00 !important;
+      background-color: #5555bb !important;
+      color: #fff !important;
+      opacity: 0.75;
       font-weight: 700;
     }
 

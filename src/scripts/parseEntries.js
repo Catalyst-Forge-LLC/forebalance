@@ -152,6 +152,7 @@ export let parseEntries = (rawEntries, monthsToForecast, balanceFlags) => {
   sortEntries(parsedEntries);
 
   const tableEntries = [];
+  let extraMonthlyPayment = 0;
 
   while (parsedEntries.length > 0) {
     parsedEntries.forEach((entry, i) => {
@@ -167,6 +168,13 @@ export let parseEntries = (rawEntries, monthsToForecast, balanceFlags) => {
           newEntry.recur &&
           (newEntry.recur.count === null || (newEntry.recur.count !== null && recurringEntries[newEntry.id] <= newEntry.recur.count))
         ) {
+          const entryAccount = accounts[newEntry.accountId];
+          if (entryAccount && entryAccount.extraPayment) {
+            logd(`[extra payment 1] ${entryAccount.id} amount: $${newEntry.amount}, extraPayment: $${entryAccount.extraPayment}`);
+            newEntry.amount = +newEntry.amount + +entryAccount.extraPayment;
+            entryAccount.extraPayment = 0;
+            logd(`[extra payment 1b] ${entryAccount.id} amount: $${newEntry.amount}, extraPayment: $${entryAccount.extraPayment}`);
+          }
           parsedEntries.push(newEntry);
         }
       }
@@ -174,29 +182,47 @@ export let parseEntries = (rawEntries, monthsToForecast, balanceFlags) => {
         let account = accounts[entry.accountId];
         if (account && account.startingBal > 0) {
           if (account.runningBal > 0) {
-            if (account.runningBal < entry.amount) {
-              entry.amount = account.runningBal;
-              entry.flag = 'paid-off';
-            }
-            logd(
-              `[accountId1] ${entry.accountId} ${account.runningBal} ${entry.type} ${entry.amount}`,
-              entry,
-              entry.accountId,
-              mainAccount.id,
-              entry.amount,
-              account,
-            );
             if (+account.interestRate > 0) {
               const interest = (account.interestRate / 100 / 12) * account.runningBal;
-              logd(`[interest] ${account.interestRate} ${account.runningBal} ${interest}`);
+              // logd(`[interest] ${account.interestRate} ${account.runningBal} ${interest}`);
               tableEntries.at(-1).monthlyInterest = +interest;
               account.runningBal += interest;
             }
+            if (account.runningBal <= entry.amount && account.runningBal > 1) {
+              // logd(
+              //   `[accountId0] ${entry.accountId} bal: ${account.runningBal} type: ${entry.type} amount: ${entry.amount} extra: ${extraMonthlyPayment}`,
+              //   entry,
+              // );
+              extraMonthlyPayment += +entry.amount - +account.runningBal;
+              entry.amount = account.runningBal;
+              entry.flag = 'paid-off';
+            }
+            logd(`[accountId1] ${entry.accountId} ${account.runningBal} ${entry.type} ${entry.amount}`, { entry, mainAccount, account, extraMonthlyPayment });
             account.runningBal += entry.type === 'C' ? +entry.amount : -entry.amount;
             tableEntries.at(-1).subAccountRunningBal = account.runningBal;
-            logd(`[accountId2] ${entry.accountId} ${account.runningBal}`);
+            // logd(`[accountId2] id: ${entry.accountId} bal: $${account.runningBal} extra: $${extraMonthlyPayment}`);
+
+            const extraAmount = 250;
+            while (extraMonthlyPayment > extraAmount) {
+              Object.values(accounts).forEach((account) => {
+                if (account.runningBal > 0 && account.interestRate > 0 && extraMonthlyPayment >= extraAmount) {
+                  logd(
+                    `[extra payment 0] extraMonthlyPayment: $${extraMonthlyPayment}, accountId: ${account.id}, accountExtraPayment: $${account.extraPayment}`,
+                  );
+                  if (!account.extraPayment) {
+                    account.extraPayment = 0;
+                  }
+                  account.extraPayment = +account.extraPayment + extraAmount;
+                  extraMonthlyPayment -= extraAmount;
+                  logd(
+                    `[extra payment] Applied $${extraAmount} to ${account.id}, extraPayment: $${account.extraPayment}, remaining extraMonthlyPayment: ${extraMonthlyPayment}`,
+                  );
+                }
+              });
+            }
+            // logd(`[accountId2.5] ${entry.accountId} ${account.runningBal}`, extraMonthlyPayment);
           } else {
-            logd(`[accountId3] ${entry.accountId} ${account.runningBal} ${entry.type} ${entry.amount}`, entry);
+            // logd(`[accountId3] ${entry.accountId} ${account.runningBal} ${entry.type} ${entry.amount}`, entry);
             tableEntries.at(-1).subAccountRunningBal = 0;
             entry.amount = 0;
             entry.flag = 'paid-off';
