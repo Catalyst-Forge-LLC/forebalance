@@ -33,7 +33,7 @@
         acceptedFile,
         /^myBalanceForcaster.*\.psv$/,
         'Do you want to replace all entries?',
-        `This doesn't seem to be a My Balance Forecaster PSV file`,
+        `This doesn't seem to be a MyFynn PSV file`,
         setRawEntries,
       ),
     );

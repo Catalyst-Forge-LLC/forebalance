@@ -1,4 +1,4 @@
-package com.acmegeek.mybalanceforecaster;
+package com.acmegeek.myfynn;
 
 import com.getcapacitor.BridgeActivity;
 

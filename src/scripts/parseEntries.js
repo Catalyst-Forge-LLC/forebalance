@@ -98,6 +98,8 @@ let parseRawEntries = (rawEntries) => {
               startingBal: +entry[5],
               runningBal: +entry[5],
               interestRate: +entry[6] || 0,
+              interestRate2: +entry[7] || 0,
+              interestRate2Date: entry[8] || null,
             };
           }
         }
@@ -155,6 +157,7 @@ export let parseEntries = (rawEntries, monthsToForecast, balanceFlags) => {
   let extraMonthlyPayment = 0;
 
   while (parsedEntries.length > 0) {
+    // logd('[parsedEntries]', parsedEntries);
     parsedEntries.forEach((entry, i) => {
       tableEntries.push(entry);
       if (entry?.recur) {
@@ -169,41 +172,58 @@ export let parseEntries = (rawEntries, monthsToForecast, balanceFlags) => {
           (newEntry.recur.count === null || (newEntry.recur.count !== null && recurringEntries[newEntry.id] <= newEntry.recur.count))
         ) {
           const entryAccount = accounts[newEntry.accountId];
+          // logd(
+          //   `[extra payment 0] ${entryAccount?.id} amount: $${newEntry.amount}, entryDate: ${entry.date}, recurDate: ${newEntry.date}  extraPayment: $${entryAccount?.extraPayment}`,
+          // );
           if (entryAccount && entryAccount.extraPayment) {
-            logd(`[extra payment 1] ${entryAccount.id} amount: $${newEntry.amount}, extraPayment: $${entryAccount.extraPayment}`);
+            logd(`[extra payment 1] ${entryAccount.id} amount: $${newEntry.amount}, entryDate: ${entry.date} extraPayment: $${entryAccount.extraPayment}`);
             newEntry.amount = +newEntry.amount + +entryAccount.extraPayment;
-            entryAccount.extraPayment = 0;
-            logd(`[extra payment 1b] ${entryAccount.id} amount: $${newEntry.amount}, extraPayment: $${entryAccount.extraPayment}`);
+            accounts[newEntry.accountId] = { ...entryAccount, extraPayment: 0 };
+            logd(`[extra payment 1b] ${entryAccount.id} amount: $${newEntry.amount}, recurDate: ${newEntry.date} extraPayment: $${entryAccount.extraPayment}`);
           }
           parsedEntries.push(newEntry);
         }
       }
       if (entry?.accountId !== mainAccount.id) {
-        let account = accounts[entry.accountId];
-        if (account && account.startingBal > 0) {
-          if (account.runningBal > 0) {
-            if (+account.interestRate > 0) {
-              const interest = (account.interestRate / 100 / 12) * account.runningBal;
-              // logd(`[interest] ${account.interestRate} ${account.runningBal} ${interest}`);
-              tableEntries.at(-1).monthlyInterest = +interest;
-              account.runningBal += interest;
+        let entryAccount = accounts[entry.accountId];
+        if (entryAccount && entryAccount.startingBal > 0) {
+          if (entryAccount.runningBal > 0) {
+            let interestRate = +entryAccount.interestRate;
+            if (entryAccount.interestRate2 > 0 && entryAccount.interestRate2Date) {
+              const interestRate2Date = new Date(entryAccount.interestRate2Date);
+              if (entry.date > interestRate2Date) {
+                interestRate = +entryAccount.interestRate2;
+              }
+              // logd(`[interestRate2] ${entryAccount.interestRate2} ${entry.date} > ${interestRate2Date}  ${entryAccount.interestRate2Date} ${interestRate}`);
             }
-            if (account.runningBal <= entry.amount && account.runningBal > 1) {
+            if (interestRate > 0) {
+              const interest = (interestRate / 100 / 12) * entryAccount.runningBal;
+              // logd(`[interest] ${entryAccount.id} ${entry.date} ${interestRate}% $${entryAccount.runningBal} ($${interest})`);
+              tableEntries.at(-1).monthlyInterest = +interest;
+              entryAccount.runningBal += interest;
+            }
+            if (entryAccount.runningBal <= entry.amount && entryAccount.runningBal > 1) {
               // logd(
-              //   `[accountId0] ${entry.accountId} bal: ${account.runningBal} type: ${entry.type} amount: ${entry.amount} extra: ${extraMonthlyPayment}`,
+              //   `[entryAccountId0] ${entry.accountId} bal: ${entryAccount.runningBal} type: ${entry.type} amount: ${entry.amount} extra: ${extraMonthlyPayment}`,
               //   entry,
               // );
-              extraMonthlyPayment += +entry.amount - +account.runningBal;
-              entry.amount = account.runningBal;
+              extraMonthlyPayment += +entry.amount - +entryAccount.runningBal;
+              entry.amount = entryAccount.runningBal;
               entry.flag = 'paid-off';
             }
-            logd(`[accountId1] ${entry.accountId} ${account.runningBal} ${entry.type} ${entry.amount}`, { entry, mainAccount, account, extraMonthlyPayment });
-            account.runningBal += entry.type === 'C' ? +entry.amount : -entry.amount;
-            tableEntries.at(-1).subAccountRunningBal = account.runningBal;
-            // logd(`[accountId2] id: ${entry.accountId} bal: $${account.runningBal} extra: $${extraMonthlyPayment}`);
+            logd(`[accountId1] ${entry.accountId} ${entryAccount.runningBal} ${entry.type} ${entry.amount}`, {
+              entry,
+              mainAccount,
+              entryAccount,
+              extraMonthlyPayment,
+            });
+            entryAccount.runningBal += entry.type === 'C' ? +entry.amount : -entry.amount;
+            tableEntries.at(-1).subAccountRunningBal = entryAccount.runningBal;
+            // logd(`[accountId2] id: ${entry.accountId} bal: $${entryAccount.runningBal} extra: $${extraMonthlyPayment}`);
 
             const extraAmount = 250;
             while (extraMonthlyPayment > extraAmount) {
+              logd(`[extra payment 0000] extraMonthlyPayment: $${extraMonthlyPayment}, accountId: ${entryAccount.id}, date: ${entry.date}`);
               Object.values(accounts).forEach((account) => {
                 if (account.runningBal > 0 && account.interestRate > 0 && extraMonthlyPayment >= extraAmount) {
                   logd(
@@ -233,6 +253,7 @@ export let parseEntries = (rawEntries, monthsToForecast, balanceFlags) => {
     });
   }
 
+  logd('[tableEntries]', { tableEntries, mainAccount, endDate });
   const sortedTableEntries = sortEntries(tableEntries);
 
   logd('[sortedTableEntries]', { sortedTableEntries, accounts, mainAccount });
@@ -266,7 +287,7 @@ export let parseEntries = (rawEntries, monthsToForecast, balanceFlags) => {
     }
   });
   Object.entries(accountEntries).forEach(([accountId, entries]) => {
-    logd('[account-entries]', accountId, entries.length, accounts[accountId].balanceIndex);
+    // logd('[account-entries]', accountId, entries.length, accounts[accountId].balanceIndex);
     accountEntries[accountId].splice(0, accounts[accountId].balanceIndex);
   });
   logd('[accounts]', { accountEntries, accounts });

@@ -1,10 +1,10 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.acmegeek.mybalanceforecaster',
-  appName: 'My Balance Forecaster',
+  appId: 'com.acmegeek.myfynn',
+  appName: 'MyFynn',
   webDir: 'build',
-  bundledWebRuntime: false
+  bundledWebRuntime: false,
 };
 
 export default config;

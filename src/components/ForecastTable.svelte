@@ -67,6 +67,25 @@
     return [fmt.curr(summaryCredit), fmt.curr(summaryDebit), 'NET ' + fmt.curr(summaryNet)];
   };
 
+  const runningBalanceMonthlySummary = (i) => {
+    let debtBalance = 0;
+    let debtInterest = 0;
+    let debtDetails = '';
+    tableEntries.slice(startMonthIndex, i + 1).forEach((entry) => {
+      if (entry.subAccountRunningBal) {
+        logd('[running-balance-monthly-summary]', entry);
+        debtBalance += +entry.subAccountRunningBal;
+        if (entry.monthlyInterest) {
+          debtInterest += +entry.monthlyInterest;
+        }
+        if (entry.accountId !== mainAccount.id) {
+          debtDetails += `${entry.accountId}: ${fmt.curr(entry.subAccountRunningBal)} (${entry.monthlyInterest ? fmt.curr(entry.monthlyInterest) : 'n/a'})<br>`;
+        }
+      }
+    });
+    return { debtBalance, debtInterest, debtDetails };
+  };
+
   function clickEntry(e, entry, i) {
     if (showEntryEdit === null) {
       // document.querySelector('.entry-modal').style.top = e.layerY + 'px';
@@ -166,11 +185,15 @@ ${account.interestRate ? `Interest Rate: ${account.interestRate}%<br>` : ''}`;
         {/if}
       </tr>
       {#if showMonthFooter(i)}
+        {@const { debtBalance, debtInterest, debtDetails } = runningBalanceMonthlySummary(i)}
         <tr class="month-summary">
           <td colspan="2">Summary</td>
           {#each monthSummary(i) as summary}
             <td>{summary}</td>
           {/each}
+        </tr>
+        <tr class="debt-summary">
+          <td colspan="5"><Tooltip content={debtDetails}>Debt Balance: {fmt.curr(debtBalance)}, Debt Interest: {fmt.curr(debtInterest)}</Tooltip></td>
         </tr>
       {/if}
     {/each}
