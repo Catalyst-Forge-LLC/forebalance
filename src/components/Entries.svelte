@@ -31,9 +31,9 @@
     acceptedFiles.forEach((acceptedFile) =>
       createFileReader(
         acceptedFile,
-        /^myBalanceForcaster.*\.psv$/,
+        /^(myBalanceForcaster|forebalance).*\.psv$/i,
         'Do you want to replace all entries?',
-        `This doesn't seem to be a MyFynn PSV file`,
+        `This doesn't look like a ForeBalance PSV file`,
         setRawEntries,
       ),
     );

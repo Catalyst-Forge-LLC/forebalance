@@ -1,21 +1,25 @@
 import { sveltekit } from '@sveltejs/kit/vite';
+import { localslipListen } from 'localslip/port';
+import { defineConfig } from 'vite';
 import vitePluginString from 'vite-plugin-string';
 
+const listen = localslipListen('forebalance', 5174);
+
 /** @type {import('vite').UserConfig} */
-const config = {
+export default defineConfig({
 	plugins: [
 		vitePluginString({
-			/* Default */
-			include: [
-			  '**/*.md'
-			],
-			compress: false
+			include: ['**/*.md'],
+			compress: false,
 		}),
-		sveltekit()
+		sveltekit(),
 	],
+	server: {
+		host: listen.host,
+		port: listen.port,
+		strictPort: true,
+	},
 	test: {
-		include: ['src/**/*.{test,spec}.{js,ts}']
-	}
-};
-
-export default config;
+		include: ['src/**/*.{test,spec}.{js,ts}'],
+	},
+});

@@ -1,0 +1,160 @@
+{
+  "project": {
+    "name": "ForeBalance",
+    "created": "2026-09-03",
+    "description": "Private, browser-local cashflow forecaster. Plaintext PSV entries project running balance forward.",
+    "archetype": "product",
+    "status": "active"
+  },
+  "currentPhase": "2-scaffolding",
+  "phases": {
+    "1-architecture": {
+      "status": "completed",
+      "startedAt": "2026-09-03",
+      "completedAt": "2026-09-03",
+      "exitCriteriaMet": [
+        "Tech choices confirmed",
+        "Folder structure confirmed",
+        "Data model shape confirmed",
+        "First feature batch defined",
+        "PHASE_1_BRIEF.md created, complete, and locked (docs/)",
+        "Major decisions recorded in workflow_tracking.json decisions[]"
+      ],
+      "exitCriteriaRemaining": ["Claude's understanding verified by user"],
+      "notes": ["Architecture locked in docs/forebalance-spec.md and docs/forebalance-review-and-plan.md"]
+    },
+    "2-scaffolding": {
+      "status": "in_progress",
+      "startedAt": "2026-09-03",
+      "completedAt": null,
+      "exitCriteriaMet": [],
+      "exitCriteriaRemaining": [
+        "App runs with pnpm dev",
+        "Real data visible on screen",
+        "Core CRUD works",
+        "Hero flow functions end to end",
+        "CONTEXT_PROMPT.md created and populated by merging PHASE_1_BRIEF.md (then template lessons as needed)",
+        "README.md created (from ForgeTrail template)",
+        "TODO.md created (from ForgeTrail template, seeded from PHASE_1_BRIEF §11)",
+        "IDEAS.md created (from ForgeTrail template)",
+        "Phase 2 doc scope only per WORKFLOW §1a (no premature extra templates)"
+      ],
+      "notes": ["Phase 0 foundation: rename, Capacitor removal, Wrangler, LocalSlip, ForgeTrail bootstrap"]
+    },
+    "3-stabilization": {
+      "status": "not_started",
+      "startedAt": null,
+      "completedAt": null,
+      "exitCriteriaMet": [],
+      "exitCriteriaRemaining": [
+        "Environment variables resolve correctly",
+        "APIs return real data",
+        "Core workflow completes without infrastructure errors",
+        "Error messages are human-readable (not just status codes)"
+      ],
+      "notes": []
+    },
+    "4-feature-iteration": {
+      "status": "not_started",
+      "startedAt": null,
+      "completedAt": null,
+      "exitCriteriaMet": [],
+      "exitCriteriaRemaining": [
+        "Core value proposition delivered",
+        "Hero flow works with real data including edge cases",
+        "Features tested beyond happy path"
+      ],
+      "notes": [],
+      "iterations": []
+    },
+    "5-refactoring": {
+      "status": "not_started",
+      "startedAt": null,
+      "completedAt": null,
+      "exitCriteriaMet": [],
+      "exitCriteriaRemaining": [
+        "No file exceeds ~500 lines without justification",
+        "Shared utilities extracted",
+        "No duplicated patterns",
+        "Build passes after each refactor"
+      ],
+      "notes": []
+    },
+    "6-strategic-review": {
+      "status": "not_started",
+      "startedAt": null,
+      "completedAt": null,
+      "exitCriteriaMet": [],
+      "exitCriteriaRemaining": [
+        "BRAND_AND_PRODUCT.md created (from ForgeTrail template)",
+        "TODO reorganized by brand value pillars",
+        "Features mapped to brand pillars",
+        "Gap between brand promise and product identified",
+        "IDEAS.md processed into TODO",
+        "Build order decided"
+      ],
+      "notes": []
+    },
+    "7-hardening": {
+      "status": "not_started",
+      "startedAt": null,
+      "completedAt": null,
+      "exitCriteriaMet": [],
+      "exitCriteriaRemaining": [
+        "CODE_QUALITY.md produced (from ForgeTrail template) and critical findings fixed",
+        "BLACK_HAT_REPORT.md produced (via ForgeTrail security audit) and critical/high findings fixed",
+        "All findings triaged into TODO.md with P0/P1/P2 priority",
+        "DEPLOYMENT.md created (from ForgeTrail template)",
+        "TEST_PLAN.md complete or extended (from ForgeTrail template)",
+        "TECHNICAL_REFERENCE.md complete and current",
+        "Docs alignment audit passed (via ForgeTrail docs-alignment audit)",
+        "All documentation consolidated and cross-referenced"
+      ],
+      "notes": ["Pruned payment/auth exit criteria — local-only static app"]
+    }
+  },
+  "decisions": [
+    {
+      "date": "2026-09-03",
+      "phase": "1-architecture",
+      "decision": "Keep and finish multi-account/debt tracking in parser and UI",
+      "rationale": "In-flight feature; core differentiator for debt payoff forecasting",
+      "alternatives_considered": ["Strip to single account", "Document-only multi-account"]
+    },
+    {
+      "date": "2026-09-03",
+      "phase": "1-architecture",
+      "decision": "Remove Capacitor/Android; PWA + Wrangler on Cloudflare Pages",
+      "rationale": "Scaffold unused; local-only app fits static deploy",
+      "alternatives_considered": ["Revive Capacitor for mobile file access"]
+    },
+    {
+      "date": "2026-09-03",
+      "phase": "1-architecture",
+      "decision": "Svelte 5, TypeScript, Vitest, pnpm; keep .psv format",
+      "rationale": "Modern stack; PSV is established pipe-separated format",
+      "alternatives_considered": [".fbl extension", "Stay on Svelte 4"]
+    },
+    {
+      "date": "2026-09-03",
+      "phase": "1-architecture",
+      "decision": "Defer reconciliation workflow to post-v1",
+      "rationale": "Manual B-line re-anchor sufficient for v1; reduces scope",
+      "alternatives_considered": ["Light re-anchor wizard in v1"]
+    },
+    {
+      "date": "2026-09-03",
+      "phase": "1-architecture",
+      "decision": "Repo: github.com/Catalyst-Forge-LLC/forebalance",
+      "rationale": "Org home under Catalyst Forge",
+      "alternatives_considered": ["Keep acmegeek/my-balance-forecaster"]
+    }
+  ],
+  "gotchas": [],
+  "sessions": [
+    {
+      "date": "2026-09-03",
+      "summary": "Phase 0 foundation: ForeBalance rename, Capacitor removal, tooling bootstrap"
+    }
+  ]
+}

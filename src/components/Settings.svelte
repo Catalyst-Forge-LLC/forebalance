@@ -27,7 +27,7 @@
 
     function downloadEntries() {
         var element = document.createElement('a');
-        let fileName = 'myBalanceForcaster-' + fmt.date3() + '-entries.psv';
+        let fileName = 'forebalance-' + fmt.date3() + '-entries.psv';
         let fileContent = $rawEntriesStore;
         element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(fileContent));
         element.setAttribute('download', fileName);

@@ -1,38 +1,47 @@
-# create-svelte
+# ForeBalance
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte);
+**Cashflow sanity, in plain text.**
 
-## Creating a project
+ForeBalance projects your account balance forward from a plaintext list of credits, debits, and balance resets. One line per transaction, pipe-separated (`.psv`). Everything stays in your browser — no accounts, no tracking, no server-side data.
 
-If you're seeing this, you've probably already done this step. Congrats!
+**Live:** [forebalance.app](https://forebalance.app) (coming soon) · Legacy: [mybalanceforecaster.com](https://mybalanceforecaster.com)
 
-```bash
-# create a new project in the current directory
-npm init svelte@next
-
-# create a new project in my-app
-npm init svelte@next my-app
-```
-
-> Note: the `@next` is temporary
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Quick start
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm install
+localslip claim forebalance --port 5174   # once, optional but recommended
+pnpm dev
 ```
 
-## Building
+Open the URL Vite prints (typically `http://127.0.0.1:5174`).
 
-Before creating a production version of your app, install an [adapter](https://kit.svelte.dev/docs#adapters) for your target environment. Then:
+## Scripts
 
-```bash
-npm run build
+| Command | Description |
+|---|---|
+| `pnpm dev` | Dev server (port from LocalSlip lease `forebalance`, fallback 5174) |
+| `pnpm build` | Production static build → `build/` |
+| `pnpm preview` | Preview production build locally |
+| `pnpm deploy` | Build and deploy to Cloudflare Pages via Wrangler |
+| `pnpm lint` | Prettier + ESLint |
+| `pnpm format` | Prettier write |
+
+## Entry format
+
+```
+TYPE|WHEN|AMOUNT|DESCRIPTION
 ```
 
-> You can preview the built app with `npm run preview`, regardless of whether you installed an adapter. This should _not_ be used to serve your app in production.
+See the in-app **Help** tab or `docs/forebalance-spec.md` for the full DSL (recurrence, multi-account, debt).
+
+## Stack
+
+- SvelteKit + Svelte (migrating to 5)
+- TypeScript (migrating)
+- `adapter-static` → Cloudflare Pages (`wrangler.jsonc`)
+- LocalSlip for dev port · LocalHelm for fleet · ForgeTrail for lifecycle
+
+## License
+
+Copyright © AcmeGeek Labs, LLC

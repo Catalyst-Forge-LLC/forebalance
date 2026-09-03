@@ -1,8 +1,8 @@
 {
 	"background_color": "#ffffff",
 	"theme_color": "#009900",
-	"name": "My Balance Forecaster",
-	"short_name": "MBF",
+	"name": "ForeBalance",
+	"short_name": "ForeBalance",
 	"display": "minimal-ui",
 	"start_url": "/",
 	"icons": [

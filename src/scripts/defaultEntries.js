@@ -2,7 +2,7 @@ const monthPrefix = (new Date()).toISOString().split('T')[0].replace(/-\d{2}$/, 
 
 export	let defaultEntries = `B-CHCK5432-main|${monthPrefix}01|1000|Balance Checking 5432
 --- Income
-C|${monthPrefix}01,R2W|1500|Paycheck evey other week
+C|${monthPrefix}01,R2W|1500|Paycheck every other week
 --- Expenses
 D|${monthPrefix}01,R|1000|Rent
 D|${monthPrefix}01,RW|125|Weekly Food

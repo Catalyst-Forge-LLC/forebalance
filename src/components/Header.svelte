@@ -3,7 +3,7 @@
 </script>
 
 <header>
-  <h1>MyFynn</h1>
+  <h1>ForeBalance</h1>
 </header>
 
 <style lang="scss">
@@ -16,7 +16,6 @@
       text-align: center;
       background-color: #009900;
       color: #fff;
-      text-transform: uppercase;
       font-size: calc(min(7vw, 4rem));
       font-weight: 100;
       line-height: 1.1;

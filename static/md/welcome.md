@@ -1,9 +1,11 @@
-# Welcome to MyFynn!
+# Welcome to ForeBalance
 
-## MyFynn is a fun little tool that lets you easily forecast and project your balance on an account.
+ForeBalance projects your account balance forward from a plaintext list of credits, debits, and balance resets.
 
-You simply enter a line for each credit, debit, or balance reset, and this amazing tool will calculate a projected balance as far into the future as you choose. The magic happens when you can easily specify a recurring debit (payment, expense, or bill) or credit (paycheck, income, etc). The default data is just to give you an idea of how it works.
+Enter one line per transaction, set how many months to forecast, and scan the ledger for the lowest balance and threshold crossings. Recurring paychecks, bills, and savings are first-class — specify them once in the entry format and ForeBalance expands them across the forecast window. The default data is a starter example; replace it with your own numbers.
 
-**NOTE: Nothing is ever sent to this server, all of the data stays on your computer. There are no tracking or ads of any kind!**
+**Nothing is ever sent to a server.** All data stays in your browser. There is no tracking or advertising.
 
-If you clear your browser cache, ths data will go away, so save it off into a text file or email if you have some numbers you want to keep. This is a work in progress, so expect minor bugs and new features!
+If you clear browser storage, your entries will be lost. Use **Download Entries** on the Settings tab to save a `.psv` file, or drag one back onto the Entries tab to restore.
+
+See **Help** for the full entry syntax, or **About** for more on privacy and the project.
