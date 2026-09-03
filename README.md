@@ -44,4 +44,4 @@ See the in-app **Help** tab or `docs/forebalance-spec.md` for the full DSL (recu
 
 ## License
 
-Copyright © AcmeGeek Labs, LLC
+Copyright © Catalyst Forge, LLC

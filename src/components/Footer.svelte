@@ -1,7 +1,7 @@
 <footer>
   <a href="/about">About</a>
   &nbsp;·&nbsp;
-  &copy;2020-{new Date().getFullYear()} AcmeGeek Labs, LLC
+  &copy;2020-{new Date().getFullYear()} Catalyst Forge, LLC
 </footer>
 
 <style lang="scss">

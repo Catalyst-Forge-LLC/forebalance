@@ -139,6 +139,7 @@ ${account.interestRate ? `Interest Rate: ${account.interestRate}%<br>` : ''}`;
         </tr>
       {/if}
       <tr
+        id="forecast-row-{i}"
         class:balance-reset={entry.type === 'B'}
         class="balance-{entry.flag}"
         on:click={(e) => {

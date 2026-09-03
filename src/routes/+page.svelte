@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
 	import { appStateStore, settingsStore, rawEntriesStore } from '$lib/stores/settings';
 	import { Tabs, TabList, TabPanel, Tab } from './../components/tabs';
 	import { parseEntries } from '$lib/parser/parseEntries';
 
 	import ForecastTable from '../components/ForecastTable.svelte';
+	import ForecastSummary from '../components/ForecastSummary.svelte';
 	import Entries from '../components/Entries.svelte';
 	import Settings from '../components/Settings.svelte';
 	import Help from '../components/Help.svelte';
@@ -44,9 +45,15 @@
   }
 
   $: accountList = accounts ? Object.values(accounts).filter((a) => accountEntries?.[a.id]?.length) : [];
+  $: selectedEntries = accountEntries && selectedAccountId ? accountEntries[selectedAccountId] : [];
+  $: selectedIsMain = accounts?.[selectedAccountId]?.isMain ?? true;
+
+  function scrollToForecastRow(rowIndex: number) {
+    document.getElementById(`forecast-row-${rowIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 
   onMount(() => {
-    initializeData();
+    void initializeData();
   });
 </script>
 
@@ -82,6 +89,12 @@
               {/each}
             </div>
           {/if}
+          <ForecastSummary
+            entries={selectedEntries}
+            {balanceFlags}
+            useMainBalance={selectedIsMain}
+            onScrollToRow={scrollToForecastRow}
+          />
           <ForecastTable
             bind:tableEntries={accountEntries[selectedAccountId]}
             {accounts}
