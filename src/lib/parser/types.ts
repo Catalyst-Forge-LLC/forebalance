@@ -43,6 +43,7 @@ export interface ParsedEntry {
 	flag?: BalanceFlag;
 	monthlyInterest?: number;
 	subAccountRunningBal?: number;
+	entryOrder?: number;
 }
 
 export interface BalanceFlags {

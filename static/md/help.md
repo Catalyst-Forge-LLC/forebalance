@@ -1,49 +1,96 @@
-You simply enter a line for each credit, debit, or balance reset, and this amazing tool will calculate a projected balance as far into the future as you choose.
+# ForeBalance entry format
 
-The magic happens when you can easily specify a recurring debit (payment, expense, or bill) or credit (paycheck, income, etc). The default data is just to give you an idea of how it works.
+ForeBalance projects your account balance forward from a plaintext list — one line per credit, debit, or balance reset. Save your data as a `.psv` (pipe-separated values) file.
 
-Each entry is a single line that has four pipe (|) separated sections: 
+Each entry line uses four pipe-separated fields:
 
 ```TYPE|WHEN|AMOUNT|DESCRIPTION```
 
-## TYPE - What type of transaction is this entry?
-- **B** - Balance as of a certain date
-- **C** - Credit on a certain date
-- **D** - Debit on a certain date
+Section comments begin with `---` (for example `--- Income`).
 
-## WHEN - When does this entry occur and does it recur?
+## TYPE
 
-### Single Entry
-The specified date for the entry, in `YYYY-MM-DD` format.
+| Code | Meaning |
+|---|---|
+| **B** | Balance as of a date (resets the running balance) |
+| **C** | Credit |
+| **D** | Debit |
 
-### Recurring Entry
-Recurring entries can start on a specified date, and then repeat every interval according to the specified interval frequency **(f)** and interval multiple **(m)**, and then repeat indefinitely or for a specified recurrence count **(c)** or through a specified end date. The multiple defaults to 1 and can be omitted. The frequency defaults to month and can also be omitted. If the count is omitted, the entry will recur indefinitely unless there is also a specified end date.
+### Main checking account
 
-#### Interval Multiple (m):
-An integer 1 or greater, defaults to 1;
+Use `-ACCOUNTID-main` on the balance line (case-insensitive):
 
-#### Interval Frequency (f):
-- D - Daily
-- W - Weekly
-- M - monthly (default)
-- Y - Yearly
+```B-CHCK5432-main|2026-04-01|1000|Balance Checking 5432```
 
-#### Recurrence Count (c):
-An integer 1 or greater, defaults to infinity, but practically limited by the forecasting settings;
+### Credits and debits on the main account
 
-#### Recurring entry formats:
-- repeats indefinitely: `YYYY-MM-DD,Rmf`
-    - `2021-04-01,R` - Recurs on the first of every month starting on April 1, 2021.
-    - `2021-03-03,RM` - Recurs on the third of every month starting on March 3, 2021.
-    - `2021-03-15,R3M` - Recurs on the 15th of every third month (equal to quarterly) starting on March 15, 2021.
-    - `2021-01-01,RY` - Recurs yearly on January 1 starting on January 1, 2021.
-    - `2021-02-1,R2W` - Recurs every two weeks starting on February 1, 2021.
-    - `2021-02-1,RD` - Recurs daily starting on February 1, 2021.
-    - `2021-02-10,R2D` - Recurs every other day starting on February 10, 2021.
-- repeats a specified count: `YYYY-MM-DD,Rmfc`
-    - `2021-02-1,RW5` - Recurs weekly for five weeks starting on February 1, 2021.
-    - `2021-02-5,R2M3` - Recurs every other month three times starting on February 5, 2021.
-- repeats through a specified end date: `YYYY-MM-DD,Rmf,YYYY-MM-DD`
-    - `2021-02-10,R2D,2021-04-10` - Recurs every other day starting on February 10, 2021 and ends on April 10, 2021.
-    - `2021-02-1,R,2021-07-01` - Recurs monthly starting on February 1, 2021 and ends on July 1, 2021.
+Omit the account suffix — they apply to the main account:
 
+```C|2026-04-01,R2W|1500|Paycheck every other week
+D|2026-04-01,R|1000|Rent```
+
+### Debt and sub-accounts
+
+Bind a line to a sub-account with a type suffix, for example `D-VISA`. Define the sub-account on first use with extra fields:
+
+```TYPE-ACCOUNT|WHEN|AMOUNT|DESCRIPTION|ACCOUNT|STARTING_BAL|RATE1|RATE2|RATE2_DATE```
+
+Example:
+
+```D|2026-04-01|3200|Visa balance|VISA|3200|19.99
+D-VISA|2026-04-15,R|150|Visa payment```
+
+ForeBalance tracks running debt balance, monthly interest, and paid-off status on sub-accounts. Use the account picker on the Forecast tab to view each account.
+
+## WHEN — dates and recurrence
+
+Single date: `YYYY-MM-DD` (non-padded days like `2026-2-5` are accepted).
+
+Recurring: `YYYY-MM-DD,R[m][f][c]` or with end date `YYYY-MM-DD,R[m][f],YYYY-MM-DD`
+
+| Part | Meaning |
+|---|---|
+| **m** | Interval multiple (default 1) |
+| **f** | `D` daily, `W` weekly, `M` monthly (default), `Y` yearly |
+| **c** | Occurrence count (default: unbounded within forecast window) |
+
+Examples:
+
+| Entry | Meaning |
+|---|---|
+| `2026-04-01,R` | Monthly from Apr 1 |
+| `2026-03-15,R3M` | Every third month from Mar 15 |
+| `2026-01-01,RY` | Yearly on Jan 1 |
+| `2026-02-01,R2W` | Every two weeks from Feb 1 |
+| `2026-02-01,RW5` | Weekly, five times |
+| `2026-02-10,R2D,2026-04-10` | Every other day through Apr 10 |
+
+**Month-end behavior:** For monthly recurrence, if the start day does not exist in a month (e.g. 31st in February), ForeBalance clamps to the last day of that month.
+
+## Disable a line without deleting it
+
+Prefix `!` or `#` to exclude a line from the forecast (useful for what-if scenarios):
+
+```!D|2026-04-16,R|500|Savings this month```
+
+## Sort order
+
+On the same calendar date, ForeBalance applies entries in this order:
+
+1. Balance resets (`B`)
+2. Credits (`C`)
+3. Debits (`D`)
+4. Original line order in your file
+
+## Malformed lines
+
+Lines that do not match the expected format are skipped in the forecast and listed as warnings below the Entries editor.
+
+## Persistence
+
+- Data is stored in your browser until you clear site data.
+- Use **Import PSV** or drag-and-drop to load a file.
+- In supported browsers, **Link file…** saves changes back to a `.psv` file on disk.
+- **Download Entries** on Settings always works as a fallback.
+
+Nothing is sent to a server.

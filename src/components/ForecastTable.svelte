@@ -8,8 +8,25 @@
 
   export let tableEntries = [];
   export let accounts = {};
+  export let viewingMainAccount = true;
 
   const mainAccount = Object.values(accounts).find((account) => account.isMain);
+
+  function displayBalance(entry) {
+    if (viewingMainAccount) {
+      return fmt.curr(entry.mainBalance);
+    }
+    return fmt.curr(entry.subAccountRunningBal ?? entry.balance ?? entry.mainBalance);
+  }
+
+  function flagIndicator(flag) {
+    if (flag === 'negative') return '⚠ ';
+    if (flag === 'low') return '▼ ';
+    if (flag === 'uncomfortable') return '◆ ';
+    if (flag === 'goal') return '▲ ';
+    if (flag === 'paid-off') return '✓ ';
+    return '';
+  }
 
   $: entryCount = tableEntries.length;
 
@@ -182,7 +199,7 @@ ${account.interestRate ? `Interest Rate: ${account.interestRate}%<br>` : ''}`;
           >
           <td align="right">{entry.type === 'C' ? fmt.curr(entry.amount) : ''}</td>
           <td align="right">{entry.type === 'D' ? fmt.curr(entry.amount) : ''}</td>
-          <td align="right">{fmt.curr(entry.mainBalance)}</td>
+          <td align="right">{flagIndicator(entry.flag)}{displayBalance(entry)}</td>
         {/if}
       </tr>
       {#if showMonthFooter(i)}

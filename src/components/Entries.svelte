@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { validateRawEntries } from '$lib/parser/validateEntries';
   import { onMount } from 'svelte';
   import { logd } from '$lib/util/log';
   import { setRawEntries } from '$lib/data/entriesPersistence';
@@ -12,11 +13,15 @@
     unlinkPsvFile,
   } from '$lib/persistence/psvPersistence';
   import Dropzone from 'svelte-file-dropzone';
+  import type { EntryValidation } from '$lib/parser/validateEntries';
 
   let lastInputEntries = '';
   let linkedFileName: string | null = null;
   let fsSupported = false;
   let importInput: HTMLInputElement;
+  let validationWarnings: EntryValidation[] = [];
+
+  $: validationWarnings = validateRawEntries($rawEntriesStore);
 
   onMount(() => {
     fsSupported = isFileSystemAccessSupported();
@@ -105,7 +110,18 @@
   on:change={onImportSelected}
 />
 
-<textarea id="inputEntries" on:change={processRaw} cols="40" rows="20">{$rawEntriesStore}</textarea>
+<textarea id="inputEntries" class:has-warnings={validationWarnings.length > 0} on:change={processRaw} cols="40" rows="20">{$rawEntriesStore}</textarea>
+
+{#if validationWarnings.length}
+  <div class="validation-warnings" role="alert">
+    <strong>Entry warnings</strong>
+    <ul>
+      {#each validationWarnings as warning}
+        <li>Line {warning.line}: {warning.message}</li>
+      {/each}
+    </ul>
+  </div>
+{/if}
 
 <Dropzone on:drop={handleFilesSelect} />
 
@@ -151,5 +167,25 @@
     max-width: 55em;
     font-size: 1rem;
     height: 90%;
+
+    &.has-warnings {
+      border: 2px solid #cc8800;
+    }
+  }
+
+  .validation-warnings {
+    max-width: 55em;
+    margin: 0.5rem auto;
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    background: #fff8e6;
+    border: 1px solid #cc8800;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+
+    ul {
+      margin: 0.25rem 0 0;
+      padding-left: 1.25rem;
+    }
   }
 </style>

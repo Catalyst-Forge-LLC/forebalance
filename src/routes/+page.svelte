@@ -98,6 +98,7 @@
           <ForecastTable
             bind:tableEntries={accountEntries[selectedAccountId]}
             {accounts}
+            viewingMainAccount={selectedIsMain}
           ></ForecastTable>
         {/if}
       </TabPanel>

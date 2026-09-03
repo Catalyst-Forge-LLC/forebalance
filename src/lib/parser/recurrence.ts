@@ -59,9 +59,31 @@ export function updateDescRecur(desc: string, recur: Recur, rIndex: number): str
 }
 
 export function updateDateRecur(date: Date, recur: Recur): Date {
-	return dayjs(date)
-		.add(recur.multiple, freqs[recur.freq])
-		.toDate();
+	const current = dayjs(date);
+	if (recur.freq === 'M') {
+		const dayOfMonth = current.date();
+		const next = current.add(recur.multiple, 'month');
+		const clampedDay = Math.min(dayOfMonth, next.daysInMonth());
+		return next.date(clampedDay).toDate();
+	}
+	return current.add(recur.multiple, freqs[recur.freq]).toDate();
+}
+
+const typeSortOrder: Record<string, number> = { B: 0, C: 1, D: 2 };
+
+export function sortEntries<T extends { date: Date; type: string; entryOrder?: number }>(
+	entries: T[],
+): T[] {
+	return entries.toSorted((a, b) => {
+		const byDate = a.date.valueOf() - b.date.valueOf();
+		if (byDate !== 0) return byDate;
+
+		const byType =
+			(typeSortOrder[a.type] ?? 99) - (typeSortOrder[b.type] ?? 99);
+		if (byType !== 0) return byType;
+
+		return (a.entryOrder ?? 0) - (b.entryOrder ?? 0);
+	});
 }
 
 export function getBalanceFlag(bal: number, balanceFlags: import('./types').BalanceFlags): string {
@@ -77,14 +99,4 @@ export function getBalanceFlag(bal: number, balanceFlags: import('./types').Bala
 		}
 	}
 	return balanceFlag;
-}
-
-export function sortEntries<T extends { date: Date; type: string }>(entries: T[]): T[] {
-	return entries.toSorted((a, b) => {
-		if (a.date.valueOf() > b.date.valueOf()) return 1;
-		if (a.date.valueOf() === b.date.valueOf()) {
-			return a.type > b.type ? 1 : -1;
-		}
-		return -1;
-	});
 }

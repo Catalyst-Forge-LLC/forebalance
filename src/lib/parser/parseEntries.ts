@@ -8,6 +8,7 @@ import {
 	updateDateRecur,
 	updateDescRecur,
 } from '$lib/parser/recurrence';
+import { isEntryLineDisabled } from '$lib/parser/validateEntries';
 import type {
 	Account,
 	AccountEntries,
@@ -23,8 +24,11 @@ function parseRawEntries(rawEntries: string, recurringEntries: Record<string, nu
 	const parsedEntries = rawEntries
 		.trim()
 		.split('\n')
-		.map((rawEntry) => {
+		.map((rawEntry, lineIndex) => {
 			if (!rawEntry || rawEntry.length === 0) {
+				return undefined;
+			}
+			if (isEntryLineDisabled(rawEntry)) {
 				return undefined;
 			}
 			if (rawEntry.startsWith('---')) {
@@ -55,6 +59,7 @@ function parseRawEntries(rawEntries: string, recurringEntries: Record<string, nu
 				rawEntry,
 				isMain: false,
 				recur: null,
+				entryOrder: lineIndex,
 			};
 			if (parsedEntry.type === 'B' && parsedEntry.accountId) {
 				parsedEntry.isMain = main === 'MAIN';

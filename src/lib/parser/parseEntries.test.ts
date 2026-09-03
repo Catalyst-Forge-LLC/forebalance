@@ -43,11 +43,11 @@ describe('parseDate', () => {
 });
 
 describe('sortEntries', () => {
-	it('sorts by date then type (C before D)', () => {
+	it('sorts by date then type (B, C, D) then entry order', () => {
 		const entries = [
-			{ date: new Date(2026, 0, 15), type: 'D' },
-			{ date: new Date(2026, 0, 15), type: 'C' },
-			{ date: new Date(2026, 0, 1), type: 'B' },
+			{ date: new Date(2026, 0, 15), type: 'D', entryOrder: 1 },
+			{ date: new Date(2026, 0, 15), type: 'C', entryOrder: 0 },
+			{ date: new Date(2026, 0, 1), type: 'B', entryOrder: 2 },
 		];
 		const sorted = sortEntries(entries);
 		expect(sorted[0].type).toBe('B');
