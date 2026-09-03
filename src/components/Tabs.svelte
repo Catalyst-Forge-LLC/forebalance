@@ -3,7 +3,7 @@
 </script>
 
 <script>
-	import { appStateStore } from '../scripts/stores';
+	import { appStateStore } from '$lib/stores/settings';
 
 	import { setContext, onDestroy } from 'svelte';
 	import { writable } from 'svelte/store';

@@ -10,17 +10,17 @@ ForeBalance projects your account balance forward from a plaintext list of credi
 
 ```bash
 pnpm install
-localslip claim forebalance --port 5174   # once, optional but recommended
+localslip claim forebalance --port 46000   # once, optional but recommended
 pnpm dev
 ```
 
-Open the URL Vite prints (typically `http://127.0.0.1:5174`).
+Open the URL Vite prints (typically `http://127.0.0.1:46000`).
 
 ## Scripts
 
 | Command | Description |
 |---|---|
-| `pnpm dev` | Dev server (port from LocalSlip lease `forebalance`, fallback 5174) |
+| `pnpm dev` | Dev server (port from LocalSlip lease `forebalance`, fallback 46000) |
 | `pnpm build` | Production static build → `build/` |
 | `pnpm preview` | Preview production build locally |
 | `pnpm deploy` | Build and deploy to Cloudflare Pages via Wrangler |

@@ -54,7 +54,7 @@ Work can proceed in this repo; a **new git remote** will be provided later — s
 | **Repo UI** | MyFynn (header, title, manifest, welcome copy) |
 | **Download filenames** | `myBalanceForcaster-*.psv` (typo: Forcaster) |
 | **Package name** | `"~TODO~"` |
-| **Dev server** | `vite dev --host --port 5174` (hardcoded) |
+| **Dev server** | LocalSlip lease `forebalance` on port **46000** |
 | **Legacy remote** | `github.com/acmegeek/my-balance-forecaster` (superseded) |
 
 ---
@@ -187,7 +187,7 @@ Phase mapping for this project:
 Replace hardcoded `--port 5174` with a named lease:
 
 ```bash
-localslip claim forebalance --port 5174
+localslip claim forebalance --port 46000
 ```
 
 In `vite.config.ts`:
@@ -195,7 +195,7 @@ In `vite.config.ts`:
 ```ts
 import { localslipListen } from 'localslip/port';
 
-const listen = localslipListen('forebalance', 5174);
+const listen = localslipListen('forebalance', 46000);
 
 export default defineConfig({
   server: { host: listen.host, port: listen.port, strictPort: true },

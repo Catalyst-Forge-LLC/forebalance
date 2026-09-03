@@ -1,8 +1,8 @@
 <script>
-    import { fmt } from '../scripts/fmt';
+    import { fmt } from '$lib/formatters/fmt';
 
-    import { defaultEntries } from '../scripts/defaultEntries';
-    import { defaultSettings } from '../scripts/defaultSettings';
+    import { defaultEntries } from '$lib/data/defaultEntries';
+    import { defaultSettings } from '$lib/data/defaultSettings';
 
     const ranges = {
         monthsToForecast: { label: 'Months to Forecast', min: 3, max: 24, step: 1 },
@@ -11,7 +11,7 @@
         thresholdLowBalance: { label: 'Low Balance Threshold', min: 100, max: 10000, step: 100 },
     };
 
-    import { settingsStore, rawEntriesStore } from '../scripts/stores';
+    import { settingsStore, rawEntriesStore } from '$lib/stores/settings';
 
     function saveSettings(e) {
 		localStorage.setItem('settings', JSON.stringify($settingsStore));

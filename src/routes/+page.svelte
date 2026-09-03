@@ -1,21 +1,21 @@
 <script>
-  import { appStateStore, settingsStore, rawEntriesStore } from '../scripts/stores';
-  import { Tabs, TabList, TabPanel, Tab } from './../components/tabs';
-  import { parseEntries } from '../scripts/parseEntries';
+	import { appStateStore, settingsStore, rawEntriesStore } from '$lib/stores/settings';
+	import { Tabs, TabList, TabPanel, Tab } from './../components/tabs';
+	import { parseEntries } from '$lib/parser/parseEntries';
 
-  import ForecastTable from '../components/ForecastTable.svelte';
-  import Entries from '../components/Entries.svelte';
-  import Settings from '../components/Settings.svelte';
-  import Help from '../components/Help.svelte';
-  import Welcome from '../components/Welcome.svelte';
+	import ForecastTable from '../components/ForecastTable.svelte';
+	import Entries from '../components/Entries.svelte';
+	import Settings from '../components/Settings.svelte';
+	import Help from '../components/Help.svelte';
+	import Welcome from '../components/Welcome.svelte';
 
-  import { initializeData } from '../components/data';
-  import { onMount } from 'svelte';
-  import { logd } from '../scripts/util';
+	import { initializeData } from '$lib/data/initializeData';
+	import { onMount } from 'svelte';
+	import { logd } from '$lib/util/log';
 
   let accountEntries = {};
   let accounts;
-  let activeAccount = {};
+  let selectedAccountId = '';
 
   $: balanceFlags = {
     below: {
@@ -29,18 +29,21 @@
   };
 
   $: if ($rawEntriesStore && $settingsStore.monthsToForecast && balanceFlags) {
-    [accountEntries, accounts] = $rawEntriesStore ? parseEntries($rawEntriesStore, $settingsStore.monthsToForecast, balanceFlags) : [{}, {}];
+    [accountEntries, accounts] = $rawEntriesStore
+      ? parseEntries($rawEntriesStore, $settingsStore.monthsToForecast, balanceFlags)
+      : [null, null];
     if (accountEntries && accounts) {
-      Object.entries(accounts).forEach(([accountId, account]) => {
-        if (account.isMain) {
-          activeAccount = account;
-        }
-      });
-      logd('[page-accounts]', { accountEntries, accounts, activeAccount });
+      const main = Object.values(accounts).find((account) => account.isMain);
+      if (main && (!selectedAccountId || !accounts[selectedAccountId])) {
+        selectedAccountId = main.id;
+      }
+      logd('[page-accounts]', { accountEntries, accounts, selectedAccountId });
     } else {
-      activeAccount = {};
+      selectedAccountId = '';
     }
   }
+
+  $: accountList = accounts ? Object.values(accounts).filter((a) => accountEntries?.[a.id]?.length) : [];
 
   onMount(() => {
     initializeData();
@@ -65,8 +68,24 @@
         <Entries></Entries>
       </TabPanel>
       <TabPanel showLoader="true">
-        {#if accountEntries[activeAccount.id]}
-          <ForecastTable bind:tableEntries={accountEntries[activeAccount.id]} {accounts}></ForecastTable>
+        {#if accountEntries && selectedAccountId && accountEntries[selectedAccountId]}
+          {#if accountList.length > 1}
+            <div class="account-picker">
+              {#each accountList as account}
+                <button
+                  type="button"
+                  class:selected={selectedAccountId === account.id}
+                  on:click={() => (selectedAccountId = account.id)}
+                >
+                  {account.id}{account.isMain ? ' (main)' : ''}
+                </button>
+              {/each}
+            </div>
+          {/if}
+          <ForecastTable
+            bind:tableEntries={accountEntries[selectedAccountId]}
+            {accounts}
+          ></ForecastTable>
         {/if}
       </TabPanel>
       <TabPanel>
@@ -117,5 +136,30 @@
     overflow: overlay;
     position: relative;
     padding-bottom: 4rem;
+  }
+
+  .account-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin: 0.5rem 0 1rem;
+    padding: 0 0.5rem;
+
+    button {
+      background: #e8f5e8;
+      border: 1px solid #009900;
+      border-radius: 0.5rem;
+      color: #004400;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0.35rem 0.75rem;
+
+      &.selected {
+        background: #009900;
+        color: #fff;
+        font-weight: 700;
+      }
+    }
   }
 </style>

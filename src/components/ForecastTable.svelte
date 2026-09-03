@@ -1,9 +1,9 @@
 <script>
-  import { appStateStore, rawEntriesStore } from '../scripts/stores';
-  import { updateEntry } from '../scripts/parseEntries';
+  import { appStateStore, rawEntriesStore } from '$lib/stores/settings';
+  import { updateEntry } from '$lib/parser/parseEntries';
   import { onMount } from 'svelte';
-  import { fmt } from '../scripts/fmt';
-  import { logd } from '../scripts/util';
+  import { fmt } from '$lib/formatters/fmt';
+  import { logd } from '$lib/util/log';
   import Tooltip from './Tooltip.svelte';
 
   export let tableEntries = [];

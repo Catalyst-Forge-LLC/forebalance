@@ -1,5 +1,5 @@
 <script>
-  import { appStateStore } from '../scripts/stores';
+  import { appStateStore } from '$lib/stores/settings';
 </script>
 
 <header>

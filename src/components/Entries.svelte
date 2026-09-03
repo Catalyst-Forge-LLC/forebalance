@@ -1,6 +1,6 @@
 <script>
-  import { logd } from '../scripts/util';
-  import { rawEntriesStore } from '../scripts/stores';
+  import { logd } from '$lib/util/log';
+  import { rawEntriesStore } from '$lib/stores/settings';
   import Dropzone from 'svelte-file-dropzone';
 
   let lastInputEntries = '';
