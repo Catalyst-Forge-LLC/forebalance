@@ -104,5 +104,5 @@ export function psvLinter() {
 				message: warning.message,
 			};
 		});
-	});
+	}, { delay: 750 });
 }

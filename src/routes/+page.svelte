@@ -14,12 +14,14 @@
 	import Welcome from '../components/Welcome.svelte';
 
 	import { initializeData } from '$lib/data/initializeData';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { logd } from '$lib/util/log';
 
   let accountEntries = {};
   let accounts;
   let selectedAccountId = '';
+  let parseTimer: ReturnType<typeof setTimeout> | undefined;
+  let parsedOnce = false;
 
   $: balanceFlags = {
     below: {
@@ -32,9 +34,9 @@
     },
   };
 
-  $: if ($rawEntriesStore && $settingsStore.monthsToForecast && balanceFlags) {
-    [accountEntries, accounts] = $rawEntriesStore
-      ? parseEntries($rawEntriesStore, $settingsStore.monthsToForecast, balanceFlags, {
+  function applyParsed(raw: string | null) {
+    [accountEntries, accounts] = raw
+      ? parseEntries(raw, $settingsStore.monthsToForecast, balanceFlags, {
           useFederalHolidays: $settingsStore.useFederalHolidays,
         })
       : [null, null];
@@ -47,7 +49,22 @@
     } else {
       selectedAccountId = '';
     }
+    parsedOnce = true;
   }
+
+  $: if ($rawEntriesStore && $settingsStore.monthsToForecast && balanceFlags) {
+    const raw = $rawEntriesStore;
+    if (parseTimer) clearTimeout(parseTimer);
+    if (!parsedOnce) {
+      applyParsed(raw);
+    } else {
+      parseTimer = setTimeout(() => applyParsed(raw), 350);
+    }
+  }
+
+  onDestroy(() => {
+    if (parseTimer) clearTimeout(parseTimer);
+  });
 
   $: accountList = accounts ? Object.values(accounts).filter((a) => accountEntries?.[a.id]?.length) : [];
   $: selectedEntries = accountEntries && selectedAccountId ? accountEntries[selectedAccountId] : [];

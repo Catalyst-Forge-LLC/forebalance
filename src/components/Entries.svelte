@@ -17,26 +17,37 @@
   import PsvEditor from './PsvEditor.svelte';
 
   let lastInputEntries = '';
+  let draftEntries = '';
   let linkedFileName: string | null = null;
   let fsSupported = false;
   let importInput: HTMLInputElement;
   let validationWarnings: EntryValidation[] = [];
 
-  $: validationWarnings = validateRawEntries($rawEntriesStore);
+  $: if ($rawEntriesStore !== lastInputEntries) {
+    lastInputEntries = $rawEntriesStore;
+    draftEntries = $rawEntriesStore;
+  }
+  $: validationWarnings = validateRawEntries(draftEntries || $rawEntriesStore);
 
   onMount(() => {
     fsSupported = isFileSystemAccessSupported();
     linkedFileName = getLinkedFileName();
     lastInputEntries = $rawEntriesStore;
+    draftEntries = $rawEntriesStore;
   });
 
   function applyRawEntries(rawEntries: string) {
     setRawEntries(rawEntries);
     logd('[set-raw-entries]', rawEntries);
     lastInputEntries = rawEntries;
+    draftEntries = rawEntries;
   }
 
-  function handleEditorChange(inputEntries: string) {
+  function handleEditorDraft(inputEntries: string) {
+    draftEntries = inputEntries;
+  }
+
+  function handleEditorCommit(inputEntries: string) {
     if (lastInputEntries === inputEntries) {
       return;
     }
@@ -111,7 +122,8 @@
 <PsvEditor
   value={$rawEntriesStore}
   hasWarnings={validationWarnings.length > 0}
-  onChange={handleEditorChange}
+  onDraft={handleEditorDraft}
+  onChange={handleEditorCommit}
 />
 
 {#if validationWarnings.length}

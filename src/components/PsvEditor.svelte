@@ -5,12 +5,37 @@
   import { psvLinter, psvTheme } from '$lib/editor/psvExtensions';
 
   export let value = '';
+  /** Fired on blur and after typing pauses — use this to persist / reparse. */
   export let onChange: (value: string) => void = () => {};
+  /** Fired on every edit for cheap local UI (warnings). Do not parse the forecast here. */
+  export let onDraft: (value: string) => void = () => {};
   export let hasWarnings = false;
+  export let commitDelayMs = 600;
 
   let container: HTMLDivElement;
   let view: EditorView | undefined;
-  let internalUpdate = false;
+  let focused = false;
+  let commitTimer: ReturnType<typeof setTimeout> | undefined;
+
+  function currentDoc(): string {
+    return view?.state.doc.toString() ?? value;
+  }
+
+  function flushCommit() {
+    if (commitTimer) {
+      clearTimeout(commitTimer);
+      commitTimer = undefined;
+    }
+    onChange(currentDoc());
+  }
+
+  function scheduleCommit() {
+    if (commitTimer) clearTimeout(commitTimer);
+    commitTimer = setTimeout(() => {
+      commitTimer = undefined;
+      onChange(currentDoc());
+    }, commitDelayMs);
+  }
 
   onMount(() => {
     view = new EditorView({
@@ -22,11 +47,19 @@
           psvTheme(),
           psvLinter(),
           EditorView.updateListener.of((update) => {
-            if (update.docChanged) {
-              internalUpdate = true;
-              onChange(update.state.doc.toString());
-              internalUpdate = false;
-            }
+            if (!update.docChanged) return;
+            const next = update.state.doc.toString();
+            onDraft(next);
+            scheduleCommit();
+          }),
+          EditorView.domEventHandlers({
+            blur: () => {
+              focused = false;
+              flushCommit();
+            },
+            focus: () => {
+              focused = true;
+            },
           }),
         ],
       }),
@@ -34,10 +67,11 @@
   });
 
   onDestroy(() => {
+    flushCommit();
     view?.destroy();
   });
 
-  $: if (view && !internalUpdate && value !== view.state.doc.toString()) {
+  $: if (view && !focused && value !== view.state.doc.toString()) {
     view.dispatch({
       changes: { from: 0, to: view.state.doc.length, insert: value },
     });
