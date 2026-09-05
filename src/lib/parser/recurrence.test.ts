@@ -35,6 +35,30 @@ describe('updateDateRecur month-end', () => {
 		expect(feb.getMonth()).toBe(1);
 		expect(feb.getDate()).toBeLessThanOrEqual(28);
 	});
+
+	it('RML lands on last day each month', () => {
+		const recur = parseRecur('RML')!;
+		const jan31 = new Date(2026, 0, 31);
+		const feb = updateDateRecur(jan31, recur);
+		expect(feb.getMonth()).toBe(1);
+		expect(feb.getDate()).toBe(28);
+		const mar = updateDateRecur(feb, recur);
+		expect(mar.getMonth()).toBe(2);
+		expect(mar.getDate()).toBe(31);
+	});
+});
+
+describe('business-day shifting in forecast', () => {
+	it('shifts Saturday rent to Friday with R<', () => {
+		const raw = `B-CHCK-main|2026-01-01|5000|Balance
+D|2026-09-05,R<|100|Rent`;
+		const [accountEntries] = parseEntries(raw, 1, balanceFlags, { useFederalHolidays: false });
+		const rows = accountEntries![Object.keys(accountEntries!)[0]].filter((e) =>
+			e.desc?.includes('Rent'),
+		);
+		expect(rows[0].date?.getDay()).toBe(5);
+		expect(rows[0].date?.getDate()).toBe(4);
+	});
 });
 
 describe('validateRawEntries', () => {

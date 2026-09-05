@@ -7,4 +7,5 @@ export const defaultSettings: Settings = {
 	monthsToForecast: 6,
 	locale: 'en-US',
 	currencyIsoCode: 'USD',
+	useFederalHolidays: true,
 };

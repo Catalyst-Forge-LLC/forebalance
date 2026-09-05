@@ -1,3 +1,5 @@
+import type { BusinessDayShift } from './businessDays';
+
 export type EntryType = 'B' | 'C' | 'D' | 'G';
 
 export type BalanceFlag = '' | 'negative' | 'low' | 'uncomfortable' | 'goal' | 'paid-off';
@@ -7,6 +9,7 @@ export interface Recur {
 	multiple: number;
 	count: number | null;
 	recurRaw: string | null;
+	lastDayOfMonth?: boolean;
 }
 
 export interface Account {
@@ -44,6 +47,7 @@ export interface ParsedEntry {
 	monthlyInterest?: number;
 	subAccountRunningBal?: number;
 	entryOrder?: number;
+	businessDayShift?: BusinessDayShift;
 }
 
 export interface BalanceFlags {
@@ -67,6 +71,11 @@ export interface Settings {
 	monthsToForecast: number;
 	locale: string;
 	currencyIsoCode: string;
+	useFederalHolidays: boolean;
+}
+
+export interface ParseOptions {
+	useFederalHolidays?: boolean;
 }
 
 export interface EntryInputs {

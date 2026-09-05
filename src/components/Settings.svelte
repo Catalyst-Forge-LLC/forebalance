@@ -69,6 +69,14 @@
             </div>
         </label>
     {/each}
+    <label class="checkbox-row">
+      <input
+        type="checkbox"
+        bind:checked={$settingsStore.useFederalHolidays}
+        on:change={saveSettings}
+      />
+      Treat US federal holidays as non-business days (for <code>R&lt;</code> / <code>R&gt;</code> shifting)
+    </label>
 </div>
 <button type="button" class="button-action" on:click={resetEntries}>Reset Entries and Settings</button>
 <button type="button" class="button-action" on:click={downloadEntries}>Download Entries</button>
@@ -101,6 +109,21 @@
             input[type='range'] {
                 flex: 1;
             }
+        }
+    }
+
+    .checkbox-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: flex-start;
+        max-width: 28em;
+        margin: 1.5rem auto 0;
+        text-align: left;
+        font-weight: normal;
+        font-size: 0.95rem;
+
+        code {
+            font-size: 0.9em;
         }
     }
 </style>

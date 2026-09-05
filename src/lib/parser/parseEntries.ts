@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { fmt } from '$lib/formatters/fmt';
+import { applyBusinessDayShift } from '$lib/parser/businessDays';
 import {
 	getBalanceFlag,
 	getRandomId,
@@ -16,10 +17,24 @@ import type {
 	BalanceFlags,
 	EntryInputs,
 	ParsedEntry,
+	ParseOptions,
 	ParseResult,
 } from '$lib/parser/types';
 
-function parseRawEntries(rawEntries: string, recurringEntries: Record<string, number>) {
+function shiftEntryDate(
+	entry: ParsedEntry,
+	useFederalHolidays: boolean,
+): void {
+	if (entry.date && entry.businessDayShift) {
+		entry.date = applyBusinessDayShift(entry.date, entry.businessDayShift, useFederalHolidays);
+	}
+}
+
+function parseRawEntries(
+	rawEntries: string,
+	recurringEntries: Record<string, number>,
+	useFederalHolidays: boolean,
+) {
 	const accounts: Accounts = {};
 	const parsedEntries = rawEntries
 		.trim()
@@ -83,10 +98,14 @@ function parseRawEntries(rawEntries: string, recurringEntries: Record<string, nu
 					};
 				}
 			}
-			const dateParts = parseDate(entry[1]);
-			if (dateParts) {
-				[parsedEntry.date, parsedEntry.recur, parsedEntry.rawRecur, parsedEntry.endDate] =
-					dateParts as [Date, ParsedEntry['recur'], string, Date | null];
+			const when = parseDate(entry[1]);
+			if (when) {
+				parsedEntry.date = when.startDate;
+				parsedEntry.recur = when.recur;
+				parsedEntry.rawRecur = when.recurRaw;
+				parsedEntry.endDate = when.endDate;
+				parsedEntry.businessDayShift = when.businessDayShift;
+				shiftEntryDate(parsedEntry, useFederalHolidays);
 			}
 			if (!recurringEntries[parsedEntry.id]) {
 				recurringEntries[parsedEntry.id] = 1;
@@ -135,9 +154,15 @@ export function parseEntries(
 	rawEntries: string,
 	monthsToForecast: number,
 	balanceFlags: BalanceFlags,
+	options: ParseOptions = {},
 ): ParseResult {
+	const useFederalHolidays = options.useFederalHolidays ?? true;
 	const recurringEntries: Record<string, number> = {};
-	const { accounts, parsedEntries } = parseRawEntries(rawEntries, recurringEntries);
+	const { accounts, parsedEntries } = parseRawEntries(
+		rawEntries,
+		recurringEntries,
+		useFederalHolidays,
+	);
 
 	if (typeof parsedEntries[0]?.date !== 'object') {
 		console.error('error parsing the date.', parsedEntries);
@@ -173,6 +198,7 @@ export function parseEntries(
 			const newEntry: ParsedEntry = { ...entry };
 			++recurringEntries[newEntry.id];
 			newEntry.date = updateDateRecur(newEntry.date, newEntry.recur);
+			shiftEntryDate(newEntry, useFederalHolidays);
 			if (newEntry.desc) {
 				newEntry.desc = updateDescRecur(newEntry.desc, newEntry.recur, recurringEntries[newEntry.id]);
 			}

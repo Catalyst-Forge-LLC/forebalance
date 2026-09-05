@@ -67,6 +67,26 @@ Examples:
 
 **Month-end behavior:** For monthly recurrence, if the start day does not exist in a month (e.g. 31st in February), ForeBalance clamps to the last day of that month.
 
+**Last day of month:** Use `-L` in the date (`2026-01-L`) or `RML` as the recurrence code to always land on the last calendar day of each month:
+
+```D|2026-01-L,RML|1200|Mortgage end of month```
+
+### Business-day shifting
+
+Append `<` or `>` to the recurrence code to shift dates that fall on weekends (and optionally US federal holidays):
+
+| Modifier | Meaning |
+|---|---|
+| `R<` | Previous business day |
+| `R>` | Next business day |
+| (none) | No shift (default) |
+
+Example — rent due on the 5th, paid the prior business day if the 5th is a weekend:
+
+```D|2026-09-05,R<|1000|Rent```
+
+Enable **US federal holidays** in Settings to treat observed federal holidays as non-business days. Bank holidays may differ from the federal calendar.
+
 ## Disable a line without deleting it
 
 Prefix `!` or `#` to exclude a line from the forecast (useful for what-if scenarios):

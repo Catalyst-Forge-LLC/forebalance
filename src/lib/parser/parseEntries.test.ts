@@ -31,14 +31,26 @@ describe('parseRecur', () => {
 describe('parseDate', () => {
 	it('parses single date', () => {
 		const result = parseDate('2026-04-01');
-		expect(result?.[0]).toEqual(new Date(2026, 3, 1));
-		expect(result?.[1]).toBeNull();
+		expect(result?.startDate).toEqual(new Date(2026, 3, 1));
+		expect(result?.recur).toBeNull();
 	});
 
 	it('parses recurring date', () => {
 		const result = parseDate('2026-04-01,R2W');
-		expect(result?.[1]?.freq).toBe('W');
-		expect(result?.[1]?.multiple).toBe(2);
+		expect(result?.recur?.freq).toBe('W');
+		expect(result?.recur?.multiple).toBe(2);
+	});
+
+	it('parses last-day-of-month token', () => {
+		const result = parseDate('2026-01-L,RML');
+		expect(result?.startDate?.getDate()).toBe(31);
+		expect(result?.recur?.lastDayOfMonth).toBe(true);
+	});
+
+	it('parses business-day shift on recur', () => {
+		const result = parseDate('2026-09-01,R<');
+		expect(result?.businessDayShift).toBe('prev');
+		expect(result?.recur?.freq).toBe('M');
 	});
 });
 

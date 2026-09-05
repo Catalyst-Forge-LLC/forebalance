@@ -25,7 +25,9 @@ export async function initializeData(): Promise<void> {
 	}
 
 	const lsSettings = localStorage.getItem('settings');
-	settingsStore.set(lsSettings ? JSON.parse(lsSettings) : { ...defaultSettings });
+	settingsStore.set(
+		lsSettings ? { ...defaultSettings, ...JSON.parse(lsSettings) } : { ...defaultSettings },
+	);
 }
 
 export function getRawEntries(): string {

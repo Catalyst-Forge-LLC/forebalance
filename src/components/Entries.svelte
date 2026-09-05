@@ -14,6 +14,7 @@
   } from '$lib/persistence/psvPersistence';
   import Dropzone from 'svelte-file-dropzone';
   import type { EntryValidation } from '$lib/parser/validateEntries';
+  import PsvEditor from './PsvEditor.svelte';
 
   let lastInputEntries = '';
   let linkedFileName: string | null = null;
@@ -26,25 +27,22 @@
   onMount(() => {
     fsSupported = isFileSystemAccessSupported();
     linkedFileName = getLinkedFileName();
+    lastInputEntries = $rawEntriesStore;
   });
-
-  function processRaw() {
-    const input = document.getElementById('inputEntries') as HTMLTextAreaElement | null;
-    const inputEntries = input?.value ?? '';
-    if (lastInputEntries === '') {
-      lastInputEntries = inputEntries;
-    } else if (lastInputEntries === inputEntries) {
-      return;
-    }
-    if (inputEntries) {
-      applyRawEntries(inputEntries);
-    }
-  }
 
   function applyRawEntries(rawEntries: string) {
     setRawEntries(rawEntries);
     logd('[set-raw-entries]', rawEntries);
     lastInputEntries = rawEntries;
+  }
+
+  function handleEditorChange(inputEntries: string) {
+    if (lastInputEntries === inputEntries) {
+      return;
+    }
+    if (inputEntries) {
+      applyRawEntries(inputEntries);
+    }
   }
 
   function handleFilesSelect(e: CustomEvent<{ acceptedFiles: File[] }>) {
@@ -110,7 +108,11 @@
   on:change={onImportSelected}
 />
 
-<textarea id="inputEntries" class:has-warnings={validationWarnings.length > 0} on:change={processRaw} cols="40" rows="20">{$rawEntriesStore}</textarea>
+<PsvEditor
+  value={$rawEntriesStore}
+  hasWarnings={validationWarnings.length > 0}
+  onChange={handleEditorChange}
+/>
 
 {#if validationWarnings.length}
   <div class="validation-warnings" role="alert">
@@ -158,19 +160,6 @@
     overflow: hidden;
     clip: rect(0, 0, 0, 0);
     border: 0;
-  }
-
-  #inputEntries {
-    margin-top: 0.5rem;
-    border-radius: 0.5rem;
-    width: 100%;
-    max-width: 55em;
-    font-size: 1rem;
-    height: 90%;
-
-    &.has-warnings {
-      border: 2px solid #cc8800;
-    }
   }
 
   .validation-warnings {

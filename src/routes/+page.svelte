@@ -5,6 +5,7 @@
 
 	import ForecastTable from '../components/ForecastTable.svelte';
 	import ForecastSummary from '../components/ForecastSummary.svelte';
+	import ForecastSparkline from '../components/ForecastSparkline.svelte';
 	import Entries from '../components/Entries.svelte';
 	import Settings from '../components/Settings.svelte';
 	import Help from '../components/Help.svelte';
@@ -31,7 +32,9 @@
 
   $: if ($rawEntriesStore && $settingsStore.monthsToForecast && balanceFlags) {
     [accountEntries, accounts] = $rawEntriesStore
-      ? parseEntries($rawEntriesStore, $settingsStore.monthsToForecast, balanceFlags)
+      ? parseEntries($rawEntriesStore, $settingsStore.monthsToForecast, balanceFlags, {
+          useFederalHolidays: $settingsStore.useFederalHolidays,
+        })
       : [null, null];
     if (accountEntries && accounts) {
       const main = Object.values(accounts).find((account) => account.isMain);
@@ -94,6 +97,11 @@
             {balanceFlags}
             useMainBalance={selectedIsMain}
             onScrollToRow={scrollToForecastRow}
+          />
+          <ForecastSparkline
+            entries={selectedEntries}
+            {balanceFlags}
+            useMainBalance={selectedIsMain}
           />
           <ForecastTable
             bind:tableEntries={accountEntries[selectedAccountId]}
