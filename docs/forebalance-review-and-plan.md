@@ -222,14 +222,13 @@ Add to workspace fleet config if ForeBalance lives under `z:/workspace/`. Use `l
 Static SvelteKit output → Cloudflare Pages:
 
 ```
-pnpm run build          # → build/
-wrangler pages deploy build --project-name=forebalance
+pnpm ship               # build/ then wrangler pages deploy
 ```
 
 **Add to repo:**
 
 - `wrangler.jsonc` — `pages_build_output_dir: "build"`, project name `forebalance`
-- `package.json` scripts: `"deploy": "pnpm build && wrangler pages deploy build --project-name=forebalance"`
+- `package.json` scripts: `"ship": "pnpm build && wrangler pages deploy build --project-name=forebalance"`
 - `.gitignore` — ensure `.wrangler/` excluded
 - `docs/DEPLOYMENT.md` — domain setup, `forebalance.app` DNS, redirect from `mybalanceforecaster.com`
 

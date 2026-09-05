@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "deploy": "pnpm build && wrangler pages deploy build --project-name=forebalance",
+    "ship": "pnpm build && wrangler pages deploy build --project-name=forebalance",
     "lint": "prettier --check . && eslint .",
     "format": "prettier --write ."
   },

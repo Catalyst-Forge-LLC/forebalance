@@ -23,7 +23,7 @@ Open the URL Vite prints (typically `http://127.0.0.1:46000`).
 | `pnpm dev` | Dev server (port from LocalSlip lease `forebalance`, fallback 46000) |
 | `pnpm build` | Production static build → `build/` |
 | `pnpm preview` | Preview production build locally |
-| `pnpm deploy` | Build and deploy to Cloudflare Pages via Wrangler |
+| `pnpm ship` | Build and deploy to Cloudflare Pages via Wrangler |
 | `pnpm lint` | Prettier + ESLint |
 | `pnpm format` | Prettier write |
 
