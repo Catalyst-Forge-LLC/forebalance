@@ -154,7 +154,7 @@
             useMainBalance={selectedIsMain}
           />
           <ForecastTable
-            bind:tableEntries={accountEntries[selectedAccountId]}
+            tableEntries={accountEntries[selectedAccountId]}
             {accounts}
             viewingMainAccount={selectedIsMain}
           ></ForecastTable>

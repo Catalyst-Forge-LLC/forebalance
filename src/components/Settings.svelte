@@ -22,8 +22,18 @@
         thresholdLowBalance: { label: 'Low Balance Threshold', min: 100, max: 10000, step: 100 },
     };
 
-    function saveSettings() {
-		localStorage.setItem('settings', JSON.stringify($settingsStore));
+    let draftSettings = { ...$settingsStore };
+
+    function commitSettings() {
+        $settingsStore = {
+            ...$settingsStore,
+            monthsToForecast: draftSettings.monthsToForecast,
+            thresholdGoalBalance: draftSettings.thresholdGoalBalance,
+            thresholdUncomfortableBalance: draftSettings.thresholdUncomfortableBalance,
+            thresholdLowBalance: draftSettings.thresholdLowBalance,
+            useFederalHolidays: draftSettings.useFederalHolidays,
+        };
+        localStorage.setItem('settings', JSON.stringify($settingsStore));
     }
 
     function onEntriesSourceChange(useDemo: boolean) {
@@ -36,6 +46,7 @@
 			localStorage.clear();
 			$rawEntriesStore = defaultEntries;
 			$settingsStore = { ...defaultSettings };
+            draftSettings = { ...defaultSettings };
             localStorage.setItem('userEntries', defaultEntries);
             localStorage.setItem('rawEntries', defaultEntries);
             localStorage.setItem('settings', JSON.stringify($settingsStore));
@@ -95,16 +106,17 @@
                         min={range.min}
                         max={range.max}
                         step={range.step}
-                        bind:value={$settingsStore[key]}
-                        on:change={saveSettings}
+                        bind:value={draftSettings[key]}
+                        on:change={commitSettings}
+                        on:blur={commitSettings}
                     />
                     <input
                         type="range"
                         min={range.min}
                         max={range.max}
                         step={range.step}
-                        bind:value={$settingsStore[key]}
-                        on:change={saveSettings}
+                        bind:value={draftSettings[key]}
+                        on:change={commitSettings}
                     />
                 </div>
             </label>
@@ -114,8 +126,8 @@
             <label>
                 <input
                     type="checkbox"
-                    bind:checked={$settingsStore.useFederalHolidays}
-                    on:change={saveSettings}
+                    bind:checked={draftSettings.useFederalHolidays}
+                    on:change={commitSettings}
                 />
                 <span class="checkbox-text">
                     Treat US federal holidays as non-business days when using

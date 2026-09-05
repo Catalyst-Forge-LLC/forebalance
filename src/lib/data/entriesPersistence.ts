@@ -5,17 +5,32 @@ import { restoreLinkedFile, writeLinkedPsvFile } from '$lib/persistence/psvPersi
 import { rawEntriesStore, settingsStore } from '$lib/stores/settings';
 
 const USER_ENTRIES_KEY = 'userEntries';
+const PERSIST_DELAY_MS = 800;
+
+let persistTimer: ReturnType<typeof setTimeout> | undefined;
+let pendingPersist: string | null = null;
 
 function isDemoMode(): boolean {
 	return get(settingsStore).useDemoEntries ?? false;
 }
 
-export async function persistRawEntries(rawEntries: string): Promise<void> {
+function writeLocalCopies(rawEntries: string): void {
 	localStorage.setItem('rawEntries', rawEntries);
 	if (!isDemoMode()) {
 		localStorage.setItem(USER_ENTRIES_KEY, rawEntries);
 	}
-	await writeLinkedPsvFile(rawEntries);
+}
+
+export async function persistRawEntries(rawEntries: string): Promise<void> {
+	writeLocalCopies(rawEntries);
+	pendingPersist = rawEntries;
+	if (persistTimer) clearTimeout(persistTimer);
+	persistTimer = setTimeout(() => {
+		const next = pendingPersist;
+		pendingPersist = null;
+		persistTimer = undefined;
+		if (next !== null) void writeLinkedPsvFile(next);
+	}, PERSIST_DELAY_MS);
 }
 
 export function setRawEntries(rawEntries: string): void {

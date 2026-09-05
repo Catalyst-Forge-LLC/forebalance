@@ -1,10 +1,10 @@
 <script>
   import { appStateStore, rawEntriesStore } from '$lib/stores/settings';
+  import { setRawEntries } from '$lib/data/entriesPersistence';
   import { updateEntry } from '$lib/parser/parseEntries';
   import { onMount } from 'svelte';
   import { fmt } from '$lib/formatters/fmt';
   import { accountDisplayName } from '$lib/parser/accountLabel';
-  import { logd } from '$lib/util/log';
   import Tooltip from './Tooltip.svelte';
 
   export let tableEntries = [];
@@ -29,34 +29,33 @@
     return '';
   }
 
-  $: entryCount = tableEntries.length;
-
-  let entryInputs = {};
-
-  let startMonthIndex = 0;
-
-  let showEntryEdit = null;
-
   const isNewMonth = (date1, date2) => {
     return date1.getMonth() != date2.getMonth();
   };
+
+  $: entryCount = tableEntries.length;
+  $: monthStartIndexes = new Set(
+    tableEntries.flatMap((entry, i) =>
+      i === 0 || isNewMonth(entry.date, tableEntries[i - 1].date) ? [i] : [],
+    ),
+  );
+
+  let entryInputs = {};
+
+  let showEntryEdit = null;
+
+  function monthStartFor(i) {
+    for (let j = i; j >= 0; j--) {
+      if (monthStartIndexes.has(j)) return j;
+    }
+    return 0;
+  }
 
   onMount(async () => {
     $appStateStore.showLoader = false;
   });
 
-  const showMonthHeader = (i) => {
-    let showHeader = false;
-    if (i > 0 && isNewMonth(tableEntries[i].date, tableEntries[i - 1].date)) {
-      showHeader = true;
-    } else if (i === 0) {
-      showHeader = true;
-    }
-    if (showHeader) {
-      startMonthIndex = i;
-    }
-    return showHeader;
-  };
+  const showMonthHeader = (i) => monthStartIndexes.has(i);
 
   const showMonthFooter = (i) => {
     let showFooter = false;
@@ -73,7 +72,7 @@
     let summaryCredit = 0;
     let summaryDebit = 0;
     let summaryNet = 0;
-    tableEntries.slice(startMonthIndex, i + 1).forEach((entry) => {
+    tableEntries.slice(monthStartFor(i), i + 1).forEach((entry) => {
       if (entry.type === 'C') {
         summaryCredit += +entry.amount;
         summaryNet += +entry.amount;
@@ -89,9 +88,8 @@
     let debtBalance = 0;
     let debtInterest = 0;
     let debtDetails = '';
-    tableEntries.slice(startMonthIndex, i + 1).forEach((entry) => {
+    tableEntries.slice(monthStartFor(i), i + 1).forEach((entry) => {
       if (entry.subAccountRunningBal) {
-        logd('[running-balance-monthly-summary]', entry);
         debtBalance += +entry.subAccountRunningBal;
         if (entry.monthlyInterest) {
           debtInterest += +entry.monthlyInterest;
@@ -110,7 +108,6 @@
       entryInputs = { ...entry };
       entryInputs.date = fmt.date3(entryInputs.date);
       entryInputs.amount = +entryInputs.amount;
-      logd('[click-entry]', e, entry);
       showEntryEdit = i;
     }
   }
@@ -118,8 +115,7 @@
   function saveEntry(e, entry, i) {
     e.stopPropagation();
     showEntryEdit = null;
-    $rawEntriesStore = updateEntry($rawEntriesStore, entry, entryInputs);
-    localStorage.setItem('rawEntries', $rawEntriesStore);
+    setRawEntries(updateEntry($rawEntriesStore, entry, entryInputs));
   }
 
   function cancelEntry(e) {

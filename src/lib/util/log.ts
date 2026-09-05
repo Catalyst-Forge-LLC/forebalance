@@ -1,21 +1,25 @@
-import { dev } from '$app/environment';
+function debugLevel(): string {
+	if (typeof localStorage !== 'object') return '';
+	return localStorage.getItem('sk_debug') ?? '';
+}
 
+/** Debug-only logger. Silent unless `localStorage.sk_debug` is set, or `dev` + sk_debug. */
 export function logd(...args: unknown[]): void {
-	const debug = typeof localStorage === 'object' ? localStorage?.getItem('sk_debug') : '';
+	const debug = debugLevel();
+	if (!debug) return;
+
 	if (args[0] === true) {
 		logClonedTraced(true, ...args.slice(1));
 	} else if (typeof args[0] === 'string' && args[0].startsWith('[[')) {
 		if (debug === 'devvv') {
 			logClonedTraced(...args);
 		}
-	} else if (dev || debug === 'dev' || debug === 'devv') {
+	} else if (debug === 'dev' || debug === 'devv' || debug === 'devvv') {
 		if (debug === 'devv' || debug === 'devvv') {
 			logClonedTraced(...args);
 		} else {
 			logCloned(...args);
 		}
-	} else if (typeof args[0] === 'string') {
-		console.log(args[0]);
 	}
 }
 
