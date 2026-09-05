@@ -2,6 +2,8 @@
 	import { appStateStore, settingsStore, rawEntriesStore } from '$lib/stores/settings';
 	import { Tabs, TabList, TabPanel, Tab } from './../components/tabs';
 	import { parseEntries } from '$lib/parser/parseEntries';
+	import { accountDisplayName, formatAccountOption } from '$lib/parser/accountLabel';
+	import { fmt } from '$lib/formatters/fmt';
 
 	import ForecastTable from '../components/ForecastTable.svelte';
 	import ForecastSummary from '../components/ForecastSummary.svelte';
@@ -49,12 +51,19 @@
 
   $: accountList = accounts ? Object.values(accounts).filter((a) => accountEntries?.[a.id]?.length) : [];
   $: selectedEntries = accountEntries && selectedAccountId ? accountEntries[selectedAccountId] : [];
-  $: selectedIsMain = accounts?.[selectedAccountId]?.isMain ?? true;
+  $: selectedAccount = accounts?.[selectedAccountId];
+  $: selectedIsMain = selectedAccount?.isMain ?? true;
 
-  function accountOptionLabel(account: { id: string; isMain: boolean; interestRate?: number }) {
-    if (account.isMain) return `${account.id} — main checking`;
-    const kind = (account.interestRate ?? 0) > 0 ? 'debt' : 'sub-account';
-    return `${account.id} — ${kind}`;
+  function selectedAccountHelp(account: typeof selectedAccount): string {
+    if (!account) return '';
+    if (account.isMain) {
+      return `Showing ${accountDisplayName(account)}. The amount is your checking balance at the end of the forecast.`;
+    }
+    const name = accountDisplayName(account);
+    const started = fmt.curr(account.startingBal);
+    const remaining = account.runningBal <= 1 ? 'paid off' : `${fmt.curr(account.runningBal)} remaining`;
+    const rate = (account.interestRate ?? 0) > 0 ? ` Interest ${account.interestRate}% is applied monthly.` : '';
+    return `${name} started at ${started}; now ${remaining}.${rate}`;
   }
 
   function scrollToForecastRow(rowIndex: number) {
@@ -88,15 +97,7 @@
           {#if accountList.length > 1}
             <div class="account-picker">
               <p class="account-picker-heading">Forecast view</p>
-              <p class="account-picker-help">
-                {#if selectedIsMain}
-                  Showing your main checking balance. Switch to a sub-account to see debt or linked
-                  account detail.
-                {:else}
-                  Showing sub-account <strong>{selectedAccountId}</strong>. Switch back to main for
-                  overall checking balance.
-                {/if}
-              </p>
+              <p class="account-picker-help">{selectedAccountHelp(selectedAccount)}</p>
               {#if accountList.length > 4}
                 <label class="account-select">
                   <span class="sr-only">Select account</span>
@@ -105,7 +106,7 @@
                     on:change={(e) => (selectedAccountId = e.currentTarget.value)}
                   >
                     {#each accountList as account}
-                      <option value={account.id}>{accountOptionLabel(account)}</option>
+                      <option value={account.id}>{formatAccountOption(account)}</option>
                     {/each}
                   </select>
                 </label>
@@ -117,7 +118,7 @@
                       class:selected={selectedAccountId === account.id}
                       on:click={() => (selectedAccountId = account.id)}
                     >
-                      {accountOptionLabel(account)}
+                      {formatAccountOption(account)}
                     </button>
                   {/each}
                 </div>
@@ -217,7 +218,7 @@
 
     .account-select select {
       width: 100%;
-      max-width: 28em;
+      max-width: 40em;
       font-size: 0.95rem;
       padding: 0.4rem 0.5rem;
       border: 1px solid #009900;

@@ -9,6 +9,7 @@ import {
 	updateDateRecur,
 	updateDescRecur,
 } from '$lib/parser/recurrence';
+import { parseAccountDisplay } from '$lib/parser/accountLabel';
 import { isEntryLineDisabled } from '$lib/parser/validateEntries';
 import type {
 	Account,
@@ -20,6 +21,16 @@ import type {
 	ParseOptions,
 	ParseResult,
 } from '$lib/parser/types';
+
+function applyAccountDisplay(account: Account, desc: string | null | undefined): void {
+	const display = parseAccountDisplay(desc, account.id);
+	if (!account.name || account.name === account.id) {
+		account.name = display.name;
+	}
+	if (!account.lastFour && display.lastFour) {
+		account.lastFour = display.lastFour;
+	}
+}
 
 function shiftEntryDate(
 	entry: ParsedEntry,
@@ -84,6 +95,7 @@ function parseRawEntries(
 					startingBal: +parsedEntry.amount,
 					runningBal: +parsedEntry.amount,
 				};
+				applyAccountDisplay(accounts[parsedEntry.accountId], parsedEntry.desc);
 			} else if (parsedEntry.accountId) {
 				parsedEntry.accountId = parsedEntry.accountId.toUpperCase();
 				if (!accounts[parsedEntry.accountId]) {
@@ -97,6 +109,7 @@ function parseRawEntries(
 						interestRate2Date: entry[8] || null,
 					};
 				}
+				applyAccountDisplay(accounts[parsedEntry.accountId], parsedEntry.desc);
 			}
 			const when = parseDate(entry[1]);
 			if (when) {

@@ -3,6 +3,7 @@
   import { updateEntry } from '$lib/parser/parseEntries';
   import { onMount } from 'svelte';
   import { fmt } from '$lib/formatters/fmt';
+  import { accountDisplayName } from '$lib/parser/accountLabel';
   import { logd } from '$lib/util/log';
   import Tooltip from './Tooltip.svelte';
 
@@ -130,11 +131,11 @@
     const account = accounts[entry.accountId];
     if (account && account !== mainAccount && account.startingBal > 0) {
       return `
-AccountId: ${entry.accountId}<br>
-Starting Balance: ${fmt.curr(account.startingBal)}<br>
-Running Balance: ${fmt.curr(entry.subAccountRunningBal)}<br>
-${entry.monthlyInterest ? `Monthly Interest: ${fmt.curr(entry.monthlyInterest)}<br>` : ''}
-${account.interestRate ? `Interest Rate: ${account.interestRate}%<br>` : ''}`;
+${accountDisplayName(account)}<br>
+Started: ${fmt.curr(account.startingBal)}<br>
+Remaining: ${fmt.curr(entry.subAccountRunningBal)}<br>
+${entry.monthlyInterest ? `Monthly interest: ${fmt.curr(entry.monthlyInterest)}<br>` : ''}
+${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     }
     return '';
   }
@@ -195,7 +196,7 @@ ${account.interestRate ? `Interest Rate: ${account.interestRate}%<br>` : ''}`;
         {:else}
           <td>{fmt.date(entry.date)}</td>
           <td align="left"
-            ><Tooltip content={getAccountSummary(entry)}>{entry.desc}{mainAccount.id !== entry.accountId ? ` [${entry.accountId}]` : ''}</Tooltip></td
+            ><Tooltip content={getAccountSummary(entry)}>{entry.desc}{mainAccount.id !== entry.accountId ? ` [${accountDisplayName(accounts[entry.accountId])}]` : ''}</Tooltip></td
           >
           <td align="right">{entry.type === 'C' ? fmt.curr(entry.amount) : ''}</td>
           <td align="right">{entry.type === 'D' ? fmt.curr(entry.amount) : ''}</td>

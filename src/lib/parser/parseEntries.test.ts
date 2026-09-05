@@ -88,6 +88,19 @@ D|2026-01-20|200|Rent`;
 		expect(rows.at(-1)?.mainBalance).toBe(1300);
 	});
 
+	it('names debt accounts from DESCRIPTION and tracks remaining balance', () => {
+		const raw = `B-CHCK-main|2026-01-01|5000|Balance Checking 1775
+D-CO|2026-01-15,R|150|Capital One-4321|CO|2800|19.99`;
+
+		const [, accounts] = parseEntries(raw, 3, balanceFlags);
+		const debt = accounts!.CO;
+		expect(debt.name).toBe('Capital One');
+		expect(debt.lastFour).toBe('4321');
+		expect(debt.startingBal).toBe(2800);
+		expect(debt.interestRate).toBe(19.99);
+		expect(debt.runningBal).toBeLessThan(debt.startingBal);
+	});
+
 	it('expands recurring debits within forecast window', () => {
 		const raw = `B-CHCK-main|2026-01-01|5000|Balance
 D|2026-01-01,R|1000|Rent`;

@@ -19,6 +19,5 @@ D|${monthPrefix}25,R|15|Hulu
 D|${monthPrefix}01,R|15|Netflix
 --- Debt
 # Example debt account (disabled — remove # to enable):
-#D|${monthPrefix}01|2800|Visa balance|VISA|2800|19.99
-#D-VISA|${monthPrefix}15,R|150|Visa payment
+#D-CO|${monthPrefix}15,R|150|Capital One-4321|CO|2800|19.99
 `;

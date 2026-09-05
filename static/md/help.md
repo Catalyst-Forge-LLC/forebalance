@@ -31,16 +31,16 @@ D|2026-04-01,R|1000|Rent```
 
 ### Debt and sub-accounts
 
-Bind a line to a sub-account with a type suffix, for example `D-VISA`. Define the sub-account on first use with extra fields:
+Bind a line to a sub-account with a type suffix, for example `D-CO`. Define the sub-account on first use with extra fields:
 
-```TYPE-ACCOUNT|WHEN|AMOUNT|DESCRIPTION|ACCOUNT|STARTING_BAL|RATE1|RATE2|RATE2_DATE```
+```TYPE-ACCOUNT|WHEN|AMOUNT|DESCRIPTION|ACCOUNT|STARTING_BAL|APR|APR2|APR2_DATE```
 
-Example:
+Put the friendly name in DESCRIPTION. A trailing `-4321` is treated as the last four of the account number. You can also use a short id in the ACCOUNT field (or a numeric last-four) if you prefer the name and number in separate pipes:
 
-```D|2026-04-01|3200|Visa balance|VISA|3200|19.99
-D-VISA|2026-04-15,R|150|Visa payment```
+```D-CO|2026-04-15,R|150|Capital One-4321|CO|2800|19.99
+D|2026-04-15,R|150|Capital One|4321|2800|19.99```
 
-ForeBalance tracks running debt balance, monthly interest, and paid-off status on sub-accounts. Use the account picker on the Forecast tab to view each account.
+ForeBalance starts from STARTING_BAL, adds monthly interest from APR, then subtracts payments. The Forecast picker shows **name-last4 · remaining balance · APR**, and remaining goes down as the account is paid off (interest can slow that).
 
 ## WHEN — dates and recurrence
 

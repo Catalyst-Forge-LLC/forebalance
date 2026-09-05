@@ -17,6 +17,8 @@ export interface Account {
 	isMain: boolean;
 	startingBal: number;
 	runningBal: number;
+	name?: string;
+	lastFour?: string;
 	interestRate?: number;
 	interestRate2?: number;
 	interestRate2Date?: string | null;
