@@ -5,10 +5,14 @@ import adapter from '@sveltejs/adapter-static';
 
 const config = {
   kit: {
-    // By default, `npm run build` will create a standard Node app.
-    // You can create optimized builds for different platforms by
-    // specifying a different adapter
-    // adapter: node(),
+    prerender: {
+      handleHttpError: ({ path, message }) => {
+        if (path === '/favicon.ico' || /^\/logo-\d+\.png$/.test(path)) {
+          return;
+        }
+        throw new Error(message);
+      },
+    },
     adapter: adapter({
       // default options are shown. On some platforms
       // these options are set automatically — see below
