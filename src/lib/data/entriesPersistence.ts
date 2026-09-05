@@ -4,8 +4,17 @@ import { defaultSettings } from '$lib/data/defaultSettings';
 import { restoreLinkedFile, writeLinkedPsvFile } from '$lib/persistence/psvPersistence';
 import { rawEntriesStore, settingsStore } from '$lib/stores/settings';
 
+const USER_ENTRIES_KEY = 'userEntries';
+
+function isDemoMode(): boolean {
+	return get(settingsStore).useDemoEntries ?? false;
+}
+
 export async function persistRawEntries(rawEntries: string): Promise<void> {
 	localStorage.setItem('rawEntries', rawEntries);
+	if (!isDemoMode()) {
+		localStorage.setItem(USER_ENTRIES_KEY, rawEntries);
+	}
 	await writeLinkedPsvFile(rawEntries);
 }
 
@@ -14,22 +23,66 @@ export function setRawEntries(rawEntries: string): void {
 	void persistRawEntries(rawEntries);
 }
 
+export function setEntriesSource(useDemo: boolean): void {
+	const current = get(rawEntriesStore);
+
+	if (useDemo) {
+		if (!isDemoMode()) {
+			localStorage.setItem(USER_ENTRIES_KEY, current);
+		}
+		rawEntriesStore.set(defaultEntries);
+		localStorage.setItem('rawEntries', defaultEntries);
+	} else {
+		const userEntries =
+			localStorage.getItem(USER_ENTRIES_KEY) ??
+			localStorage.getItem('rawEntries') ??
+			defaultEntries;
+		rawEntriesStore.set(userEntries);
+		localStorage.setItem('rawEntries', userEntries);
+	}
+
+	settingsStore.update((settings) => {
+		const next = { ...settings, useDemoEntries: useDemo };
+		localStorage.setItem('settings', JSON.stringify(next));
+		return next;
+	});
+}
+
 export async function initializeData(): Promise<void> {
+	const lsSettings = localStorage.getItem('settings');
+	const settings = lsSettings
+		? { ...defaultSettings, ...JSON.parse(lsSettings) }
+		: { ...defaultSettings };
+	settingsStore.set(settings);
+
 	const linked = await restoreLinkedFile();
 	if (linked) {
 		rawEntriesStore.set(linked.content);
 		localStorage.setItem('rawEntries', linked.content);
-	} else {
-		const lsRawEntries = localStorage.getItem('rawEntries');
-		rawEntriesStore.set(lsRawEntries ?? defaultEntries);
+		if (!settings.useDemoEntries) {
+			localStorage.setItem(USER_ENTRIES_KEY, linked.content);
+		}
+		return;
 	}
 
-	const lsSettings = localStorage.getItem('settings');
-	settingsStore.set(
-		lsSettings ? { ...defaultSettings, ...JSON.parse(lsSettings) } : { ...defaultSettings },
-	);
+	const storedUser =
+		localStorage.getItem(USER_ENTRIES_KEY) ?? localStorage.getItem('rawEntries');
+	if (storedUser && !localStorage.getItem(USER_ENTRIES_KEY)) {
+		localStorage.setItem(USER_ENTRIES_KEY, storedUser);
+	}
+
+	if (settings.useDemoEntries) {
+		rawEntriesStore.set(defaultEntries);
+		localStorage.setItem('rawEntries', defaultEntries);
+	} else {
+		rawEntriesStore.set(storedUser ?? defaultEntries);
+	}
 }
 
 export function getRawEntries(): string {
 	return get(rawEntriesStore);
+}
+
+export function getUserEntries(): string | null {
+	return localStorage.getItem(USER_ENTRIES_KEY);
 }

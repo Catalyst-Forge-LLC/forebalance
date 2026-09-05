@@ -72,6 +72,7 @@ export interface Settings {
 	locale: string;
 	currencyIsoCode: string;
 	useFederalHolidays: boolean;
+	useDemoEntries: boolean;
 }
 
 export interface ParseOptions {
