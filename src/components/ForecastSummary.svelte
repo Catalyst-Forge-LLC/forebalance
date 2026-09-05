@@ -10,50 +10,68 @@
 
   $: summary = computeForecastSummary(entries, balanceFlags, useMainBalance);
 
+  type SummaryItem = {
+    key: string;
+    label: string;
+    point: { balance: number; date: Date; rowIndex: number } | null;
+    loud?: boolean;
+  };
+
+  $: summaryItems = (
+    [
+      { key: 'lowest', label: 'Lowest balance', point: summary.lowest },
+      {
+        key: 'uncomfortable',
+        label: 'First below uncomfortable',
+        point: summary.firstUncomfortable,
+      },
+      { key: 'low', label: 'First below low', point: summary.firstLow },
+      { key: 'negative', label: 'First negative', point: summary.firstNegative, loud: true },
+    ] satisfies SummaryItem[]
+  ).filter((item) => item.point !== null);
+
+  $: dayCountParts = [
+    summary.daysBelowUncomfortable > 0
+      ? `${summary.daysBelowUncomfortable} day${summary.daysBelowUncomfortable === 1 ? '' : 's'} below uncomfortable`
+      : null,
+    summary.daysBelowLow > 0
+      ? `${summary.daysBelowLow} day${summary.daysBelowLow === 1 ? '' : 's'} below low`
+      : null,
+    summary.daysBelowZero > 0
+      ? `${summary.daysBelowZero} day${summary.daysBelowZero === 1 ? '' : 's'} below zero`
+      : null,
+  ].filter(Boolean);
+
   function scrollTo(point: { rowIndex: number } | null) {
     if (point) onScrollToRow(point.rowIndex);
   }
 
-  function formatPoint(label: string, point: { balance: number; date: Date } | null, loud = false) {
-    if (!point) return `${label}: —`;
+  function formatPoint(label: string, point: { balance: number; date: Date }) {
     return `${label}: ${fmt.curr(point.balance)} on ${fmt.date(point.date)}`;
   }
 </script>
 
-{#if entries.length}
+{#if entries.length && summaryItems.length}
   <section class="forecast-summary" aria-label="Forecast summary">
     <h2>At a glance</h2>
+    <p class="summary-intro">Click a line to jump to that date in the table below.</p>
     <ul>
-      <li>
-        <button type="button" class="summary-link" on:click={() => scrollTo(summary.lowest)}>
-          {formatPoint('Lowest balance', summary.lowest)}
-        </button>
-      </li>
-      <li>
-        <button type="button" class="summary-link" on:click={() => scrollTo(summary.firstUncomfortable)}>
-          {formatPoint('First below uncomfortable', summary.firstUncomfortable)}
-        </button>
-      </li>
-      <li>
-        <button type="button" class="summary-link" on:click={() => scrollTo(summary.firstLow)}>
-          {formatPoint('First below low', summary.firstLow)}
-        </button>
-      </li>
-      <li>
-        <button
-          type="button"
-          class="summary-link"
-          class:loud={summary.firstNegative !== null}
-          on:click={() => scrollTo(summary.firstNegative)}
-        >
-          {formatPoint('First negative', summary.firstNegative, true)}
-        </button>
-      </li>
+      {#each summaryItems as item}
+        <li>
+          <button
+            type="button"
+            class="summary-link"
+            class:loud={item.loud && item.point !== null}
+            on:click={() => scrollTo(item.point)}
+          >
+            {formatPoint(item.label, item.point!)}
+          </button>
+        </li>
+      {/each}
     </ul>
-    <p class="day-counts">
-      Days below uncomfortable: {summary.daysBelowUncomfortable} · below low:
-      {summary.daysBelowLow} · below zero: {summary.daysBelowZero}
-    </p>
+    {#if dayCountParts.length}
+      <p class="day-counts">{dayCountParts.join(' · ')}</p>
+    {/if}
   </section>
 {/if}
 
@@ -68,9 +86,15 @@
     border-radius: 0.5rem;
 
     h2 {
-      margin: 0 0 0.5rem;
+      margin: 0 0 0.25rem;
       font-size: 1rem;
       color: #006600;
+    }
+
+    .summary-intro {
+      margin: 0 0 0.5rem;
+      font-size: 0.8rem;
+      color: #555;
     }
 
     ul {

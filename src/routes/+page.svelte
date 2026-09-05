@@ -51,6 +51,12 @@
   $: selectedEntries = accountEntries && selectedAccountId ? accountEntries[selectedAccountId] : [];
   $: selectedIsMain = accounts?.[selectedAccountId]?.isMain ?? true;
 
+  function accountOptionLabel(account: { id: string; isMain: boolean; interestRate?: number }) {
+    if (account.isMain) return `${account.id} — main checking`;
+    const kind = (account.interestRate ?? 0) > 0 ? 'debt' : 'sub-account';
+    return `${account.id} — ${kind}`;
+  }
+
   function scrollToForecastRow(rowIndex: number) {
     document.getElementById(`forecast-row-${rowIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -81,15 +87,41 @@
         {#if accountEntries && selectedAccountId && accountEntries[selectedAccountId]}
           {#if accountList.length > 1}
             <div class="account-picker">
-              {#each accountList as account}
-                <button
-                  type="button"
-                  class:selected={selectedAccountId === account.id}
-                  on:click={() => (selectedAccountId = account.id)}
-                >
-                  {account.id}{account.isMain ? ' (main)' : ''}
-                </button>
-              {/each}
+              <p class="account-picker-heading">Forecast view</p>
+              <p class="account-picker-help">
+                {#if selectedIsMain}
+                  Showing your main checking balance. Switch to a sub-account to see debt or linked
+                  account detail.
+                {:else}
+                  Showing sub-account <strong>{selectedAccountId}</strong>. Switch back to main for
+                  overall checking balance.
+                {/if}
+              </p>
+              {#if accountList.length > 4}
+                <label class="account-select">
+                  <span class="sr-only">Select account</span>
+                  <select
+                    value={selectedAccountId}
+                    on:change={(e) => (selectedAccountId = e.currentTarget.value)}
+                  >
+                    {#each accountList as account}
+                      <option value={account.id}>{accountOptionLabel(account)}</option>
+                    {/each}
+                  </select>
+                </label>
+              {:else}
+                <div class="account-buttons">
+                  {#each accountList as account}
+                    <button
+                      type="button"
+                      class:selected={selectedAccountId === account.id}
+                      on:click={() => (selectedAccountId = account.id)}
+                    >
+                      {accountOptionLabel(account)}
+                    </button>
+                  {/each}
+                </div>
+              {/if}
             </div>
           {/if}
           <ForecastSummary
@@ -161,12 +193,42 @@
   }
 
   .account-picker {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    justify-content: center;
-    margin: 0.5rem 0 1rem;
-    padding: 0 0.5rem;
+    max-width: 55em;
+    margin: 0.5rem auto 1rem;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    background: #f8fff8;
+    border: 1px solid #cce8cc;
+    border-radius: 0.5rem;
+
+    .account-picker-heading {
+      margin: 0 0 0.25rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #006600;
+    }
+
+    .account-picker-help {
+      margin: 0 0 0.75rem;
+      font-size: 0.85rem;
+      color: #444;
+      line-height: 1.4;
+    }
+
+    .account-select select {
+      width: 100%;
+      max-width: 28em;
+      font-size: 0.95rem;
+      padding: 0.4rem 0.5rem;
+      border: 1px solid #009900;
+      border-radius: 0.35rem;
+    }
+
+    .account-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
 
     button {
       background: #e8f5e8;
@@ -183,5 +245,16 @@
         font-weight: 700;
       }
     }
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
   }
 </style>
