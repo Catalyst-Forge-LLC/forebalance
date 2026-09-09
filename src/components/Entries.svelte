@@ -3,7 +3,6 @@
   import { onMount } from 'svelte';
   import { logd } from '$lib/util/log';
   import { setRawEntries } from '$lib/data/entriesPersistence';
-  import { entrySetsStore, getActiveSet } from '$lib/data/entrySets';
   import { rawEntriesStore } from '$lib/stores/settings';
   import {
     getLinkedFileName,
@@ -15,6 +14,7 @@
   } from '$lib/persistence/psvPersistence';
   import Dropzone from 'svelte-file-dropzone';
   import type { EntryValidation } from '$lib/parser/validateEntries';
+  import EntrySetsPanel from './EntrySetsPanel.svelte';
   import PsvEditor from './PsvEditor.svelte';
 
   let lastInputEntries = '';
@@ -29,7 +29,6 @@
     draftEntries = $rawEntriesStore;
   }
   $: validationWarnings = validateRawEntries(draftEntries || $rawEntriesStore);
-  $: activeSetName = getActiveSet($entrySetsStore)?.name ?? 'Entry set';
 
   onMount(() => {
     fsSupported = isFileSystemAccessSupported();
@@ -102,57 +101,69 @@
   }
 </script>
 
-<div class="entries-toolbar">
-  <span class="active-set">Editing: {activeSetName}</span>
-  <button type="button" class="button-action" on:click={clickImport}>Import PSV</button>
-  {#if fsSupported}
-    <button type="button" class="button-action" on:click={clickLinkFile}>Link file…</button>
-    {#if linkedFileName}
-      <span class="linked-file">Linked: {linkedFileName}</span>
-      <button type="button" class="button-link" on:click={clickUnlink}>Unlink</button>
+<div class="entries-page">
+  <EntrySetsPanel />
+
+  <div class="file-row">
+    <button type="button" class="button-action" on:click={clickImport}>Import PSV</button>
+    {#if fsSupported}
+      <button type="button" class="button-action" on:click={clickLinkFile}>Link file…</button>
+      {#if linkedFileName}
+        <span class="linked-file">Linked: {linkedFileName}</span>
+        <button type="button" class="button-link" on:click={clickUnlink}>Unlink</button>
+      {/if}
     {/if}
+  </div>
+
+  <input
+    bind:this={importInput}
+    type="file"
+    accept=".psv,.txt,text/plain"
+    class="sr-only"
+    on:change={onImportSelected}
+  />
+
+  <PsvEditor
+    value={$rawEntriesStore}
+    hasWarnings={validationWarnings.length > 0}
+    onDraft={handleEditorDraft}
+    onChange={handleEditorCommit}
+  />
+
+  {#if validationWarnings.length}
+    <div class="validation-warnings" role="alert">
+      <strong>Entry warnings</strong>
+      <ul>
+        {#each validationWarnings as warning}
+          <li>Line {warning.line}: {warning.message}</li>
+        {/each}
+      </ul>
+    </div>
   {/if}
+
+  <Dropzone on:drop={handleFilesSelect} />
 </div>
 
-<input
-  bind:this={importInput}
-  type="file"
-  accept=".psv,.txt,text/plain"
-  class="sr-only"
-  on:change={onImportSelected}
-/>
-
-<PsvEditor
-  value={$rawEntriesStore}
-  hasWarnings={validationWarnings.length > 0}
-  onDraft={handleEditorDraft}
-  onChange={handleEditorCommit}
-/>
-
-{#if validationWarnings.length}
-  <div class="validation-warnings" role="alert">
-    <strong>Entry warnings</strong>
-    <ul>
-      {#each validationWarnings as warning}
-        <li>Line {warning.line}: {warning.message}</li>
-      {/each}
-    </ul>
-  </div>
-{/if}
-
-<Dropzone on:drop={handleFilesSelect} />
-
 <style lang="scss">
-  .entries-toolbar {
+  .entries-page {
+    max-width: 55em;
+    margin: 0 auto;
+    padding: 0 1rem 1rem;
+  }
+
+  .file-row {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: center;
-    justify-content: center;
-    margin: 0.5rem 0;
+    margin: 0 0 0.5rem;
+
+    :global(.button-action) {
+      display: inline-block;
+      margin: 0;
+    }
   }
 
-  .active-set,
   .linked-file {
     font-size: 0.85rem;
     color: #006600;
@@ -179,8 +190,7 @@
   }
 
   .validation-warnings {
-    max-width: 55em;
-    margin: 0.5rem auto;
+    margin: 0.5rem 0;
     padding: 0.5rem 0.75rem;
     text-align: left;
     background: #fff8e6;

@@ -109,9 +109,9 @@ Lines that do not match the expected format are skipped in the forecast and list
 ## Persistence
 
 - Data is stored in your browser until you clear site data.
-- **Settings → Entry sets** holds multiple named forecasts. Switch, rename, clone, or delete (the last set cannot be deleted). **New from starter** copies a built-in 2026 profile.
+- **Entries** holds multiple named forecasts. Switch, rename, clone, or delete (the last set cannot be deleted). **Add a starter** copies a built-in 2026 profile. Forecast always uses the set selected there.
 - Use **Import PSV** or drag-and-drop to replace the *current* set.
 - In supported browsers, **Link file…** saves the current set back to a `.psv` file on disk.
-- **Download current set** on Settings always works as a fallback.
+- **Download** on Entries always works as a fallback.
 
 Nothing is sent to a server.

@@ -84,8 +84,8 @@
 
 <style lang="scss">
   .psv-editor {
-    max-width: 55em;
-    margin: 0.5rem auto 0;
+    max-width: none;
+    margin: 0.5rem 0 0;
     text-align: left;
 
     &.has-warnings :global(.cm-editor) {

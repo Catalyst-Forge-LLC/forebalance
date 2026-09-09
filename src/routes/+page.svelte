@@ -13,6 +13,7 @@
 	import Help from '../components/Help.svelte';
 	import Welcome from '../components/Welcome.svelte';
 
+	import { entrySetsStore, getActiveSet } from '$lib/data/entrySets';
 	import { initializeData } from '$lib/data/initializeData';
 	import { onMount, onDestroy } from 'svelte';
 	import { logd } from '$lib/util/log';
@@ -70,6 +71,7 @@
   $: selectedEntries = accountEntries && selectedAccountId ? accountEntries[selectedAccountId] : [];
   $: selectedAccount = accounts?.[selectedAccountId];
   $: selectedIsMain = selectedAccount?.isMain ?? true;
+  $: forecastSetName = getActiveSet($entrySetsStore)?.name ?? '';
 
   function selectedAccountHelp(account: typeof selectedAccount): string {
     if (!account) return '';
@@ -111,9 +113,12 @@
       </TabPanel>
       <TabPanel showLoader="true">
         {#if accountEntries && selectedAccountId && accountEntries[selectedAccountId]}
+          {#if forecastSetName}
+            <p class="forecast-set">Forecast for <strong>{forecastSetName}</strong> — switch sets on the Entries tab.</p>
+          {/if}
           {#if accountList.length > 1}
             <div class="account-picker">
-              <p class="account-picker-heading">Forecast view</p>
+              <p class="account-picker-heading">Account in this set</p>
               <p class="account-picker-help">{selectedAccountHelp(selectedAccount)}</p>
               {#if accountList.length > 4}
                 <label class="account-select">
@@ -208,6 +213,15 @@
     overflow: overlay;
     position: relative;
     padding-bottom: 4rem;
+  }
+
+  .forecast-set {
+    max-width: 55em;
+    margin: 0.75rem auto 0.5rem;
+    padding: 0 1rem;
+    text-align: left;
+    font-size: 0.9rem;
+    color: #333;
   }
 
   .account-picker {
