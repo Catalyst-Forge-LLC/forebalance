@@ -74,7 +74,8 @@ export interface Settings {
 	locale: string;
 	currencyIsoCode: string;
 	useFederalHolidays: boolean;
-	useDemoEntries: boolean;
+	/** @deprecated Migrated into named entry sets. Kept so old localStorage still parses. */
+	useDemoEntries?: boolean;
 }
 
 export interface ParseOptions {

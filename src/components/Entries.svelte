@@ -3,6 +3,7 @@
   import { onMount } from 'svelte';
   import { logd } from '$lib/util/log';
   import { setRawEntries } from '$lib/data/entriesPersistence';
+  import { entrySetsStore, getActiveSet } from '$lib/data/entrySets';
   import { rawEntriesStore } from '$lib/stores/settings';
   import {
     getLinkedFileName,
@@ -28,6 +29,7 @@
     draftEntries = $rawEntriesStore;
   }
   $: validationWarnings = validateRawEntries(draftEntries || $rawEntriesStore);
+  $: activeSetName = getActiveSet($entrySetsStore)?.name ?? 'Entry set';
 
   onMount(() => {
     fsSupported = isFileSystemAccessSupported();
@@ -62,7 +64,7 @@
 
   async function importFile(file: File, confirmReplace = true) {
     const content = await readImportFile(file);
-    if (confirmReplace && !confirm('Do you want to replace all entries?')) {
+    if (confirmReplace && !confirm('Replace the current entry set with this file?')) {
       return;
     }
     if (!isForebalancePsvName(file.name) && !confirm(`Import "${file.name}" anyway?`)) {
@@ -101,6 +103,7 @@
 </script>
 
 <div class="entries-toolbar">
+  <span class="active-set">Editing: {activeSetName}</span>
   <button type="button" class="button-action" on:click={clickImport}>Import PSV</button>
   {#if fsSupported}
     <button type="button" class="button-action" on:click={clickLinkFile}>Link file…</button>
@@ -149,6 +152,7 @@
     margin: 0.5rem 0;
   }
 
+  .active-set,
   .linked-file {
     font-size: 0.85rem;
     color: #006600;

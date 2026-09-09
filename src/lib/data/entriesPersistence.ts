@@ -1,6 +1,14 @@
 import { get } from 'svelte/store';
-import { defaultEntries } from '$lib/data/defaultEntries';
 import { defaultSettings } from '$lib/data/defaultSettings';
+import {
+	entrySetsStore,
+	getActiveSet,
+	loadEntrySets,
+	migrateLegacyEntries,
+	persistEntrySets,
+	resetToStarterSets,
+	updateActiveRaw,
+} from '$lib/data/entrySets';
 import { restoreLinkedFile, writeLinkedPsvFile } from '$lib/persistence/psvPersistence';
 import { rawEntriesStore, settingsStore } from '$lib/stores/settings';
 
@@ -10,15 +18,10 @@ const PERSIST_DELAY_MS = 800;
 let persistTimer: ReturnType<typeof setTimeout> | undefined;
 let pendingPersist: string | null = null;
 
-function isDemoMode(): boolean {
-	return get(settingsStore).useDemoEntries ?? false;
-}
-
 function writeLocalCopies(rawEntries: string): void {
 	localStorage.setItem('rawEntries', rawEntries);
-	if (!isDemoMode()) {
-		localStorage.setItem(USER_ENTRIES_KEY, rawEntries);
-	}
+	localStorage.setItem(USER_ENTRIES_KEY, rawEntries);
+	updateActiveRaw(rawEntries);
 }
 
 export async function persistRawEntries(rawEntries: string): Promise<void> {
@@ -38,60 +41,40 @@ export function setRawEntries(rawEntries: string): void {
 	void persistRawEntries(rawEntries);
 }
 
-export function setEntriesSource(useDemo: boolean): void {
-	const current = get(rawEntriesStore);
-
-	if (useDemo) {
-		if (!isDemoMode()) {
-			localStorage.setItem(USER_ENTRIES_KEY, current);
-		}
-		rawEntriesStore.set(defaultEntries);
-		localStorage.setItem('rawEntries', defaultEntries);
-	} else {
-		const userEntries =
-			localStorage.getItem(USER_ENTRIES_KEY) ??
-			localStorage.getItem('rawEntries') ??
-			defaultEntries;
-		rawEntriesStore.set(userEntries);
-		localStorage.setItem('rawEntries', userEntries);
-	}
-
-	settingsStore.update((settings) => {
-		const next = { ...settings, useDemoEntries: useDemo };
-		localStorage.setItem('settings', JSON.stringify(next));
-		return next;
-	});
+/** Switch sets without writing the linked file (avoids overwriting a disk file on browse). */
+export function activateEntrySet(rawEntries: string): void {
+	rawEntriesStore.set(rawEntries);
+	localStorage.setItem('rawEntries', rawEntries);
+	localStorage.setItem(USER_ENTRIES_KEY, rawEntries);
 }
 
 export async function initializeData(): Promise<void> {
 	const lsSettings = localStorage.getItem('settings');
-	const settings = lsSettings
-		? { ...defaultSettings, ...JSON.parse(lsSettings) }
-		: { ...defaultSettings };
+	const parsedSettings = lsSettings ? JSON.parse(lsSettings) : {};
+	const settings = { ...defaultSettings, ...parsedSettings };
+	delete (settings as { useDemoEntries?: boolean }).useDemoEntries;
 	settingsStore.set(settings);
+	localStorage.setItem('settings', JSON.stringify(settings));
 
 	const linked = await restoreLinkedFile();
-	if (linked) {
-		rawEntriesStore.set(linked.content);
-		localStorage.setItem('rawEntries', linked.content);
-		if (!settings.useDemoEntries) {
-			localStorage.setItem(USER_ENTRIES_KEY, linked.content);
-		}
-		return;
+	const storedSets = loadEntrySets();
+	const legacyRaw =
+		linked?.content ??
+		localStorage.getItem(USER_ENTRIES_KEY) ??
+		localStorage.getItem('rawEntries');
+
+	const setsState = storedSets ?? migrateLegacyEntries(legacyRaw);
+	entrySetsStore.set(setsState);
+	persistEntrySets(setsState);
+
+	if (storedSets && linked?.content) {
+		updateActiveRaw(linked.content);
 	}
 
-	const storedUser =
-		localStorage.getItem(USER_ENTRIES_KEY) ?? localStorage.getItem('rawEntries');
-	if (storedUser && !localStorage.getItem(USER_ENTRIES_KEY)) {
-		localStorage.setItem(USER_ENTRIES_KEY, storedUser);
-	}
-
-	if (settings.useDemoEntries) {
-		rawEntriesStore.set(defaultEntries);
-		localStorage.setItem('rawEntries', defaultEntries);
-	} else {
-		rawEntriesStore.set(storedUser ?? defaultEntries);
-	}
+	const active = getActiveSet(get(entrySetsStore));
+	rawEntriesStore.set(active.raw);
+	localStorage.setItem('rawEntries', active.raw);
+	localStorage.setItem(USER_ENTRIES_KEY, active.raw);
 }
 
 export function getRawEntries(): string {
@@ -100,4 +83,18 @@ export function getRawEntries(): string {
 
 export function getUserEntries(): string | null {
 	return localStorage.getItem(USER_ENTRIES_KEY);
+}
+
+export function resetAllData(): void {
+	localStorage.removeItem('settings');
+	localStorage.removeItem('rawEntries');
+	localStorage.removeItem(USER_ENTRIES_KEY);
+	localStorage.removeItem('forebalance_entrySets');
+	const sets = resetToStarterSets();
+	const settings = { ...defaultSettings };
+	settingsStore.set(settings);
+	rawEntriesStore.set(getActiveSet(sets).raw);
+	localStorage.setItem('settings', JSON.stringify(settings));
+	localStorage.setItem('rawEntries', getActiveSet(sets).raw);
+	localStorage.setItem(USER_ENTRIES_KEY, getActiveSet(sets).raw);
 }

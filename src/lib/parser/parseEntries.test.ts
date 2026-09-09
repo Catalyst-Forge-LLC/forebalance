@@ -112,6 +112,20 @@ D|2026-01-01,R|1000|Rent`;
 	});
 });
 
+describe('starter templates', () => {
+	it('parses all built-in 2026 profiles', async () => {
+		const { entryTemplates } = await import('../data/entryTemplates');
+		for (const template of entryTemplates) {
+			const [accountEntries, accounts] = parseEntries(template.build('2026-09-'), 3, balanceFlags);
+			expect(accounts, template.name).not.toBeNull();
+			expect(accountEntries, template.name).not.toBeNull();
+			const main = Object.values(accounts!).find((a) => a.isMain);
+			expect(main, template.name).toBeTruthy();
+			expect(accountEntries![main!.id].length, template.name).toBeGreaterThan(3);
+		}
+	});
+});
+
 describe('updateDateRecur', () => {
 	it('advances monthly', () => {
 		const recur = parseRecur('R')!;
