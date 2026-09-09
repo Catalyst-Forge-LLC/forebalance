@@ -112,6 +112,6 @@ Lines that do not match the expected format are skipped in the forecast and list
 - **Entries** holds multiple named forecasts. Switch, rename, clone, or delete (the last set cannot be deleted). **Add a starter** copies a built-in 2026 profile. Forecast always uses the set selected there.
 - Use **Import PSV** or drag-and-drop to replace the *current* set.
 - In supported browsers, **Link file…** saves the current set back to a `.psv` file on disk.
-- **Download** on Entries always works as a fallback.
+- **Import** / **Export** on Entries apply to the *current* set only (not every set).
 
 Nothing is sent to a server.

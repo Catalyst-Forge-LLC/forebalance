@@ -92,7 +92,7 @@
         <h2>Reset</h2>
         <p class="help">
             Replace every entry set with the four starters and restore default thresholds.
-            Download a set from the Entries tab first if you want a copy.
+            Export a set from the Entries tab first if you want a copy.
         </p>
         <button type="button" class="button-action" on:click={resetAll}>Reset all sets and settings</button>
     </section>

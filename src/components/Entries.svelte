@@ -130,7 +130,7 @@
     {/if}
 
     <div slot="files" class="file-slot">
-      <button type="button" class="button-action" on:click={clickImport}>Import</button>
+      <button type="button" class="button-action" on:click={clickImport} title="Replace this set from a .psv file">Import</button>
       {#if fsSupported}
         <button type="button" class="button-action" on:click={clickLinkFile}>Link file…</button>
         {#if linkedFileName}

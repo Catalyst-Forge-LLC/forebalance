@@ -114,8 +114,10 @@
       <button type="button" class="button-action" on:click={onDelete} disabled={!canDelete}>
         Delete
       </button>
-      <button type="button" class="button-action" on:click={downloadCurrentSet}>Download</button>
-      <slot name="files" />
+      <span class="group" title="This set only — not every set you have">
+        <slot name="files" />
+        <button type="button" class="button-action" on:click={downloadCurrentSet}>Export</button>
+      </span>
     </div>
     <div class="dock-right">
       <label class="inline starter">
@@ -198,8 +200,18 @@
   }
 
   .dock-left,
-  .dock-right {
+  .dock-right,
+  .group {
+    display: flex;
     flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .group {
+    padding-left: 0.5rem;
+    margin-left: 0.15rem;
+    border-left: 1px solid #b5d9b5;
   }
 
   .dock-right {

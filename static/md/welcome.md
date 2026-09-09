@@ -8,6 +8,6 @@ New visitors get four 2026 starter sets aimed at people who need to watch cashfl
 
 **Nothing is ever sent to a server.** All data stays in your browser. There is no tracking or advertising.
 
-If you clear browser storage, your entries will be lost. Use **Download** on the Entries tab to save a `.psv` file, or drag one back onto that tab to restore.
+If you clear browser storage, your entries will be lost. Use **Export** on the Entries tab to save the current set as a `.psv` file, or **Import** / drag a file to replace that set.
 
 See **Help** for the full entry syntax, or **About** for more on privacy and the project.

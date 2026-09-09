@@ -15,7 +15,7 @@
 
 	<h2>Privacy</h2>
 	<p>
-		Nothing you enter is sent to a server. Entries and settings live in your browser's local storage only. There are no accounts, ads, analytics, or tracking. Clear your browser cache and the data is gone — use <strong>Download Entries</strong> on the Settings tab (or a linked <code>.psv</code> file) to keep a copy.
+		Nothing you enter is sent to a server. Entries and settings live in your browser's local storage only. There are no accounts, ads, analytics, or tracking. Clear your browser cache and the data is gone — use <strong>Export</strong> on the Entries tab (or a linked <code>.psv</code> file) to keep a copy of the current set.
 	</p>
 
 	<h2>How to use it</h2>
