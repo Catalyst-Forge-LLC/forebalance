@@ -102,44 +102,44 @@
 </script>
 
 <div class="entries-page">
-  <EntrySetsPanel />
+  <EntrySetsPanel>
+    <input
+      bind:this={importInput}
+      type="file"
+      accept=".psv,.txt,text/plain"
+      class="sr-only"
+      on:change={onImportSelected}
+    />
 
-  <div class="file-row">
-    <button type="button" class="button-action" on:click={clickImport}>Import PSV</button>
-    {#if fsSupported}
-      <button type="button" class="button-action" on:click={clickLinkFile}>Link file…</button>
-      {#if linkedFileName}
-        <span class="linked-file">Linked: {linkedFileName}</span>
-        <button type="button" class="button-link" on:click={clickUnlink}>Unlink</button>
-      {/if}
+    <PsvEditor
+      value={$rawEntriesStore}
+      hasWarnings={validationWarnings.length > 0}
+      onDraft={handleEditorDraft}
+      onChange={handleEditorCommit}
+    />
+
+    {#if validationWarnings.length}
+      <div class="validation-warnings" role="alert">
+        <strong>Entry warnings</strong>
+        <ul>
+          {#each validationWarnings as warning}
+            <li>Line {warning.line}: {warning.message}</li>
+          {/each}
+        </ul>
+      </div>
     {/if}
-  </div>
 
-  <input
-    bind:this={importInput}
-    type="file"
-    accept=".psv,.txt,text/plain"
-    class="sr-only"
-    on:change={onImportSelected}
-  />
-
-  <PsvEditor
-    value={$rawEntriesStore}
-    hasWarnings={validationWarnings.length > 0}
-    onDraft={handleEditorDraft}
-    onChange={handleEditorCommit}
-  />
-
-  {#if validationWarnings.length}
-    <div class="validation-warnings" role="alert">
-      <strong>Entry warnings</strong>
-      <ul>
-        {#each validationWarnings as warning}
-          <li>Line {warning.line}: {warning.message}</li>
-        {/each}
-      </ul>
+    <div slot="files" class="file-slot">
+      <button type="button" class="button-action" on:click={clickImport}>Import</button>
+      {#if fsSupported}
+        <button type="button" class="button-action" on:click={clickLinkFile}>Link file…</button>
+        {#if linkedFileName}
+          <span class="linked-file">Linked: {linkedFileName}</span>
+          <button type="button" class="button-link" on:click={clickUnlink}>Unlink</button>
+        {/if}
+      {/if}
     </div>
-  {/if}
+  </EntrySetsPanel>
 
   <Dropzone on:drop={handleFilesSelect} />
 </div>
@@ -148,20 +148,14 @@
   .entries-page {
     max-width: 55em;
     margin: 0 auto;
-    padding: 0 1rem 1rem;
+    padding: 0.5rem 1rem 1rem;
   }
 
-  .file-row {
+  .file-slot {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
     align-items: center;
-    margin: 0 0 0.5rem;
-
-    :global(.button-action) {
-      display: inline-block;
-      margin: 0;
-    }
+    gap: 0.5rem;
   }
 
   .linked-file {
@@ -190,7 +184,7 @@
   }
 
   .validation-warnings {
-    margin: 0.5rem 0;
+    margin: 0.5rem 0 0;
     padding: 0.5rem 0.75rem;
     text-align: left;
     background: #fff8e6;

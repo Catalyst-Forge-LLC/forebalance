@@ -87,16 +87,10 @@
   }
 </script>
 
-<section class="panel">
-  <h2>Which numbers?</h2>
-  <p class="help">
-    Each set is its own forecast. Switch here, then edit the text below. Clone a set to try a
-    what-if without losing the original.
-  </p>
-
-  <div class="fields">
-    <label>
-      Set
+<div class="sets-shell">
+  <div class="bar">
+    <label class="inline">
+      <span>Set</span>
       <select
         value={$entrySetsStore.activeId}
         on:change={(e) => onSelectSet(e.currentTarget.value)}
@@ -106,111 +100,122 @@
         {/each}
       </select>
     </label>
-    <label>
-      Name
+    <label class="inline name">
+      <span>Name</span>
       <input type="text" bind:value={draftName} on:change={commitName} on:blur={commitName} />
     </label>
   </div>
 
-  <div class="actions">
-    <button type="button" class="button-action" on:click={onClone}>Clone</button>
-    <button type="button" class="button-action" on:click={onDelete} disabled={!canDelete}>
-      Delete
-    </button>
-    <button type="button" class="button-action" on:click={downloadCurrentSet}>Download</button>
-  </div>
+  <slot />
 
-  <div class="starter">
-    <label>
-      Add a starter
-      <select bind:value={templateToAdd}>
-        {#each templates as template}
-          <option value={template.id}>{template.name}</option>
-        {/each}
-      </select>
-    </label>
-    <button type="button" class="button-action" on:click={onAddTemplate}>Add</button>
+  <div class="dock">
+    <div class="dock-left">
+      <button type="button" class="button-action" on:click={onClone}>Clone</button>
+      <button type="button" class="button-action" on:click={onDelete} disabled={!canDelete}>
+        Delete
+      </button>
+      <button type="button" class="button-action" on:click={downloadCurrentSet}>Download</button>
+      <slot name="files" />
+    </div>
+    <div class="dock-right">
+      <label class="inline starter">
+        <span>Starter</span>
+        <select bind:value={templateToAdd} title={selectedTemplate?.blurb ?? ''}>
+          {#each templates as template}
+            <option value={template.id}>{template.name}</option>
+          {/each}
+        </select>
+      </label>
+      <button type="button" class="button-action" on:click={onAddTemplate}>Add</button>
+    </div>
   </div>
-  {#if selectedTemplate}
-    <p class="blurb">{selectedTemplate.blurb}</p>
-  {/if}
-</section>
+</div>
 
 <style lang="scss">
-  .panel {
-    max-width: 55em;
-    margin: 0.75rem auto 1rem;
-    padding: 0.85rem 1rem 1rem;
-    text-align: left;
+  .sets-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .bar,
+  .dock,
+  .dock-left,
+  .dock-right,
+  .inline {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .bar {
+    padding: 0.4rem 0.6rem;
     background: #f8fff8;
     border: 1px solid #cce8cc;
     border-radius: 0.5rem;
   }
 
-  h2 {
-    margin: 0 0 0.35rem;
-    font-size: 1rem;
-    color: #006600;
-  }
-
-  .help,
-  .blurb {
-    margin: 0 0 0.85rem;
-    font-size: 0.85rem;
-    color: #444;
-    line-height: 1.4;
-    padding: 0;
-  }
-
-  .blurb {
-    margin: 0.45rem 0 0;
-    color: #555;
-  }
-
-  .fields,
-  .starter {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem 1rem;
-    align-items: end;
-  }
-
-  .starter {
-    grid-template-columns: 1fr auto;
-    margin-top: 0.85rem;
-  }
-
-  label {
-    display: block;
+  .inline {
+    margin: 0;
     font-size: 0.8rem;
     font-weight: 700;
     color: #004400;
+    white-space: nowrap;
+
+    span {
+      flex-shrink: 0;
+    }
+  }
+
+  .name {
+    flex: 1;
+    min-width: 0;
   }
 
   select,
   input[type='text'] {
-    display: block;
-    width: 100%;
-    margin-top: 0.25rem;
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: normal;
-    padding: 0.4rem 0.5rem;
+    padding: 0.3rem 0.45rem;
     border: 1px solid #009900;
     border-radius: 0.35rem;
-    box-sizing: border-box;
+    background: #fff;
   }
 
-  .actions {
-    display: flex;
+  .name input {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .dock {
+    justify-content: space-between;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.85rem;
+    padding: 0.4rem 0.6rem;
+    background: #f8fff8;
+    border: 1px solid #cce8cc;
+    border-radius: 0.5rem;
   }
 
-  .actions :global(.button-action),
-  .starter :global(.button-action) {
+  .dock-left,
+  .dock-right {
+    flex-wrap: wrap;
+  }
+
+  .dock-right {
+    margin-left: auto;
+  }
+
+  .starter select {
+    max-width: 12em;
+  }
+
+  .bar :global(.button-action),
+  .dock :global(.button-action) {
     display: inline-block;
     margin: 0;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.7rem;
   }
 
   button:disabled {
@@ -219,9 +224,15 @@
   }
 
   @media (max-width: 36em) {
-    .fields,
-    .starter {
-      grid-template-columns: 1fr;
+    .bar,
+    .dock,
+    .dock-right {
+      flex-wrap: wrap;
+    }
+
+    .name,
+    .name input {
+      width: 100%;
     }
   }
 </style>
