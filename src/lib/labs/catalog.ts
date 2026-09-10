@@ -146,7 +146,8 @@ export const QUERY_TYPES: QueryType[] = [
 		title: 'Draft rent',
 		when: 'rent $X on the Nth',
 		match: /\brent(?:al)?\b/i,
-		template: 'D|{YYYY-MM-DD},R|{amt}|Rent',
+		template:
+			'D|{YYYY-MM-DD},R|{amt}|Rent\nAlways emit this line if rent is mentioned. If amount is missing, use 0.',
 	},
 	{
 		id: 'draft-weekdays',
@@ -242,11 +243,26 @@ export function typesById(ids: string[]): QueryType[] {
 	return QUERY_TYPES.filter((type) => wanted.has(type.id));
 }
 
-/** Tier 1: ids and triggers only — no answer shapes. */
+/** Tier 1: ids and triggers only — no answer shapes. The model is the router. */
 export function routerPrompt(): string {
 	const list = QUERY_TYPES.map((type) => `${type.id} — ${type.when}`).join('\n');
-	return `Pick ForeBalance Labs types for this ask. Reply with comma-separated ids only, or none.
-You may pick more than one. Do not answer the user.\n\n${list}`;
+	return `You are the ForeBalance Labs router. Read the ask. Reply with comma-separated type ids only, or none.
+Pick every type that applies. Do not answer the user. Do not write .psv.
+
+Examples:
+rent on the 7th and earn $120 from Uber every Tue/Thu
+draft-rent, draft-weekdays
+
+What does R2W mean?
+recur
+
+Can I afford a $240 tire on Friday?
+afford
+
+Why is this tight?
+tight
+
+${list}`;
 }
 
 export function parseRouterReply(text: string): string[] {

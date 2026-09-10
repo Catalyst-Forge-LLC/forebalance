@@ -1,17 +1,16 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
   import { buildForecastBrief, buildWhyTight, splitModelReply } from '$lib/labs/context';
+  import { localIsoDate } from '$lib/formatters/dates';
   import {
     describeMatches,
-    matchQueryTypes,
     parseRouterReply,
     routerPrompt,
     specialistPrompt,
     typesById,
     type QueryType,
   } from '$lib/labs/catalog';
-  import { answerSyntaxQuestion } from '$lib/labs/syntax';
-  import { draftPsvFromDescription, keepPsvLines } from '$lib/labs/draft';
+  import { keepPsvLines } from '$lib/labs/draft';
   import {
     chooseBackend,
     hasWebGpu,
@@ -43,6 +42,7 @@
   let draftAsk = '';
   let affordAsk = '';
   let freeAsk = '';
+  let routedIds = '';
 
   $: activeName =
     $entrySetsStore.sets.find((set) => set.id === $entrySetsStore.activeId)?.name ?? 'this scenario';
@@ -91,34 +91,34 @@
     return buildForecastBrief(entries, balanceFlags, useMainBalance, activeName);
   }
 
-  function explainForecast() {
-    error = '';
-    thinking = '';
-    output = buildWhyTight(entries, balanceFlags, useMainBalance, activeName);
-  }
-
   function catalogAsk(ask: string, types: QueryType[], extra = '') {
-    return `${describeMatches(types)}\n\nAsk: ${ask}${extra ? `\n\n${extra}` : ''}`;
+    return `${describeMatches(types)}\n\nAsk: ${ask}\nToday: ${localIsoDate()}${extra ? `\n\n${extra}` : ''}`;
   }
 
-  async function runRouted(ask: string, extra = '', forceIds?: string[]) {
-    if (!session) return;
+  async function runRouted(ask: string, extra = '') {
+    if (!session || !ask.trim()) return;
     error = '';
     running = true;
     output = '';
     thinking = '';
+    routedIds = '';
+    progressText = 'Routing…';
     try {
-      let types = forceIds ? typesById(forceIds) : matchQueryTypes(ask);
-      if (!types.length) {
-        const routed = splitModelReply(
-          await session.prompt(routerPrompt(), `Ask: ${ask}`, { maxTokens: 48 }),
-        );
-        types = typesById(parseRouterReply(routed.answer));
-      }
+      const routed = splitModelReply(
+        await session.prompt(routerPrompt(), `Ask: ${ask}`, { maxTokens: 48 }),
+      );
+      const types = typesById(parseRouterReply(routed.answer));
+      routedIds = types.map((type) => type.id).join(', ') || 'none';
+      progressText = types.length ? `Filling ${routedIds}…` : 'No type matched…';
       const reply = splitModelReply(
         await session.prompt(specialistPrompt(types), catalogAsk(ask, types, extra)),
       );
-      output = reply.answer;
+      let answer = reply.answer;
+      if (types.length && types.every((type) => type.kind === 'draft')) {
+        const lines = keepPsvLines(answer);
+        if (lines.length) answer = lines.join('\n');
+      }
+      output = answer;
       thinking = reply.thinking;
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
@@ -127,67 +127,30 @@
     }
   }
 
+  function explainForecast() {
+    return runRouted(
+      'Why is this tight?',
+      `${brief()}\n\nComputed:\n${buildWhyTight(entries, balanceFlags, useMainBalance, activeName)}`,
+    );
+  }
+
   function upcomingHits() {
-    return runRouted('What hits next?', brief(), ['upcoming']);
+    return runRouted('What hits next?', brief());
   }
 
   function moneyDrains() {
-    return runRouted('Where does the money go?', brief(), ['drains']);
+    return runRouted('Where does the money go?', brief());
   }
 
   function affordCheck() {
-    return runRouted(affordAsk, brief(), ['afford']);
+    return runRouted(affordAsk, brief());
   }
 
-  function showResult(text: string) {
-    error = '';
-    thinking = '';
-    output = text;
-  }
-
-  async function draftEntries() {
-    const local = draftPsvFromDescription(draftAsk);
-    if (local.length) {
-      showResult(local.join('\n'));
-      return;
-    }
-    if (!session) {
-      const hits = matchQueryTypes(draftAsk);
-      showResult(
-        hits.length
-          ? `That looks like ${hits.map((type) => type.title).join(' + ')}. Say “Rent $1185 on the 1st” or load a model to mix the templates.`
-          : 'Could not turn that into .psv. Try “Rent $1185 on the 1st” or load a model.',
-      );
-      return;
-    }
-    await runRouted(draftAsk);
-    const lines = keepPsvLines(output);
-    if (lines.length) {
-      output = lines.join('\n');
-      thinking = '';
-      return;
-    }
-    output = '';
-    error = 'The model did not produce .psv lines. Try a shorter description.';
+  function draftEntries() {
+    return runRouted(draftAsk);
   }
 
   function freePrompt() {
-    const canned = answerSyntaxQuestion(freeAsk);
-    if (canned) {
-      error = '';
-      thinking = '';
-      output = canned;
-      return;
-    }
-    if (!session) {
-      const hits = matchQueryTypes(freeAsk);
-      error = '';
-      thinking = '';
-      output = hits.length
-        ? `That looks like ${hits.map((type) => type.title).join(' + ')}. See Help, or load a model to fill the template.`
-        : 'Not a known type. See the Help tab, or load a model.';
-      return;
-    }
     return runRouted(freeAsk);
   }
 
@@ -257,10 +220,10 @@
     <section class="actions">
       <h3>Ask the forecast</h3>
       <p class="hint">
-        A router picks a type (or two), then a specialist template is filled. Known types
-        (tight, R2W, rent on the 7th) skip the model.
+        Load a model first. Each ask goes through the model twice: a router picks type ids, then a
+        specialist fills only those templates.
       </p>
-      <button type="button" disabled={running || !forecastReady} on:click={explainForecast}>
+      <button type="button" disabled={!session || running || !forecastReady} on:click={explainForecast}>
         Why is this tight?
       </button>
       <button type="button" disabled={!session || running || !forecastReady} on:click={upcomingHits}>
@@ -297,7 +260,7 @@
           placeholder="Rent $1,185 on the 1st, gig pay around $500 each Friday…"
         ></textarea>
       </label>
-      <button type="button" disabled={running || !draftAsk.trim()} on:click={draftEntries}>
+      <button type="button" disabled={!session || running || !draftAsk.trim()} on:click={draftEntries}>
         Draft lines
       </button>
 
@@ -305,11 +268,11 @@
         Syntax or a custom ask
         <textarea bind:value={freeAsk} rows="2" placeholder="What does R2W mean?"></textarea>
       </label>
-      <button type="button" disabled={running || !freeAsk.trim()} on:click={freePrompt}>Ask</button>
+      <button type="button" disabled={!session || running || !freeAsk.trim()} on:click={freePrompt}>Ask</button>
     </section>
 
     {#if running}
-      <p class="hint">Working…</p>
+      <p class="hint">{progressText || 'Working…'}</p>
     {/if}
     {#if output}
       <section class="output">
@@ -317,6 +280,9 @@
           <h3>Result</h3>
           <button type="button" on:click={copyOutput}>Copy</button>
         </div>
+        {#if routedIds}
+          <p class="hint">Router: {routedIds}</p>
+        {/if}
         <pre>{output}</pre>
         {#if thinking}
           <details>

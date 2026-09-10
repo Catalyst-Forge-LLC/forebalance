@@ -31,6 +31,7 @@ describe('query catalog', () => {
 	it('keeps the router thin and the specialist specific', () => {
 		const rentPay = typesById(['draft-rent', 'draft-weekdays']);
 		expect(routerPrompt()).not.toContain('D|{YYYY-MM-DD},R|{amt}|Rent');
+		expect(routerPrompt()).toContain('draft-rent, draft-weekdays');
 		expect(routerPrompt()).toContain('draft-rent —');
 		expect(parseRouterReply('Closest: draft-rent, draft-weekdays')).toEqual([
 			'draft-rent',
