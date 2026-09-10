@@ -8,7 +8,7 @@ That is a product decision, not a toggle. ForeBalance is a static website. There
 
 - Anything you type — your entries, balances, accounts — never leaves the machine you are typing on.
 - ForeBalance has no accounts, sign-ins, ads, or tracking cookies.
-- Clearing this site’s data in the browser deletes your scenarios. Export a `.psv` (or the Reset backup) if you want a copy.
+- Clearing this site’s data in the browser deletes your scenarios. Browser storage is not a durable backup. Export a `.psv` from Entries, or every scenario from the Reset dialog on Settings, if you want a copy you keep.
 - A linked file, when your browser supports it, is also only on your disk.
 
 The files that make up this site are hosted like any other static page. They do not receive your forecast.

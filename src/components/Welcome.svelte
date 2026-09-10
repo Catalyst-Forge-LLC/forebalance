@@ -2,9 +2,13 @@
   import { get } from 'svelte/store';
   import ImportedMarkdown from './ImportedMarkdown.svelte';
   import ForecastSparkline from './ForecastSparkline.svelte';
+  import ThresholdLegend from './ThresholdLegend.svelte';
   import { computeForecastSummary } from '$lib/parser/forecastSummary';
+  import { parseEntries } from '$lib/parser/parseEntries';
   import { fmt } from '$lib/formatters/fmt';
+  import { flagIndicator, flagLabel } from '$lib/formatters/thresholdMarks';
   import {
+    addNamedSet,
     addSetFromTemplate,
     entrySetsStore,
     listTemplates,
@@ -12,15 +16,23 @@
     switchEntrySet,
     updateActiveRaw,
   } from '$lib/data/entrySets';
+  import {
+    buildSimpleExample,
+    SIMPLE_EXAMPLE_ID,
+    SIMPLE_EXAMPLE_NAME,
+  } from '$lib/data/simpleExample';
   import { getTemplate } from '$lib/data/entryTemplates';
   import { activateEntrySet } from '$lib/data/entriesPersistence';
-  import { rawEntriesStore } from '$lib/stores/settings';
+  import { rawEntriesStore, settingsStore } from '$lib/stores/settings';
   import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
 
   export let entries: ParsedEntry[] = [];
   export let balanceFlags: BalanceFlags;
   export let useMainBalance = true;
   export let forecastReady = false;
+
+  let copied = false;
+  let copyTimer: ReturnType<typeof setTimeout> | undefined;
 
   $: templates = listTemplates();
   $: sets = $entrySetsStore.sets;
@@ -30,6 +42,16 @@
     return !template || set.name !== template.name;
   });
   $: summary = forecastReady ? computeForecastSummary(entries, balanceFlags, useMainBalance) : null;
+
+  $: exampleRaw = buildSimpleExample();
+  $: exampleParsed = parseEntries(exampleRaw, 3, balanceFlags, {
+    useFederalHolidays: $settingsStore.useFederalHolidays,
+  });
+  $: exampleMain = exampleParsed[1]
+    ? Object.values(exampleParsed[1]).find((account) => account.isMain)
+    : undefined;
+  $: exampleRows =
+    exampleParsed[0] && exampleMain ? exampleParsed[0][exampleMain.id].slice(0, 6) : [];
 
   function openForecast() {
     location.hash = '#forecast';
@@ -47,6 +69,39 @@
     }
     if (next) activateEntrySet(next.raw);
     openForecast();
+  }
+
+  function unusedSimpleExample() {
+    return sets.find(
+      (set) => set.templateId === SIMPLE_EXAMPLE_ID && set.name === SIMPLE_EXAMPLE_NAME,
+    );
+  }
+
+  function loadSimpleExample() {
+    const currentRaw = get(rawEntriesStore);
+    const unused = unusedSimpleExample();
+    if (unused) {
+      const next = switchEntrySet(unused.id, currentRaw);
+      if (next) activateEntrySet(next.raw);
+    } else {
+      updateActiveRaw(currentRaw);
+      const added = addNamedSet(SIMPLE_EXAMPLE_NAME, buildSimpleExample(), SIMPLE_EXAMPLE_ID);
+      activateEntrySet(added.raw);
+    }
+    openForecast();
+  }
+
+  async function copySimpleExample() {
+    try {
+      await navigator.clipboard.writeText(exampleRaw);
+      copied = true;
+      if (copyTimer) clearTimeout(copyTimer);
+      copyTimer = setTimeout(() => {
+        copied = false;
+      }, 2000);
+    } catch {
+      copied = false;
+    }
   }
 </script>
 
@@ -80,6 +135,66 @@
     </a>
   {/if}
 
+  <section class="walkthrough" aria-label="How a line becomes a forecast">
+    <h2>How a line becomes a forecast</h2>
+    <p>
+      One credit and one debit, in the same pipe-separated syntax the editor uses.
+      <code>C</code> is money in, <code>D</code> is money out, and <code>,R</code> repeats the line
+      monthly. The starting <code>B</code> line sets checking to $420.
+    </p>
+    <pre class="example-src">{exampleRaw.trim()}</pre>
+    <p>
+      Same-day order is balance, then credits, then debits. Rent on the 1st therefore lands after
+      the starting balance, and the paycheck on the 15th raises the running total. These are made-up
+      amounts used to show the format. They are not personal financial advice.
+    </p>
+    {#if exampleRows.length}
+      <div class="example-table-wrap">
+        <table>
+          <caption>First forecast rows from those three lines</caption>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Description</th>
+              <th class="num">Credit</th>
+              <th class="num">Debit</th>
+              <th class="num">Balance</th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each exampleRows as row}
+              <tr class="balance-{row.flag || 'plain'}">
+                <td>{fmt.date(row.date)}</td>
+                <td class="desc">{row.desc}</td>
+                <td class="num">{row.type === 'C' ? fmt.curr(row.amount) : ''}</td>
+                <td class="num">{row.type === 'D' ? fmt.curr(row.amount) : ''}</td>
+                <td class="num">
+                  {flagIndicator(row.flag)}{fmt.curr(row.mainBalance ?? row.balance ?? 0)}
+                  {#if flagLabel(row.flag)}
+                    <span class="flag-word">{flagLabel(row.flag)}</span>
+                  {/if}
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
+    <ThresholdLegend />
+    <p class="persist-note">
+      Row marks use your current Settings thresholds. Loading this example adds a scenario you can
+      edit on Entries. It stays in this browser until you export it or clear site data.
+    </p>
+    <div class="walkthrough-actions">
+      <button type="button" class="button-action" on:click={loadSimpleExample}>
+        Load this example
+      </button>
+      <button type="button" class="button-action copy" on:click={copySimpleExample}>
+        {copied ? 'Copied' : 'Copy the lines'}
+      </button>
+    </div>
+  </section>
+
   <section class="starters" aria-label="Starter scenarios">
     <h2>{addedOwnScenario ? 'Add a starter' : 'Try a starter'}</h2>
     {#if addedOwnScenario}
@@ -112,6 +227,8 @@
 </article>
 
 <style lang="scss">
+  @import '../scss/colors';
+
   .welcome-page {
     max-width: 55em;
     margin: 0 auto;
@@ -130,16 +247,17 @@
     align-items: center;
     margin: 0 0 1.25rem;
     padding: 0.7rem 0.85rem;
-    background: #f8fff8;
-    border: 1px solid #009900;
-    border-radius: 0.5rem;
+    background: $clr-surface;
+    border: 1px solid $clr-border;
+    border-left: 3px solid $clr-accent;
+    border-radius: 0.4rem;
     color: inherit;
     text-decoration: none;
 
     &:hover,
     &:focus-visible {
-      background: #eef9ee;
-      outline: 2px solid #009900;
+      background: $clr-accent-soft;
+      outline: 2px solid $clr-accent;
       outline-offset: 2px;
     }
   }
@@ -158,7 +276,7 @@
     font-weight: 700;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    color: #006600;
+    color: $clr-accent-ink;
   }
 
   .sliver-cta {
@@ -168,43 +286,164 @@
 
   .sliver-name {
     font-size: 1.15rem;
-    color: #004400;
+    color: $clr-accent-ink;
   }
 
   .sliver-lowest {
     font-size: 0.95rem;
-    color: #004400;
+    color: $clr-text;
 
     &.loud {
-      color: #aa0000;
+      color: $clr-negative-ink;
       font-weight: 700;
     }
   }
 
   .sliver-note {
     font-size: 0.8rem;
-    color: #555;
+    color: $clr-muted;
 
     &.ok {
-      color: #006600;
+      color: $clr-accent-ink;
     }
 
     &.loud {
-      color: #aa0000;
+      color: $clr-negative-ink;
       font-weight: 700;
     }
   }
 
+  .walkthrough,
+  .starters {
+    margin: 0 0 1.5rem;
+  }
+
+  .walkthrough h2,
   .starters h2 {
     margin: 0 0 0.5rem;
     font-size: 1.05rem;
-    color: #006600;
+    color: $clr-accent-ink;
   }
 
+  .walkthrough p,
+  .persist-note,
   .starter-note {
     margin: 0 0 0.65rem;
+    padding: 0;
+    font-size: 0.9rem;
+    color: $clr-text;
+    line-height: 1.45;
+  }
+
+  .starter-note,
+  .persist-note {
     font-size: 0.85rem;
-    color: #555;
+    color: $clr-muted;
+  }
+
+  .example-src {
+    margin: 0 0 0.75rem;
+    padding: 0.65rem 0.75rem;
+    overflow-x: auto;
+    background: $clr-accent-soft;
+    border: 1px solid $clr-border;
+    border-radius: 0.35rem;
+    color: $clr-text;
+    font-size: 0.85rem;
+  }
+
+  .example-table-wrap {
+    margin: 0 0 0.75rem;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    min-width: 28em;
+    border-collapse: collapse;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.8rem;
+  }
+
+  caption {
+    caption-side: top;
+    text-align: left;
+    padding-bottom: 0.35rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: $clr-accent-ink;
+  }
+
+  th,
+  td {
+    padding: 0.3rem 0.4rem;
+    border-bottom: 1px solid $clr-border;
+  }
+
+  th {
+    background: $clr-accent-soft;
+    color: $clr-accent-ink;
+    font-weight: 700;
+  }
+
+  .desc {
+    text-align: left;
+  }
+
+  .num {
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  .flag-word {
+    display: inline-block;
+    margin-left: 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .balance-plain {
+    background: $clr-surface;
+  }
+  .balance-negative {
+    background: $clr-negative-bg;
+    color: $clr-negative-ink;
+    font-weight: 700;
+  }
+  .balance-low {
+    background: $clr-low-bg;
+    color: $clr-low-ink;
+    font-weight: 700;
+  }
+  .balance-uncomfortable {
+    background: $clr-uncomf-bg;
+    color: $clr-uncomf-ink;
+    font-weight: 700;
+  }
+  .balance-goal {
+    background: $clr-goal-bg;
+    color: $clr-goal-ink;
+    font-weight: 700;
+  }
+
+  .walkthrough-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .walkthrough-actions :global(.button-action) {
+    display: inline-flex;
+    margin: 0;
+    font-size: 0.85rem;
+  }
+
+  .copy {
+    background-color: $clr-surface !important;
+    color: $clr-accent-ink !important;
   }
 
   .starter-add {
@@ -214,7 +453,7 @@
     font-weight: 700;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    color: #006600;
+    color: $clr-accent-ink;
   }
 
   .starter-grid {
@@ -229,33 +468,33 @@
     align-items: flex-start;
     gap: 0.25rem;
     padding: 0.65rem 0.75rem;
-    background: #f8fff8;
-    border: 1px solid #cce8cc;
-    border-radius: 0.5rem;
-    color: #004400;
+    background: $clr-surface;
+    border: 1px solid $clr-border;
+    border-radius: 0.4rem;
+    color: $clr-text;
     cursor: pointer;
     text-align: left;
 
     strong {
       font-size: 0.95rem;
+      color: $clr-accent-ink;
     }
 
     span {
       font-size: 0.8rem;
-      color: #444;
+      color: $clr-muted;
       line-height: 1.35;
     }
 
     &.selected {
-      border-color: #009900;
-      background: #e8f5e8;
-      box-shadow: inset 0 0 0 1px #009900;
+      border-color: $clr-accent;
+      background: $clr-accent-soft;
     }
 
     &:hover,
     &:focus-visible {
-      border-color: #009900;
-      outline: 2px solid #009900;
+      border-color: $clr-accent;
+      outline: 2px solid $clr-accent;
       outline-offset: 2px;
     }
   }

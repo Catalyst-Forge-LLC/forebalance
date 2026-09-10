@@ -102,6 +102,8 @@
 </ConfirmModal>
 
 <style lang="scss">
+  @import '../scss/colors';
+
   .sets-shell {
     display: flex;
     flex-direction: column;
@@ -122,7 +124,7 @@
     margin: 0;
     font-size: 0.8rem;
     font-weight: 700;
-    color: #004400;
+    color: $clr-accent-ink;
     white-space: nowrap;
   }
 
@@ -130,7 +132,7 @@
     font-size: 0.95rem;
     font-weight: normal;
     padding: 0.3rem 0.45rem;
-    border: 1px solid #009900;
+    border: 1px solid $clr-border-strong;
     border-radius: 0.35rem;
     background: #fff;
   }
@@ -139,9 +141,9 @@
     justify-content: space-between;
     flex-wrap: wrap;
     padding: 0.4rem 0.6rem;
-    background: #f8fff8;
-    border: 1px solid #cce8cc;
-    border-radius: 0.5rem;
+    background: $clr-surface;
+    border: 1px solid $clr-border;
+    border-radius: 0.4rem;
   }
 
   .dock-left,
@@ -153,7 +155,7 @@
   .group {
     padding-left: 0.5rem;
     margin-left: 0.15rem;
-    border-left: 1px solid #b5d9b5;
+    border-left: 1px solid $clr-border;
   }
 
   .dock-right {

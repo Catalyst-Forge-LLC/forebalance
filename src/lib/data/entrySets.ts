@@ -194,14 +194,13 @@ export function deleteEntrySet(id: string): EntrySetsState {
 	return next;
 }
 
-export function addSetFromTemplate(templateId: string): EntrySet {
+export function addNamedSet(name: string, raw: string, templateId?: string): EntrySet {
 	const state = get(entrySetsStore);
-	const template = getTemplate(templateId);
 	const set: EntrySet = {
 		id: newSetId(),
-		name: uniqueSetName(template.name, state.sets),
-		raw: template.build(),
-		templateId: template.id,
+		name: uniqueSetName(name, state.sets),
+		raw,
+		templateId,
 	};
 	const next: EntrySetsState = {
 		activeId: set.id,
@@ -210,6 +209,11 @@ export function addSetFromTemplate(templateId: string): EntrySet {
 	entrySetsStore.set(next);
 	persistEntrySets(next);
 	return set;
+}
+
+export function addSetFromTemplate(templateId: string): EntrySet {
+	const template = getTemplate(templateId);
+	return addNamedSet(template.name, template.build(), template.id);
 }
 
 export function resetToStarterSets(): EntrySetsState {

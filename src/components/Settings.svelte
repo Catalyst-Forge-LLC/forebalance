@@ -49,7 +49,8 @@
         <h2>Forecast thresholds</h2>
         <p class="help">
             These apply to whichever scenario you are viewing on Forecast. They do not change your
-            entry text.
+            entry text. The table uses them to mark projected balances. Those marks are not a
+            promise that a real account will land there.
         </p>
 
         {#each Object.entries(ranges) as [key, range]}
@@ -90,11 +91,23 @@
         </label>
     </section>
 
+    <section class="panel">
+        <h2>Saving your work</h2>
+        <p class="help">
+            The active scenario, the month count, and these thresholds stay in this browser on this
+            device. Clearing site data deletes them. That is not a durable backup.
+        </p>
+        <p class="help">
+            Export the current scenario from Entries, or export every scenario from Reset below. A
+            linked file, when your browser supports it, is also only on this device.
+        </p>
+    </section>
+
     <section class="panel danger">
         <h2>Reset</h2>
         <p class="help">
             Replace every scenario with the four starters and restore default thresholds.
-            You will be asked to export a backup and type RESET.
+            You will be asked to export a copy and type RESET.
         </p>
         <button type="button" class="button-action" on:click={() => (resetOpen = true)}>
             <Icon name="alert" /> Reset all scenarios and settings
@@ -109,6 +122,8 @@
 />
 
 <style lang="scss">
+    @import '../scss/colors';
+
     .settings-panel {
         max-width: 55em;
         margin: 0 auto;
@@ -119,14 +134,14 @@
     .panel {
         margin: 0 0 1rem;
         padding: 0.85rem 1rem 1rem;
-        background: #f8fff8;
-        border: 1px solid #cce8cc;
-        border-radius: 0.5rem;
+        background: $clr-surface;
+        border: 1px solid $clr-border;
+        border-radius: 0.4rem;
 
         h2 {
             margin: 0 0 0.35rem;
             font-size: 1rem;
-            color: #006600;
+            color: $clr-accent-ink;
         }
     }
 
@@ -151,7 +166,7 @@
         display: block;
         font-weight: 700;
         font-size: 0.9rem;
-        color: #004400;
+        color: $clr-accent-ink;
         margin-top: 1rem;
 
         &:first-of-type {

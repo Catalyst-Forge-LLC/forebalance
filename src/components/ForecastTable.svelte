@@ -4,9 +4,11 @@
   import { applyForecastEdit, type ForecastEditScope } from '$lib/parser/occurrenceEdit';
   import { onMount } from 'svelte';
   import { fmt } from '$lib/formatters/fmt';
+  import { flagIndicator, flagLabel } from '$lib/formatters/thresholdMarks';
   import { accountDisplayName } from '$lib/parser/accountLabel';
   import type { ParsedEntry } from '$lib/parser/types';
   import Tooltip from './Tooltip.svelte';
+  import ThresholdLegend from './ThresholdLegend.svelte';
 
   export let tableEntries: ParsedEntry[] = [];
   export let accounts = {};
@@ -24,15 +26,6 @@
       return fmt.curr(entry.mainBalance);
     }
     return fmt.curr(entry.subAccountRunningBal ?? entry.balance ?? entry.mainBalance);
-  }
-
-  function flagIndicator(flag) {
-    if (flag === 'negative') return '⚠ ';
-    if (flag === 'low') return '▼ ';
-    if (flag === 'uncomfortable') return '◆ ';
-    if (flag === 'goal') return '▲ ';
-    if (flag === 'paid-off') return '✓ ';
-    return '';
   }
 
   const isNewMonth = (date1, date2) => date1.getMonth() != date2.getMonth();
@@ -163,8 +156,10 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
 <div class="table-wrap">
   <p class="edit-hint">
     Click a row to change date or amount. Recurring rows can update this occurrence
-    (<code>#5=</code>) or the whole series.
+    (<code>#5=</code>) or the whole series. These balances are a projection from the
+    lines you entered, not a promise about real accounts.
   </p>
+  <ThresholdLegend compact />
   <table>
     <tbody>
       {#each tableEntries as entry, i}
@@ -258,7 +253,10 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
             >
             <td class="num-col" align="right">{entry.type === 'C' ? fmt.curr(entry.amount) : ''}</td>
             <td class="num-col" align="right">{entry.type === 'D' ? fmt.curr(entry.amount) : ''}</td>
-            <td align="right">{flagIndicator(entry.flag)}{displayBalance(entry)}</td>
+            <td align="right"
+              >{flagIndicator(entry.flag)}{displayBalance(entry)}{#if flagLabel(entry.flag)}
+                <span class="flag-word">{flagLabel(entry.flag)}</span>{/if}</td
+            >
           {/if}
         </tr>
         {#if showMonthFooter(i)}
@@ -287,6 +285,8 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
 </div>
 
 <style lang="scss">
+  @import '../scss/colors';
+
   .table-wrap {
     width: calc(100% - 2rem);
     margin: 0 auto 2rem;
@@ -298,15 +298,10 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     min-width: 28em;
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     font-size: 0.8rem;
-    tr {
-      opacity: 0.9;
-    }
+    border-collapse: collapse;
     td {
-      padding: 0.15rem 0.35rem;
-      box-shadow: inset -6px 0 8px -8px rgba(0, 0, 0, 0.25);
-      &.new-month {
-        box-shadow: none;
-      }
+      padding: 0.2rem 0.35rem;
+      border-bottom: 1px solid $clr-border;
       > :global(div) {
         display: block !important;
       }
@@ -315,47 +310,50 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
       text-align: left;
     }
     .headings {
-      background-color: #990099 !important;
-      color: #fff;
+      background-color: $clr-accent-soft !important;
+      color: $clr-accent-ink;
+      font-weight: 700;
     }
     .month-summary {
-      background-color: lighten(#990099, 60%) !important;
+      background-color: $clr-accent-soft !important;
+      color: $clr-accent-ink;
       font-weight: 700;
       text-align: right;
     }
 
     .balance-reset {
-      color: #fff !important;
-      background-color: #050 !important;
+      color: $clr-accent-ink !important;
+      background-color: $clr-accent-soft !important;
+      font-weight: 700;
     }
 
     .balance-negative {
-      background-color: #ff0000 !important;
-      color: #fff !important;
+      background-color: $clr-negative-bg !important;
+      color: $clr-negative-ink !important;
       font-weight: 700;
     }
 
     .balance-low {
-      background-color: #eeaa00 !important;
-      color: #fff;
+      background-color: $clr-low-bg !important;
+      color: $clr-low-ink !important;
       font-weight: 700;
     }
 
     .balance-uncomfortable {
-      color: #aa9900;
+      background-color: $clr-uncomf-bg !important;
+      color: $clr-uncomf-ink !important;
       font-weight: 700;
     }
 
     .balance-paid-off {
-      background-color: #5555bb !important;
-      color: #fff !important;
-      opacity: 0.75;
+      background-color: $clr-paidoff-bg !important;
+      color: $clr-paidoff-ink !important;
       font-weight: 700;
     }
 
     .balance-goal {
-      color: #fff;
-      background-color: #009900 !important;
+      background-color: $clr-goal-bg !important;
+      color: $clr-goal-ink !important;
       font-weight: 700;
     }
 
@@ -363,18 +361,28 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
       font-weight: 700;
       font-size: 1.25rem;
       padding-top: 1rem;
-      background-color: #fff !important;
+      background-color: $clr-surface !important;
+      color: $clr-accent-ink;
+      border-bottom: none;
     }
 
     tbody tr:nth-child(odd) {
-      background-color: #ccffcc;
+      background-color: #f3f6f3;
     }
+  }
+
+  .flag-word {
+    display: inline-block;
+    margin-left: 0.3rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
 
   .edit-hint {
     margin: 0 0 0.45rem;
     font-size: 0.8rem;
-    color: #555;
+    color: $clr-muted;
     text-align: left;
     font-family: inherit;
   }
@@ -388,7 +396,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
   }
 
   tr.editing {
-    outline: 2px solid #009900;
+    outline: 2px solid $clr-accent;
     outline-offset: -2px;
   }
 
@@ -408,7 +416,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     border: 0;
     font-family: inherit;
     font-size: 0.75rem;
-    color: #004400;
+    color: $clr-accent-ink;
   }
 
   .scope label {
@@ -422,7 +430,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
   .occ {
     display: block;
     font-size: 0.75rem;
-    color: #555;
+    color: $clr-muted;
     font-family: inherit;
   }
 
@@ -449,15 +457,15 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     margin-left: 0.25rem;
     padding: 0.15rem 0.4rem;
     font-size: 0.75rem;
-    border: 1px solid #009900;
+    border: 1px solid $clr-accent;
     border-radius: 0.3rem;
-    background: #fff;
-    color: #004400;
+    background: $clr-surface;
+    color: $clr-accent-ink;
     cursor: pointer;
   }
 
   .edit-actions .save {
-    background: #009900;
+    background: $clr-accent;
     color: #fff;
     font-weight: 700;
   }

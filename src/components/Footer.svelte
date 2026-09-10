@@ -1,26 +1,35 @@
 <footer>
-  &copy;2020-{new Date().getFullYear()} Catalyst Forge, LLC
+  <p>&copy;2020-{new Date().getFullYear()} Catalyst Forge, LLC</p>
+  <p class="terms">Free to use. Source is not public. All rights reserved.</p>
 </footer>
 
 <style lang="scss">
+  @import '../scss/colors';
+
   footer {
     bottom: 0;
     left: 0;
-    width: 100vw;
+    width: 100%;
     z-index: 1000;
-
     text-align: center;
-    background-color: #009900;
-    color: #fff;
-    font-size: calc(min(3.25vw, 1.1rem));
+    background: $clr-surface;
+    color: $clr-text;
+    font-size: 0.85rem;
     font-weight: 400;
     margin-top: 0;
     display: block;
-    padding: 0.5rem;
-    border-top-left-radius: 0.5rem;
-    border-top-right-radius: 2rem;
-    border-top: 1px solid #fff;
-    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.75);
-    box-shadow: 0 -0.25rem 0.5rem rgba(0, 0, 0, 0.5);
+    padding: 0.55rem 0.75rem 0.7rem;
+    border-top: 3px solid $clr-accent;
+  }
+
+  p {
+    margin: 0;
+    padding: 0;
+  }
+
+  .terms {
+    margin-top: 0.15rem;
+    color: $clr-muted;
+    font-size: 0.75rem;
   }
 </style>

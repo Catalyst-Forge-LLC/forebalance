@@ -58,6 +58,8 @@
 </div>
 
 <style lang="scss">
+  @import '../scss/colors';
+
   .bar,
   .inline {
     display: flex;
@@ -67,9 +69,9 @@
 
   .bar {
     padding: 0.4rem 0.6rem;
-    background: #f8fff8;
-    border: 1px solid #cce8cc;
-    border-radius: 0.5rem;
+    background: $clr-surface;
+    border: 1px solid $clr-border;
+    border-radius: 0.4rem;
   }
 
   .compact {
@@ -83,7 +85,7 @@
     margin: 0;
     font-size: 0.8rem;
     font-weight: 700;
-    color: #004400;
+    color: $clr-accent-ink;
     white-space: nowrap;
 
     span {
@@ -101,7 +103,7 @@
     font-size: 0.95rem;
     font-weight: normal;
     padding: 0.3rem 0.45rem;
-    border: 1px solid #009900;
+    border: 1px solid $clr-border-strong;
     border-radius: 0.35rem;
     background: #fff;
   }

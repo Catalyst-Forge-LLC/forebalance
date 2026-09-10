@@ -84,7 +84,7 @@ export function psvTheme(): import('@codemirror/state').Extension {
 				opacity: '0.55',
 			},
 			'.cm-line:nth-child(even)': {
-				backgroundColor: '#e8f5e8',
+				backgroundColor: '#f3f6f3',
 			},
 			'.cm-line.cm-activeLine, .cm-line:nth-child(even).cm-activeLine': {
 				backgroundColor: '#dceeff',

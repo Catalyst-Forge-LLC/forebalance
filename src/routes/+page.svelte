@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { appStateStore, settingsStore, rawEntriesStore } from '$lib/stores/settings';
+	import { entrySetsStore } from '$lib/data/entrySets';
 	import { Tabs, TabList, TabPanel, Tab } from './../components/tabs';
 	import { parseEntries } from '$lib/parser/parseEntries';
 	import { accountDisplayName, formatAccountOption } from '$lib/parser/accountLabel';
@@ -67,6 +68,8 @@
   $: selectedIsMain = selectedAccount?.isMain ?? true;
   $: forecastReady = !!(accountEntries && selectedAccountId && accountEntries[selectedAccountId]);
   $: forecastReason = forecastReady ? '' : forecastBlockReason($rawEntriesStore);
+  $: activeScenarioName =
+    $entrySetsStore.sets.find((set) => set.id === $entrySetsStore.activeId)?.name ?? 'this scenario';
 
   function selectedAccountHelp(account: typeof selectedAccount): string {
     if (!account) return '';
@@ -149,6 +152,15 @@
             </div>
           </SetSwitcher>
           {#if forecastReady}
+            <p class="forecast-context">
+              Scenario <strong>{activeScenarioName}</strong>. Looking
+              {$settingsStore.monthsToForecast} months ahead. Goal
+              {fmt.curr($settingsStore.thresholdGoalBalance)}, uncomfortable
+              {fmt.curr($settingsStore.thresholdUncomfortableBalance)}, low
+              {fmt.curr($settingsStore.thresholdLowBalance)}. Projected from the lines in this
+              scenario, not a promise about real accounts. Saved in this browser. Export on Entries
+              for a copy you keep.
+            </p>
             <div class="forecast-glance">
               <ForecastSummary
                 entries={selectedEntries}
@@ -246,7 +258,7 @@
     text-align: left;
     background: #fff8e6;
     border: 1px solid #cc8800;
-    border-radius: 0.5rem;
+    border-radius: 0.4rem;
 
     p {
       margin: 0;
@@ -288,10 +300,19 @@
     margin-left: auto;
   }
 
+  .forecast-context {
+    margin: 0 0 0.45rem;
+    padding: 0;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: #5c635c;
+    text-align: left;
+  }
+
   .account-select select {
     font-size: 0.85rem;
     padding: 0.25rem 0.4rem;
-    border: 1px solid #009900;
+    border: 1px solid #d5d9d3;
     border-radius: 0.35rem;
     max-width: 18em;
   }
@@ -303,17 +324,18 @@
   }
 
   .account-buttons button {
-    background: #e8f5e8;
-    border: 1px solid #009900;
-    border-radius: 0.4rem;
-    color: #004400;
+    background: #fff;
+    border: 1px solid #d5d9d3;
+    border-radius: 0.35rem;
+    color: #0d5c14;
     cursor: pointer;
     font-size: 0.75rem;
     padding: 0.2rem 0.5rem;
 
     &.selected {
-      background: #009900;
-      color: #fff;
+      background: #e8f2e8;
+      border-color: #009900;
+      color: #0d5c14;
       font-weight: 700;
     }
   }
@@ -328,9 +350,9 @@
     gap: 0.5rem 1.25rem;
     align-items: center;
     text-align: left;
-    background: #f8fff8;
-    border: 1px solid #cce8cc;
-    border-radius: 0.5rem;
+    background: #fff;
+    border: 1px solid #d5d9d3;
+    border-radius: 0.4rem;
   }
 
   @media (max-width: 40em) {

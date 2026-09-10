@@ -49,7 +49,7 @@
     This deletes <strong>every scenario</strong> and restores the four starters plus default
     thresholds. It cannot be undone.
   </p>
-  <p class="warn">Export a backup first if you might want these numbers again.</p>
+  <p class="warn">Export a copy first if you might want these numbers again. Browser storage will not keep them after reset.</p>
 
   <button type="button" class="button-action export" on:click={exportFirst}>
     <Icon name="download" /> Export every scenario first
@@ -86,7 +86,7 @@
     background: #fff;
     border: 2px solid #aa3300;
     border-radius: 0.6rem;
-    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.35);
+    box-shadow: 0 0.15rem 0.6rem rgba(0, 0, 0, 0.12);
     text-align: left;
   }
 

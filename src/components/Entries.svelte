@@ -135,6 +135,10 @@
       on:change={onImportSelected}
     />
 
+    <p class="persist-note">
+      This scenario stays in this browser on this device. Clearing site data deletes it. Export a
+      <code>.psv</code> for a copy you keep. Browser storage is not a durable backup.
+    </p>
     <PsvEditor
       value={$rawEntriesStore}
       hasWarnings={validationWarnings.length > 0}
@@ -208,10 +212,21 @@
 </ConfirmModal>
 
 <style lang="scss">
+  @import '../scss/colors';
+
   .entries-page {
     max-width: 55em;
     margin: 0 auto;
     padding: 0.5rem 1rem 1rem;
+  }
+
+  .persist-note {
+    margin: 0.35rem 0 0;
+    padding: 0;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: $clr-muted;
+    text-align: left;
   }
 
   .file-slot {
@@ -223,7 +238,7 @@
 
   .linked-file {
     font-size: 0.85rem;
-    color: #006600;
+    color: $clr-accent-ink;
   }
 
   .button-link {
@@ -266,10 +281,10 @@
 
     :global(div[role='presentation']),
     :global(.dropzone) {
-      border: 1px dashed #009900 !important;
-      background: #f8fff8 !important;
-      border-radius: 0.5rem !important;
-      color: #004400;
+      border: 1px dashed $clr-accent !important;
+      background: $clr-accent-soft !important;
+      border-radius: 0.4rem !important;
+      color: $clr-accent-ink;
       font-size: 0.9rem;
     }
 

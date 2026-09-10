@@ -5,6 +5,7 @@
 <style>
 	.tab-list {
 		display: flex;
-		border-bottom: 1px solid teal;
+		background: var(--fb-surface);
+		border-bottom: 1px solid var(--fb-border);
 	}
 </style>

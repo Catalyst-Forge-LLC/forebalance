@@ -1,6 +1,7 @@
 import { get } from 'svelte/store';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
+	addNamedSet,
 	addSetFromTemplate,
 	cloneEntrySet,
 	deleteEntrySet,
@@ -83,6 +84,13 @@ describe('entry set CRUD', () => {
 		const added = addSetFromTemplate('debt-focus');
 		expect(added.raw).toContain('CareCredit');
 		expect(get(entrySetsStore).sets.length).toBe(5);
+	});
+
+	it('adds a named set without changing the four starters', () => {
+		const added = addNamedSet('Simple walkthrough', 'B-CHCK-main|2026-09-01|10|Demo', 'simple-example');
+		expect(added.templateId).toBe('simple-example');
+		expect(get(entrySetsStore).sets.length).toBe(5);
+		expect(starterSets()).toHaveLength(4);
 	});
 
 	it('switches after saving the current draft', () => {

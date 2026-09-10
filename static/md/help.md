@@ -14,6 +14,8 @@ C|2026-04-01,R2W|1684|Paycheck
 D|2026-04-01,R<|1645|Rent
 ```
 
+A shorter paycheck-and-rent walkthrough, including how rows get threshold marks, is on **[Welcome](/#welcome)**. Those sample numbers are illustrative. They are not personal financial advice.
+
 Section labels start with `---` (for example `--- Income`). They are comments only.
 
 Jump to: [TYPE](#type) · [WHEN](#when) · [One occurrence](#one-occurrence) · [Debt](#debt-and-sub-accounts) · [Disable a line](#disable-a-line) · [Scenarios](#scenarios)
@@ -56,7 +58,9 @@ Or split name and last-four across pipes:
 D|2026-04-15,R|150|Capital One|4321|2800|19.99
 ```
 
-ForeBalance starts from `STARTING_BAL`, adds monthly interest from APR, then subtracts payments. Remaining balance goes down as you pay (interest can slow that).
+ForeBalance starts from `STARTING_BAL`, adds monthly interest from APR, then subtracts payments. Remaining balance goes down as you pay, though interest can slow that.
+
+Interest is the APR divided by 12, times the remaining balance, added on each payment date before that payment is subtracted. It is not daily compounding. Lenders may use a different method. Change the APR or remaining balance on the line if your statement uses other figures.
 
 ## WHEN
 
@@ -138,6 +142,12 @@ On **Entries** you can keep more than one forecast (a tight month, a what-if, an
 - **Add a starter** copies a built-in profile
 - **Import** / **Export** apply to the *current* scenario only
 - **Forecast** has the same scenario picker, and always uses the one you selected
-- **Settings → Reset** can export every scenario as one JSON backup first
+- **Settings → Reset** can export every scenario as one JSON copy first
 
-Nothing is sent to a server. See **[Privacy](/#privacy)**. Data lives in this browser until you clear site data.
+Nothing is sent to a server. See **[Privacy](/#privacy)**. Data lives in this browser until you clear site data. Browser storage is not a durable backup.
+
+## What the forecast assumes
+
+The table is a projection from your lines, your month count, and your thresholds. Change a date, amount, or recurrence, and the future rows change. The tool does not connect to a bank and does not know about charges you did not enter.
+
+Debt interest uses the monthly model above. Projected balances are only as accurate as the lines you enter. They are not a promise about real accounts.

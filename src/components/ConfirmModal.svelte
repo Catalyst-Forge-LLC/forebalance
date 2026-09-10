@@ -37,7 +37,7 @@
     padding: 1.15rem 1.25rem 1.25rem;
     border: 2px solid #006600;
     border-radius: 0.6rem;
-    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.35);
+    box-shadow: 0 0.15rem 0.6rem rgba(0, 0, 0, 0.12);
     text-align: left;
   }
 

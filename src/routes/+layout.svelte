@@ -8,10 +8,14 @@
 	main {
 		flex-grow: 1;
 		max-width: 56em;
+		width: 100%;
 		padding: 0;
 		margin: 0 auto;
 		overflow: auto;
 		position: relative;
+		background: #fff;
+		border-left: 1px solid #d5d9d3;
+		border-right: 1px solid #d5d9d3;
 	}
 
 	:global(p) {
