@@ -8,6 +8,7 @@
     addSetFromTemplate,
     entrySetsStore,
     listTemplates,
+    resolveStarterClick,
     switchEntrySet,
     updateActiveRaw,
   } from '$lib/data/entrySets';
@@ -22,7 +23,12 @@
   export let forecastReady = false;
 
   $: templates = listTemplates();
-  $: active = $entrySetsStore.sets.find((set) => set.id === $entrySetsStore.activeId);
+  $: sets = $entrySetsStore.sets;
+  $: active = sets.find((set) => set.id === $entrySetsStore.activeId);
+  $: addedOwnScenario = sets.some((set) => {
+    const template = set.templateId ? getTemplate(set.templateId) : undefined;
+    return !template || set.name !== template.name;
+  });
   $: summary = forecastReady ? computeForecastSummary(entries, balanceFlags, useMainBalance) : null;
 
   function openForecast() {
@@ -32,17 +38,10 @@
   function openStarter(templateId: string) {
     const currentRaw = get(rawEntriesStore);
     const state = get(entrySetsStore);
-    const template = getTemplate(templateId);
-    const existing =
-      state.sets.find((set) => set.templateId === templateId) ??
-      state.sets.find((set) => set.name === template.name);
-
-    let next = existing;
-    if (existing) {
-      if (existing.id !== state.activeId) {
-        next = switchEntrySet(existing.id, currentRaw);
-      }
-    } else {
+    const decision = resolveStarterClick(state.sets, templateId);
+    let next =
+      decision.action === 'switch' ? switchEntrySet(decision.id, currentRaw) : null;
+    if (decision.action === 'add') {
       updateActiveRaw(currentRaw);
       next = addSetFromTemplate(templateId);
     }
@@ -82,18 +81,30 @@
   {/if}
 
   <section class="starters" aria-label="Starter scenarios">
-    <h2>Try a starter</h2>
+    <h2>{addedOwnScenario ? 'Add a starter' : 'Try a starter'}</h2>
+    {#if addedOwnScenario}
+      <p class="starter-note">
+        These add a fresh copy. Your renamed scenarios stay where they are.
+      </p>
+    {/if}
     <div class="starter-grid">
       {#each templates as template}
+        {@const action = resolveStarterClick(sets, template.id).action}
         <button
           type="button"
           class="starter"
-          class:selected={active?.templateId === template.id || active?.name === template.name}
-          title="Open {template.name} on Forecast"
+          class:selected={action === 'switch' &&
+            (active?.templateId === template.id && active?.name === template.name)}
+          title={action === 'switch'
+            ? `Open ${template.name} on Forecast`
+            : `Add ${template.name} as a new scenario`}
           on:click={() => openStarter(template.id)}
         >
           <strong>{template.name}</strong>
           <span>{template.blurb}</span>
+          {#if action === 'add'}
+            <em class="starter-add">Add new</em>
+          {/if}
         </button>
       {/each}
     </div>
@@ -187,6 +198,22 @@
   .starters h2 {
     margin: 0 0 0.5rem;
     font-size: 1.05rem;
+    color: #006600;
+  }
+
+  .starter-note {
+    margin: 0 0 0.65rem;
+    font-size: 0.85rem;
+    color: #555;
+  }
+
+  .starter-add {
+    margin-top: 0.15rem;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
     color: #006600;
   }
 

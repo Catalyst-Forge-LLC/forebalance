@@ -109,6 +109,23 @@ export function listTemplates(): EntryTemplate[] {
 	return entryTemplates;
 }
 
+/** An unused starter still has the template name. A rename means the set is theirs. */
+export function unusedStarterForTemplate(
+	sets: EntrySet[],
+	templateId: string,
+): EntrySet | undefined {
+	const template = getTemplate(templateId);
+	return sets.find((set) => set.templateId === templateId && set.name === template.name);
+}
+
+export function resolveStarterClick(
+	sets: EntrySet[],
+	templateId: string,
+): { action: 'switch'; id: string } | { action: 'add' } {
+	const unused = unusedStarterForTemplate(sets, templateId);
+	return unused ? { action: 'switch', id: unused.id } : { action: 'add' };
+}
+
 export function updateActiveRaw(raw: string, state = get(entrySetsStore)): EntrySetsState {
 	const next: EntrySetsState = {
 		...state,

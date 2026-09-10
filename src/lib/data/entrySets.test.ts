@@ -9,6 +9,7 @@ import {
 	renameEntrySet,
 	refreshKnownStarterSeeds,
 	resetToStarterSets,
+	resolveStarterClick,
 	starterSets,
 	switchEntrySet,
 	uniqueSetName,
@@ -90,6 +91,20 @@ describe('entry set CRUD', () => {
 		const switched = switchEntrySet(target.id, 'B-CHCK-main|2026-09-01|1|Draft');
 		expect(switched?.id).toBe(target.id);
 		expect(get(entrySetsStore).sets[0].raw).toContain('Draft');
+	});
+});
+
+describe('resolveStarterClick', () => {
+	it('opens an unused starter and adds after a rename', () => {
+		const starters = starterSets();
+		expect(resolveStarterClick(starters, 'close-month')).toEqual({
+			action: 'switch',
+			id: starters[0].id,
+		});
+		const renamed = starters.map((set, index) =>
+			index === 0 ? { ...set, name: 'April bills' } : set,
+		);
+		expect(resolveStarterClick(renamed, 'close-month')).toEqual({ action: 'add' });
 	});
 });
 

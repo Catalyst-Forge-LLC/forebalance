@@ -82,6 +82,12 @@ export function psvTheme(): import('@codemirror/state').Extension {
 			'.cm-disabled-line': {
 				opacity: '0.55',
 			},
+			'.cm-line:nth-child(even)': {
+				backgroundColor: '#e8f5e8',
+			},
+			'.cm-line.cm-activeLine, .cm-line:nth-child(even).cm-activeLine': {
+				backgroundColor: '#dceeff',
+			},
 			'.cm-psv-type': { color: '#006600', fontWeight: 'bold' },
 			'.cm-psv-when': { color: '#004488' },
 			'.cm-psv-amount': { color: '#884400' },
