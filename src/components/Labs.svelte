@@ -5,7 +5,9 @@
   import {
     describeMatches,
     parseRouterReply,
+    refineRoutedIds,
     routerPrompt,
+    routerRetryPrompt,
     specialistPrompt,
     typesById,
     type QueryType,
@@ -105,9 +107,17 @@
     progressText = 'Routing…';
     try {
       const routed = splitModelReply(
-        await session.prompt(routerPrompt(), `Ask: ${ask}`, { maxTokens: 48 }),
+        await session.prompt(routerPrompt(), `Ask: ${ask}`, { maxTokens: 24 }),
       );
-      const types = typesById(parseRouterReply(routed.answer));
+      let ids = refineRoutedIds(parseRouterReply(routed.answer), ask);
+      if (!ids.length) {
+        progressText = 'Routing again…';
+        const retry = splitModelReply(
+          await session.prompt(routerRetryPrompt(), `Ask: ${ask}`, { maxTokens: 24 }),
+        );
+        ids = refineRoutedIds(parseRouterReply(retry.answer), ask);
+      }
+      const types = typesById(ids);
       routedIds = types.map((type) => type.id).join(', ') || 'none';
       progressText = types.length ? `Filling ${routedIds}…` : 'No type matched…';
       const reply = splitModelReply(

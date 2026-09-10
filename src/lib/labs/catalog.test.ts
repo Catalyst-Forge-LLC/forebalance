@@ -3,7 +3,9 @@ import {
 	QUERY_TYPES,
 	catalogPrompt,
 	matchQueryTypes,
+	isMenuEcho,
 	parseRouterReply,
+	refineRoutedIds,
 	routerPrompt,
 	specialistPrompt,
 	typesById,
@@ -39,8 +41,33 @@ describe('query catalog', () => {
 		]);
 		const specialist = specialistPrompt(rentPay);
 		expect(specialist).toContain('D|{YYYY-MM-DD},R|{amt}|Rent');
-		expect(specialist).toContain('C|{next that weekday},RW|{amt}|Pay');
+		expect(specialist).toContain('C|{next that weekday},RW|{amt}|');
 		expect(specialist).not.toContain('[afford]');
 		expect(specialist.length).toBeLessThan(catalogPrompt().length / 2);
+	});
+
+	it('rejects a catalog dump and keeps a short draft route', () => {
+		const dump = [
+			'afford',
+			'first-negative',
+			'first-uncomfortable',
+			'skip-whatif',
+			'recur',
+			'last-day',
+			'business-day',
+			'draft-weekly',
+			'draft-lastday',
+			'draft-balance',
+			'draft-oneshot',
+			'draft-debt',
+		];
+		expect(isMenuEcho(dump)).toBe(true);
+		expect(
+			refineRoutedIds(dump, 'Rent of $1243 and earn $120 from driving Uber every Tuesday and Thursday'),
+		).toEqual([]);
+		expect(refineRoutedIds(['draft-rent', 'draft-weekdays'], 'earn $120 Uber every Tuesday')).toEqual([
+			'draft-rent',
+			'draft-weekdays',
+		]);
 	});
 });

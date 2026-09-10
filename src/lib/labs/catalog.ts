@@ -156,7 +156,8 @@ export const QUERY_TYPES: QueryType[] = [
 		when: 'every Tuesday and Thursday, each Friday',
 		match:
 			/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)s?\b/i,
-		template: 'C|{next that weekday},RW|{amt}|Pay\n(one line per weekday)',
+		template:
+			'C|{next that weekday},RW|{amt}|{name}\nEarn / Uber / pay is C, never D. One line per weekday.',
 	},
 	{
 		id: 'draft-biweekly',
@@ -243,32 +244,60 @@ export function typesById(ids: string[]): QueryType[] {
 	return QUERY_TYPES.filter((type) => wanted.has(type.id));
 }
 
+const CATALOG_IDS = QUERY_TYPES.map((type) => type.id);
+
 /** Tier 1: ids and triggers only — no answer shapes. The model is the router. */
 export function routerPrompt(): string {
 	const list = QUERY_TYPES.map((type) => `${type.id} — ${type.when}`).join('\n');
-	return `You are the ForeBalance Labs router. Read the ask. Reply with comma-separated type ids only, or none.
-Pick every type that applies. Do not answer the user. Do not write .psv.
+	return `You are the ForeBalance Labs router. Reply with 1-3 type ids, comma-separated, or none.
+Never paste the menu. Never answer the user. Never write .psv.
 
-Examples:
-rent on the 7th and earn $120 from Uber every Tue/Thu
-draft-rent, draft-weekdays
+${list}
 
-What does R2W mean?
-recur
+Examples (copy this shape):
+rent on the 7th and earn $120 from Uber every Tue/Thu → draft-rent, draft-weekdays
+What does R2W mean? → recur
+Can I afford a $240 tire on Friday? → afford
+Why is this tight? → tight`;
+}
 
-Can I afford a $240 tire on Friday?
-afford
-
-Why is this tight?
-tight
-
-${list}`;
+export function routerRetryPrompt(): string {
+	return `Too many ids (that was the menu). Reply with 1-3 ids for THIS ask only.
+Shape: draft-rent, draft-weekdays
+No other words.`;
 }
 
 export function parseRouterReply(text: string): string[] {
-	const known = new Set(QUERY_TYPES.map((type) => type.id));
+	const known = new Set(CATALOG_IDS);
 	const tokens = text.toLowerCase().match(/[a-z]+(?:-[a-z0-9]+)*/g) ?? [];
 	return [...new Set(tokens.filter((token) => known.has(token)))];
+}
+
+/** True when the model echoed the catalog instead of routing. */
+export function isMenuEcho(ids: string[]): boolean {
+	if (ids.length >= 6) return true;
+	if (ids.length < 4) return false;
+	const positions = ids.map((id) => CATALOG_IDS.indexOf(id)).filter((index) => index >= 0);
+	let run = 1;
+	for (let i = 1; i < positions.length; i++) {
+		if (positions[i] === positions[i - 1] + 1) {
+			run += 1;
+			if (run >= 4) return true;
+		} else {
+			run = 1;
+		}
+	}
+	return false;
+}
+
+export function refineRoutedIds(ids: string[], ask: string): string[] {
+	if (isMenuEcho(ids)) return [];
+	let types = typesById(ids);
+	if (/\b(rent|earn|uber|paycheck|gig|every|tuesday|thursday)\b/i.test(ask)) {
+		const drafts = types.filter((type) => type.kind === 'draft');
+		if (drafts.length) types = drafts;
+	}
+	return types.slice(0, 3).map((type) => type.id);
 }
 
 /** Tier 2: only the routed templates. */
