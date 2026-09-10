@@ -7,6 +7,7 @@ import {
 	entrySetsStore,
 	migrateLegacyEntries,
 	renameEntrySet,
+	refreshKnownStarterSeeds,
 	resetToStarterSets,
 	starterSets,
 	switchEntrySet,
@@ -102,5 +103,24 @@ describe('migrateLegacyEntries', () => {
 
 	it('falls back to starters when nothing is stored', () => {
 		expect(migrateLegacyEntries(null).sets).toHaveLength(4);
+	});
+});
+
+describe('refreshKnownStarterSeeds', () => {
+	it('replaces the insolvent Variable pay seed and leaves other text alone', () => {
+		const broken = `B-CHCK2201-main|2026-09-01|640|Balance Checking 2201
+C|2026-09-03|410|Gig week
+`;
+		const custom = 'B-CHCK-main|2026-09-01|99|Mine';
+		const next = refreshKnownStarterSeeds({
+			activeId: 'a',
+			sets: [
+				{ id: 'a', name: 'Variable pay', raw: broken, templateId: 'variable-pay' },
+				{ id: 'b', name: 'Mine', raw: custom },
+			],
+		});
+		expect(next.sets[0].raw).toContain('|1720|Balance Checking 2201');
+		expect(next.sets[0].raw).toContain(',R|520|Gig week');
+		expect(next.sets[1].raw).toBe(custom);
 	});
 });

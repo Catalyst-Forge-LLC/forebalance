@@ -38,25 +38,25 @@ D|${p}22,R|50|Savings
 }
 
 function variablePay(p: string): string {
-	return `B-CHCK2201-main|${p}01|640|Balance Checking 2201
+	return `B-CHCK2201-main|${p}01|1720|Balance Checking 2201
 --- Income
-C|${p}03|410|Gig week
-C|${p}10|585|Gig week
-C|${p}17|295|Gig week
-C|${p}24,RW|460|Gig average
+C|${p}03,R|520|Gig week
+C|${p}10,R|410|Gig week
+C|${p}17,R|680|Gig week
+C|${p}24,R|490|Gig week
 --- Housing
-D|${p}01,R<|1385|Rent
+D|${p}01,R<|1185|Rent
 --- Food
-D|${p}02,RW|78|Groceries
-D|${p}06,RW|22|Coffee / snacks
+D|${p}02,RW|72|Groceries
+D|${p}06,RW|18|Coffee / snacks
 --- Transport
-D|${p}01,R|98|Transit pass
+D|${p}01,R|92|Transit pass
 --- Utilities
-D|${p}09,R|118|Electric
-D|${p}14,R|68|Phone
-D|${p}07,R|65|Internet
+D|${p}09,R|98|Electric
+D|${p}14,R|58|Phone
+D|${p}07,R|55|Internet
 --- Debt
-D-SYNC|${p}20,R|55|Synchrony-8802|SYNC|1640|27.49
+D-SYNC|${p}20,R|65|Synchrony-8802|SYNC|1640|27.49
 `;
 }
 
@@ -118,7 +118,7 @@ export const entryTemplates: EntryTemplate[] = [
 	{
 		id: 'variable-pay',
 		name: 'Variable pay',
-		blurb: 'Gig weeks that swing. Lower rent, transit instead of a car, one high-APR card.',
+		blurb: 'Gig weeks that swing. Rent week is tight; later weeks catch up. Transit instead of a car, one high-APR card.',
 		build: (monthPrefix = currentMonthPrefix()) => variablePay(monthPrefix),
 	},
 	{

@@ -70,10 +70,26 @@ export function loadEntrySets(): EntrySetsState | null {
 		if (!parsed.sets.some((set) => set.id === parsed.activeId)) {
 			parsed.activeId = parsed.sets[0].id;
 		}
-		return parsed;
+		return refreshKnownStarterSeeds(parsed);
 	} catch {
 		return null;
 	}
+}
+
+/** The first Variable pay seed only paid three gig weeks once, then a lean weekly average. */
+export function isBrokenVariablePaySeed(raw: string): boolean {
+	return raw.includes('|640|Balance Checking 2201');
+}
+
+/** Replace known-bad starter text; leave user-edited copies alone. */
+export function refreshKnownStarterSeeds(state: EntrySetsState): EntrySetsState {
+	let changed = false;
+	const sets = state.sets.map((set) => {
+		if (!isBrokenVariablePaySeed(set.raw)) return set;
+		changed = true;
+		return { ...set, raw: getTemplate('variable-pay').build() };
+	});
+	return changed ? { ...state, sets } : state;
 }
 
 /** Existing single-file users become one editable set named My entries. */

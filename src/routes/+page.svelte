@@ -119,63 +119,65 @@
         <Entries></Entries>
       </TabPanel>
       <TabPanel showLoader="true">
-        <SetSwitcher editable={false}>
-          <div slot="extra" class="account-slot">
-            {#if forecastReady && accountList.length > 1}
-              {#if accountList.length > 4}
-                <label class="account-select">
-                  <span class="sr-only">Account</span>
-                  <select
-                    value={selectedAccountId}
-                    title={selectedAccountHelp(selectedAccount)}
-                    on:change={(e) => (selectedAccountId = e.currentTarget.value)}
-                  >
-                    {#each accountList as account}
-                      <option value={account.id}>{formatAccountOption(account)}</option>
-                    {/each}
-                  </select>
-                </label>
-              {:else}
-                <div class="account-buttons" title={selectedAccountHelp(selectedAccount)}>
-                  {#each accountList as account}
-                    <button
-                      type="button"
-                      class:selected={selectedAccountId === account.id}
-                      on:click={() => (selectedAccountId = account.id)}
+        <div class="forecast-column">
+          <SetSwitcher editable={false}>
+            <div slot="extra" class="account-slot">
+              {#if forecastReady && accountList.length > 1}
+                {#if accountList.length > 4}
+                  <label class="account-select">
+                    <span class="sr-only">Account</span>
+                    <select
+                      value={selectedAccountId}
+                      title={selectedAccountHelp(selectedAccount)}
+                      on:change={(e) => (selectedAccountId = e.currentTarget.value)}
                     >
-                      {formatAccountOption(account)}
-                    </button>
-                  {/each}
-                </div>
+                      {#each accountList as account}
+                        <option value={account.id}>{formatAccountOption(account)}</option>
+                      {/each}
+                    </select>
+                  </label>
+                {:else}
+                  <div class="account-buttons" title={selectedAccountHelp(selectedAccount)}>
+                    {#each accountList as account}
+                      <button
+                        type="button"
+                        class:selected={selectedAccountId === account.id}
+                        on:click={() => (selectedAccountId = account.id)}
+                      >
+                        {formatAccountOption(account)}
+                      </button>
+                    {/each}
+                  </div>
+                {/if}
               {/if}
-            {/if}
-          </div>
-        </SetSwitcher>
-        {#if forecastReady}
-          <div class="forecast-glance">
-            <ForecastSummary
-              entries={selectedEntries}
-              {balanceFlags}
-              useMainBalance={selectedIsMain}
-              onScrollToRow={scrollToForecastRow}
-            />
-            <ForecastSparkline
-              entries={selectedEntries}
-              {balanceFlags}
-              useMainBalance={selectedIsMain}
-            />
-          </div>
-          <ForecastTable
-            tableEntries={accountEntries[selectedAccountId]}
-            {accounts}
-            viewingMainAccount={selectedIsMain}
-          ></ForecastTable>
-        {:else if parsedOnce}
-          <div class="forecast-empty">
-            <p>{forecastReason}</p>
-            <p class="hint">Edit the text on Entries, or pick another scenario above.</p>
-          </div>
-        {/if}
+            </div>
+          </SetSwitcher>
+          {#if forecastReady}
+            <div class="forecast-glance">
+              <ForecastSummary
+                entries={selectedEntries}
+                {balanceFlags}
+                useMainBalance={selectedIsMain}
+                onScrollToRow={scrollToForecastRow}
+              />
+              <ForecastSparkline
+                entries={selectedEntries}
+                {balanceFlags}
+                useMainBalance={selectedIsMain}
+              />
+            </div>
+            <ForecastTable
+              tableEntries={accountEntries[selectedAccountId]}
+              {accounts}
+              viewingMainAccount={selectedIsMain}
+            ></ForecastTable>
+          {:else if parsedOnce}
+            <div class="forecast-empty">
+              <p>{forecastReason}</p>
+              <p class="hint">Edit the text on Entries, or pick another scenario above.</p>
+            </div>
+          {/if}
+        </div>
       </TabPanel>
       <TabPanel>
         <Settings></Settings>
@@ -254,6 +256,26 @@
     }
   }
 
+  .forecast-column {
+    box-sizing: border-box;
+    width: calc(100% - 2rem);
+    max-width: 64em;
+    margin: 0.35rem auto 0;
+
+    :global(.bar.compact) {
+      box-sizing: border-box;
+      width: 100%;
+      max-width: none;
+      margin: 0 0 0.35rem;
+    }
+
+    :global(.table-wrap) {
+      width: 100%;
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
+
   .account-slot {
     display: flex;
     flex-wrap: wrap;
@@ -293,12 +315,13 @@
   }
 
   .forecast-glance {
-    max-width: 55em;
-    margin: 0 auto 0.5rem;
-    padding: 0.4rem 0.75rem 0.45rem;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 0 0 0.5rem;
+    padding: 0.4rem 0.6rem 0.45rem;
     display: grid;
-    grid-template-columns: minmax(14em, 1fr) minmax(12em, 1.2fr);
-    gap: 0.5rem 1rem;
+    grid-template-columns: minmax(14em, 1fr) minmax(16em, 1.15fr);
+    gap: 0.5rem 1.25rem;
     align-items: center;
     text-align: left;
     background: #f8fff8;
