@@ -174,9 +174,8 @@
     <p class="badge">Labs</p>
     <h2>On-device helper</h2>
     <p>
-      Experimental. Chrome can use Gemini Nano already on this computer. Other browsers with WebGPU
-      can download Qwen3 1.7B (~1&nbsp;GB) into this origin. Prompts stay in the tab. Nothing is
-      sent to ForeBalance.
+      Experimental and on this device. <strong>Load a model first</strong>, then ask. Prompts stay
+      in the tab. Nothing is sent to ForeBalance.
     </p>
   </header>
 
@@ -196,6 +195,7 @@
 
   {#if preferred !== 'none'}
     <section class="engine">
+      <h3>1. Load a model</h3>
       {#if bothEngines}
         <fieldset>
           <legend>Engine</legend>
@@ -209,13 +209,20 @@
           </label>
         </fieldset>
       {:else if preferred === 'nano'}
-        <p>This Chrome can use <strong>Gemini Nano</strong>.</p>
+        <p>This Chrome can use <strong>Gemini Nano</strong>. Load it before you ask.</p>
       {:else}
-        <p>This browser can download <strong>Qwen3 1.7B</strong> via WebLLM.</p>
+        <p>
+          This browser can run <strong>Qwen3 1.7B</strong> (~1&nbsp;GB from Hugging Face, then
+          cached). Load it before you ask.
+        </p>
       {/if}
 
       <button type="button" class="primary" disabled={!selected || loading || running} on:click={loadEngine}>
-        {session ? `Reload ${session.label}` : 'Load model'}
+        {session
+          ? `Reload ${session.label}`
+          : selected === 'nano'
+            ? 'Load Gemini Nano'
+            : 'Load Qwen3 1.7B'}
       </button>
       {#if loading || session}
         <label class="progress">
@@ -228,11 +235,18 @@
 
   {#if preferred !== 'none'}
     <section class="actions">
-      <h3>Ask the forecast</h3>
-      <p class="hint">
-        Load a model first. Each ask goes through the model twice: a router picks type ids, then a
-        specialist fills only those templates.
-      </p>
+      <h3>2. Ask</h3>
+      {#if !session}
+        <p class="hint">
+          Questions stay disabled until the model is loaded. First click is a download; later visits
+          use the cache.
+        </p>
+      {:else}
+        <p class="hint">
+          Each ask goes through the model twice: a router picks type ids, then a specialist fills
+          only those templates.
+        </p>
+      {/if}
       <button type="button" disabled={!session || running || !forecastReady} on:click={explainForecast}>
         Why is this tight?
       </button>
@@ -319,6 +333,7 @@
   }
 
   .hero h2,
+  .engine h3,
   .actions h3,
   .output h3 {
     margin: 0 0 0.4rem;
