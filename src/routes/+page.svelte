@@ -12,6 +12,7 @@
 	import Settings from '../components/Settings.svelte';
 	import Help from '../components/Help.svelte';
 	import Welcome from '../components/Welcome.svelte';
+	import Labs from '../components/Labs.svelte';
 	import About from '../components/About.svelte';
 	import Privacy from '../components/Privacy.svelte';
 
@@ -95,6 +96,7 @@
       <Tab id="entries"><Icon name="entries" /> <span class="tab-label">Entries</span></Tab>
       <Tab id="forecast"><Icon name="forecast" /> <span class="tab-label">Forecast</span></Tab>
       <Tab id="settings"><Icon name="settings" /> <span class="tab-label">Settings</span></Tab>
+      <Tab id="labs"><Icon name="labs" /> <span class="tab-label">Labs</span></Tab>
       <Tab id="help"><Icon name="help" /> <span class="tab-label">Help</span></Tab>
       <Tab id="about"><Icon name="about" /> <span class="tab-label">About</span></Tab>
       <Tab id="privacy"><Icon name="privacy" /> <span class="tab-label">Privacy</span></Tab>
@@ -175,6 +177,14 @@
       </TabPanel>
       <TabPanel>
         <Settings></Settings>
+      </TabPanel>
+      <TabPanel>
+        <Labs
+          entries={selectedEntries}
+          {balanceFlags}
+          useMainBalance={selectedIsMain}
+          forecastReady={forecastReady}
+        />
       </TabPanel>
       <TabPanel>
         <Help></Help>

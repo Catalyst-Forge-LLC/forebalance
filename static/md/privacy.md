@@ -21,6 +21,15 @@ That script does **not** read your entries, local storage, linked files, or the 
 
 Cloudflare’s dashboard can show aggregate visits and performance. It cannot show what you typed.
 
+## Labs
+
+Labs is optional. If you load a model, it runs in this browser.
+
+- **Chrome** may use Gemini Nano, which Chrome already stores on the device.
+- **Brave / Edge** (WebGPU) may download Qwen3 1.7B weights from Hugging Face into this origin’s cache. That is a model download, not your entries.
+
+Prompts, entries, and forecasts stay in the tab. We do not receive them.
+
 ## What we will not do
 
 We will not add our own telemetry “just to see how people use it.” We will not add cloud sync, accounts, or a server-side save. If those ever appeared, it would no longer be ForeBalance.

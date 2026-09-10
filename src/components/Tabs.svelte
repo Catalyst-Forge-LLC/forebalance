@@ -1,6 +1,15 @@
 <script context="module">
 	export const TABS = {};
-	export const TAB_IDS = ['welcome', 'entries', 'forecast', 'settings', 'help', 'about', 'privacy'];
+	export const TAB_IDS = [
+		'welcome',
+		'entries',
+		'forecast',
+		'settings',
+		'labs',
+		'help',
+		'about',
+		'privacy',
+	];
 
 	export function tabIdFromHash(hash = typeof location !== 'undefined' ? location.hash : '') {
 		const id = hash.replace(/^#/, '').toLowerCase();
