@@ -1,63 +1,77 @@
-# ForeBalance entry format
+# How to write entries
 
-ForeBalance projects your account balance forward from a plaintext list — one line per credit, debit, or balance reset. Save your data as a `.psv` (pipe-separated values) file.
+One line per transaction. Fields are separated by `|`:
 
-Each entry line uses four pipe-separated fields:
+```
+TYPE|WHEN|AMOUNT|DESCRIPTION
+```
 
-```TYPE|WHEN|AMOUNT|DESCRIPTION```
+Example:
 
-Section comments begin with `---` (for example `--- Income`).
+```
+B-CHCK1775-main|2026-04-01|1840|Balance Checking 1775
+C|2026-04-01,R2W|1684|Paycheck
+D|2026-04-01,R<|1645|Rent
+```
+
+Section labels start with `---` (for example `--- Income`). They are comments only.
+
+Jump to: [TYPE](#type) · [WHEN](#when) · [Debt](#debt-and-sub-accounts) · [Disable a line](#disable-a-line) · [Sets](#entry-sets)
 
 ## TYPE
 
 | Code | Meaning |
-|---|---|
+| --- | --- |
 | **B** | Balance as of a date (resets the running balance) |
-| **C** | Credit |
-| **D** | Debit |
+| **C** | Credit (money in) |
+| **D** | Debit (money out) |
 
-### Main checking account
+### Main checking
 
-Use `-ACCOUNTID-main` on the balance line (case-insensitive):
+Put `-ACCOUNTID-main` on the balance line:
 
-```B-CHCK5432-main|2026-04-01|1000|Balance Checking 5432```
+```
+B-CHCK5432-main|2026-04-01|1000|Balance Checking 5432
+```
 
-### Credits and debits on the main account
-
-Omit the account suffix — they apply to the main account:
-
-```C|2026-04-01,R2W|1500|Paycheck every other week
-D|2026-04-01,R|1000|Rent```
+Credits and debits with no suffix apply to that main account.
 
 ### Debt and sub-accounts
 
-Bind a line to a sub-account with a type suffix, for example `D-CO`. Define the sub-account on first use with extra fields:
+Bind a payment with a type suffix (`D-CO`) and define the account on first use:
 
-```TYPE-ACCOUNT|WHEN|AMOUNT|DESCRIPTION|ACCOUNT|STARTING_BAL|APR|APR2|APR2_DATE```
+```
+TYPE-ACCOUNT|WHEN|AMOUNT|DESCRIPTION|ACCOUNT|STARTING_BAL|APR
+```
 
-Put the friendly name in DESCRIPTION. A trailing `-4321` is treated as the last four of the account number. You can also use a short id in the ACCOUNT field (or a numeric last-four) if you prefer the name and number in separate pipes:
+Name goes in DESCRIPTION. A trailing `-4321` is the last four of the account number:
 
-```D-CO|2026-04-15,R|150|Capital One-4321|CO|2800|19.99
-D|2026-04-15,R|150|Capital One|4321|2800|19.99```
+```
+D-CO|2026-04-15,R|150|Capital One-4321|CO|2800|19.99
+```
 
-ForeBalance starts from STARTING_BAL, adds monthly interest from APR, then subtracts payments. The Forecast picker shows **name-last4 · remaining balance · APR**, and remaining goes down as the account is paid off (interest can slow that).
+Or split name and last-four across pipes:
 
-## WHEN — dates and recurrence
+```
+D|2026-04-15,R|150|Capital One|4321|2800|19.99
+```
 
-Single date: `YYYY-MM-DD` (non-padded days like `2026-2-5` are accepted).
+ForeBalance starts from `STARTING_BAL`, adds monthly interest from APR, then subtracts payments. Remaining balance goes down as you pay (interest can slow that).
 
-Recurring: `YYYY-MM-DD,R[m][f][c]` or with end date `YYYY-MM-DD,R[m][f],YYYY-MM-DD`
+## WHEN
+
+Single date: `YYYY-MM-DD` (unpadded days like `2026-2-5` work).
+
+Recurring: `YYYY-MM-DD,R[m][f][c]` or with an end date `YYYY-MM-DD,R[m][f],YYYY-MM-DD`
 
 | Part | Meaning |
-|---|---|
+| --- | --- |
 | **m** | Interval multiple (default 1) |
 | **f** | `D` daily, `W` weekly, `M` monthly (default), `Y` yearly |
-| **c** | Occurrence count (default: unbounded within forecast window) |
+| **c** | How many times (default: until the forecast window ends) |
 
-Examples:
-
-| Entry | Meaning |
-|---|---|
+| Example | Meaning |
+| --- | --- |
 | `2026-04-01,R` | Monthly from Apr 1 |
 | `2026-03-15,R3M` | Every third month from Mar 15 |
 | `2026-01-01,RY` | Yearly on Jan 1 |
@@ -65,53 +79,44 @@ Examples:
 | `2026-02-01,RW5` | Weekly, five times |
 | `2026-02-10,R2D,2026-04-10` | Every other day through Apr 10 |
 
-**Month-end behavior:** For monthly recurrence, if the start day does not exist in a month (e.g. 31st in February), ForeBalance clamps to the last day of that month.
+**Missing days:** monthly `2026-01-31,R` clamps to the last day of short months (Feb 28/29).
 
-**Last day of month:** Use `-L` in the date (`2026-01-L`) or `RML` as the recurrence code to always land on the last calendar day of each month:
+**Last day of every month:** `2026-01-L` or `RML`:
 
-```D|2026-01-L,RML|1200|Mortgage end of month```
+```
+D|2026-01-L,RML|1200|Mortgage
+```
 
-### Business-day shifting
+**Business days:** append `<` (previous) or `>` (next) to the recurrence. Weekends (and optional US federal holidays in Settings) move the date:
 
-Append `<` or `>` to the recurrence code to shift dates that fall on weekends (and optionally US federal holidays):
+```
+D|2026-09-05,R<|1000|Rent
+```
 
-| Modifier | Meaning |
-|---|---|
-| `R<` | Previous business day |
-| `R>` | Next business day |
-| (none) | No shift (default) |
+## Disable a line
 
-Example — rent due on the 5th, paid the prior business day if the 5th is a weekend:
+Prefix `!` or `#` to skip a line without deleting it:
 
-```D|2026-09-05,R<|1000|Rent```
+```
+!D|2026-04-16,R|500|Savings this month
+```
 
-Enable **US federal holidays** in Settings to treat observed federal holidays as non-business days. Bank holidays may differ from the federal calendar.
-
-## Disable a line without deleting it
-
-Prefix `!` or `#` to exclude a line from the forecast (useful for what-if scenarios):
-
-```!D|2026-04-16,R|500|Savings this month```
-
-## Sort order
-
-On the same calendar date, ForeBalance applies entries in this order:
+## Same-day order
 
 1. Balance resets (`B`)
 2. Credits (`C`)
 3. Debits (`D`)
-4. Original line order in your file
+4. Original line order
 
-## Malformed lines
+Broken lines are skipped and listed as warnings under the editor.
 
-Lines that do not match the expected format are skipped in the forecast and listed as warnings below the Entries editor.
+## Entry sets
 
-## Persistence
+On **Entries** you can keep more than one forecast (a tight month, a what-if, another household).
 
-- Data is stored in your browser until you clear site data.
-- **Entries** holds multiple named forecasts. Switch, rename, clone, or delete (the last set cannot be deleted). **Add a starter** copies a built-in 2026 profile. Forecast always uses the set selected there.
-- Use **Import PSV** or drag-and-drop to replace the *current* set.
-- In supported browsers, **Link file…** saves the current set back to a `.psv` file on disk.
-- **Import** / **Export** on Entries apply to the *current* set only (not every set).
+- Switch, rename, clone, or delete (the last set stays)
+- **Add a starter** copies a built-in 2026 profile
+- **Import** / **Export** apply to the *current* set only
+- **Forecast** always uses the set selected on Entries
 
-Nothing is sent to a server.
+Nothing is sent to a server. Data lives in this browser until you clear site data.

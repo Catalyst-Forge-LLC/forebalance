@@ -186,4 +186,34 @@ export function resetToStarterSets(): EntrySetsState {
 	return next;
 }
 
+export function downloadTextFile(filename: string, content: string, mime = 'text/plain'): void {
+	const element = document.createElement('a');
+	element.setAttribute('href', `data:${mime};charset=utf-8,` + encodeURIComponent(content));
+	element.setAttribute('download', filename);
+	element.style.display = 'none';
+	document.body.appendChild(element);
+	element.click();
+	document.body.removeChild(element);
+}
+
+/** One JSON backup of every set. */
+export function exportAllSetsBackup(currentRaw?: string): void {
+	if (currentRaw !== undefined) {
+		updateActiveRaw(currentRaw);
+	}
+	const state = get(entrySetsStore);
+	const day = new Date().toISOString().slice(0, 10);
+	const payload = {
+		app: 'forebalance',
+		version: 1,
+		exportedAt: new Date().toISOString(),
+		sets: state.sets.map((set) => ({ name: set.name, raw: set.raw })),
+	};
+	downloadTextFile(
+		`forebalance-all-sets-${day}.json`,
+		JSON.stringify(payload, null, 2),
+		'application/json',
+	);
+}
+
 export { buildDefaultEntries };

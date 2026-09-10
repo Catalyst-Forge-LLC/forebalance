@@ -3,6 +3,7 @@
     import { resetAllData } from '$lib/data/entriesPersistence';
     import { settingsStore } from '$lib/stores/settings';
     import type { Settings } from '$lib/parser/types';
+    import ConfirmResetModal from './ConfirmResetModal.svelte';
 
     const ranges: Record<
         keyof Pick<
@@ -21,6 +22,7 @@
     };
 
     let draftSettings = { ...$settingsStore };
+    let resetOpen = false;
 
     function commitSettings() {
         $settingsStore = {
@@ -34,11 +36,10 @@
         localStorage.setItem('settings', JSON.stringify($settingsStore));
     }
 
-	function resetAll() {
-		if (confirm('Reset all entry sets and settings to the built-in 2026 starters? Your current sets will be removed.')) {
-            resetAllData();
-            draftSettings = { ...defaultSettings };
-		}
+    function confirmReset() {
+        resetAllData();
+        draftSettings = { ...defaultSettings };
+        resetOpen = false;
     }
 </script>
 
@@ -92,11 +93,17 @@
         <h2>Reset</h2>
         <p class="help">
             Replace every entry set with the four starters and restore default thresholds.
-            Export a set from the Entries tab first if you want a copy.
+            You will be asked to export a backup and type RESET.
         </p>
-        <button type="button" class="button-action" on:click={resetAll}>Reset all sets and settings</button>
+        <button type="button" class="button-action" on:click={() => (resetOpen = true)}>Reset all sets and settings</button>
     </section>
 </div>
+
+<ConfirmResetModal
+    open={resetOpen}
+    onCancel={() => (resetOpen = false)}
+    onConfirm={confirmReset}
+/>
 
 <style lang="scss">
     .settings-panel {

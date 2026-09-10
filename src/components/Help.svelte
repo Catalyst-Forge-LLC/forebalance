@@ -1,10 +1,16 @@
 <script>
     import ImportedMarkdown from './ImportedMarkdown.svelte';
-
-    let markdownFilePath = '/md/help.md';
 </script>
 
-<ImportedMarkdown filePath={markdownFilePath} />
+<article class="help-page">
+    <ImportedMarkdown filePath="/md/help.md" />
+</article>
 
 <style lang="scss">
+    .help-page {
+        max-width: 55em;
+        margin: 0 auto;
+        padding: 0.75rem 1rem 2rem;
+        text-align: left;
+    }
 </style>
