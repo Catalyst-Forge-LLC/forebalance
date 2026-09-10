@@ -95,7 +95,9 @@ D|2026-09-05,R<|1000|Rent
 
 ## One occurrence
 
-On **Forecast**, click a row to change that date or amount. A one-off line is rewritten. A recurring line keeps the series and appends an override for that `#N` only — later occurrences stay on the original cadence:
+On **Forecast**, click a row to change that date or amount. Choose **This one** or **Whole series**.
+
+A one-off line is rewritten. **This one** on a recurring line keeps the series and appends an override for that `#N` only — later occurrences stay on the original cadence:
 
 ```
 D|2026-04-03,RW|80|Groceries|#5=2026-05-08:65
@@ -108,6 +110,8 @@ D|2026-04-03,RW|80|Groceries|#5=2026-05-08:65
 | `#5=2026-05-08:65` | Both |
 
 You can stack them: `|#5=65|#8=2026-05-29`. This is not a disable prefix. `#` at the **start** of a line still skips the whole line.
+
+**Whole series** rewrites the line’s date and amount (shifting the start so this occurrence lands on the date you picked) and drops `#N` exceptions.
 
 ## Disable a line
 

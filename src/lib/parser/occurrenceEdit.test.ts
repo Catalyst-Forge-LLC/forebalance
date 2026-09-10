@@ -79,6 +79,28 @@ D|2026-01-02,RW|80|Groceries`;
 		expect(cleared).toBe(raw);
 	});
 
+	it('rewrites the whole series from a later occurrence', () => {
+		const raw = `B-CHCK-main|2026-01-01|2000|Balance
+D|2026-01-02,RW|80|Groceries|#5=65`;
+		const [accountEntries] = parseEntries(raw, 3, balanceFlags);
+		const fifth = accountEntries!.CHCK.find(
+			(e) => e.occurrenceIndex === 5 && e.desc?.includes('Groceries'),
+		)!;
+		const updated = applyForecastEdit(raw, fifth, {
+			date: '2026-01-29',
+			amount: 90,
+			scope: 'series',
+		});
+		expect(updated).toContain('D|2026-01-01,RW|90|Groceries');
+		expect(updated).not.toContain('#5=');
+
+		const [again] = parseEntries(updated, 3, balanceFlags);
+		const rows = again!.CHCK.filter((e) => e.desc?.includes('Groceries'));
+		expect(localIsoDate(rows.find((e) => e.occurrenceIndex === 1)?.date)).toBe('2026-01-01');
+		expect(localIsoDate(rows.find((e) => e.occurrenceIndex === 5)?.date)).toBe('2026-01-29');
+		expect(rows.every((e) => +e.amount === 90)).toBe(true);
+	});
+
 	it('rewrites a one-off line in place', () => {
 		const raw = `B-CHCK-main|2026-01-01|2000|Balance
 D|2026-01-20|200|Rent`;

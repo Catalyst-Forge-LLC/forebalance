@@ -1,7 +1,7 @@
 <script lang="ts">
   import { appStateStore, rawEntriesStore } from '$lib/stores/settings';
   import { setRawEntries } from '$lib/data/entriesPersistence';
-  import { applyForecastEdit } from '$lib/parser/occurrenceEdit';
+  import { applyForecastEdit, type ForecastEditScope } from '$lib/parser/occurrenceEdit';
   import { onMount } from 'svelte';
   import { fmt } from '$lib/formatters/fmt';
   import { accountDisplayName } from '$lib/parser/accountLabel';
@@ -15,6 +15,7 @@
   let editIndex: number | null = null;
   let editDate = '';
   let editAmount = 0;
+  let editScope: ForecastEditScope = 'occurrence';
 
   $: mainAccount = Object.values(accounts).find((account) => account.isMain);
 
@@ -103,6 +104,7 @@
     editIndex = i;
     editDate = fmt.date3(entry.date);
     editAmount = +entry.amount;
+    editScope = 'occurrence';
   }
 
   function cancelEdit(e?: Event) {
@@ -112,7 +114,11 @@
 
   function saveEdit(e: Event, entry: ParsedEntry) {
     e.stopPropagation();
-    const next = applyForecastEdit($rawEntriesStore, entry, { date: editDate, amount: +editAmount });
+    const next = applyForecastEdit($rawEntriesStore, entry, {
+      date: editDate,
+      amount: +editAmount,
+      scope: entry.recur ? editScope : 'occurrence',
+    });
     editIndex = null;
     if (next !== $rawEntriesStore) {
       setRawEntries(next);
@@ -156,8 +162,8 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
 
 <div class="table-wrap">
   <p class="edit-hint">
-    Click a row to move or change that amount. Recurring lines keep the series and write
-    <code>#5=date:amount</code> on Entries.
+    Click a row to change date or amount. Recurring rows can update this occurrence
+    (<code>#5=</code>) or the whole series.
   </p>
   <table>
     <tbody>
@@ -181,7 +187,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
           class:overridden={entry.overridden}
           class="balance-{entry.flag}"
           title={entry.recur
-            ? `Click to adjust occurrence #${entry.occurrenceIndex ?? 1} only`
+            ? `Click to adjust occurrence #${entry.occurrenceIndex ?? 1} or the whole series`
             : 'Click to edit this line'}
           on:click={() => beginEdit(entry, i)}
         >
@@ -197,7 +203,24 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
             <td class="desc">
               {descriptionFor(entry)}
               {#if entry.recur}
-                <span class="occ">occurrence #{entry.occurrenceIndex ?? 1} only</span>
+                <fieldset class="scope" on:click|stopPropagation>
+                  <legend class="sr-only">Apply edit to</legend>
+                  <label>
+                    <input type="radio" bind:group={editScope} value="occurrence" />
+                    This one
+                  </label>
+                  <label>
+                    <input type="radio" bind:group={editScope} value="series" />
+                    Whole series
+                  </label>
+                </fieldset>
+                <span class="occ">
+                  {#if editScope === 'series'}
+                    Rewrites the line. Drops #N exceptions.
+                  {:else}
+                    Occurrence #{entry.occurrenceIndex ?? 1} only
+                  {/if}
+                </span>
               {/if}
             </td>
             <td class="num-col" colspan={entry.type === 'B' ? 2 : 1} align="right">
@@ -376,11 +399,42 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     font-weight: 700;
   }
 
+  .scope {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem 0.65rem;
+    margin: 0.25rem 0 0;
+    padding: 0;
+    border: 0;
+    font-family: inherit;
+    font-size: 0.75rem;
+    color: #004400;
+  }
+
+  .scope label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
   .occ {
     display: block;
     font-size: 0.75rem;
     color: #555;
     font-family: inherit;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
   }
 
   input[type='date'],

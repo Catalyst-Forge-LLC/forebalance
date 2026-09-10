@@ -1,6 +1,9 @@
-import { localIsoDate } from '$lib/formatters/dates';
+import dayjs from 'dayjs';
+import { isLastDayToken, localIsoDate } from '$lib/formatters/dates';
 import { getDate } from '$lib/parser/recurrence';
 import type { OccurrenceOverride, ParsedEntry } from '$lib/parser/types';
+
+export type ForecastEditScope = 'occurrence' | 'series';
 
 const OVERRIDE_FIELD = /^#(\d+)=(.*)$/;
 const DATE_THEN_AMOUNT = /^(\d{4}-\d{1,2}-\d{1,2})(?::(.+))?$/;
@@ -112,19 +115,47 @@ function upsertOverrideOnLine(
 	return [...head, ...extras, ...overrideFields].join('|');
 }
 
+function writeLine(parts: string[], extras: string[], overrides: Record<number, OccurrenceOverride>): string {
+	const overrideFields = Object.keys(overrides)
+		.map((key) => +key)
+		.sort((a, b) => a - b)
+		.map((key) => formatOverrideField(key, overrides[key]));
+	return [...parts.slice(0, 4), ...extras, ...overrideFields].join('|');
+}
+
+function shiftSeriesStart(when: string | undefined, from: Date | null | undefined, toToken: string): string {
+	const startRaw = (when ?? '').split(',')[0] ?? '';
+	if (isLastDayToken(startRaw) && localIsoDate(from) === toToken) {
+		return when ?? '';
+	}
+	const startDate = getDate(startRaw);
+	const target = getDate(toToken);
+	if (!startDate || !from || !target) {
+		return setWhenStart(when, toToken);
+	}
+	const shifted = dayjs(startDate).add(dayjs(target).diff(dayjs(from), 'day'), 'day').toDate();
+	return setWhenStart(when, localIsoDate(shifted));
+}
+
+function applySeriesEdit(line: string, entry: ParsedEntry, date: string, amount: number): string {
+	const { parts, extras } = splitLineFields(line);
+	const scheduled = entry.seriesDate ?? entry.date;
+	if (localIsoDate(scheduled) !== date) {
+		parts[1] = shiftSeriesStart(parts[1], scheduled, date);
+	}
+	parts[2] = String(amount);
+	return writeLine(parts, extras, {});
+}
+
 export function applyForecastEdit(
 	raw: string,
 	entry: ParsedEntry,
-	edit: { date: string; amount: number },
+	edit: { date: string; amount: number; scope?: ForecastEditScope },
 ): string {
 	const date = edit.date.trim();
 	const amount = +edit.amount;
+	const scope = edit.scope ?? 'occurrence';
 	if (!date || Number.isNaN(amount)) return raw;
-
-	const currentDate = localIsoDate(entry.date);
-	if (currentDate === date && +entry.amount === amount) {
-		return raw;
-	}
 
 	const lines = raw.split('\n');
 	const idx =
@@ -135,19 +166,26 @@ export function applyForecastEdit(
 	const line = lines[idx];
 
 	if (!entry.recur) {
+		const currentDate = localIsoDate(entry.date);
+		if (currentDate === date && +entry.amount === amount) return raw;
 		const { parts, extras, overrides } = splitLineFields(line);
 		parts[1] = setWhenStart(parts[1], date);
 		parts[2] = String(amount);
-		const overrideFields = Object.keys(overrides)
-			.map((key) => +key)
-			.sort((a, b) => a - b)
-			.map((key) => formatOverrideField(key, overrides[key]));
-		return replaceSourceLine(raw, entry, [...parts.slice(0, 4), ...extras, ...overrideFields].join('|'));
+		return replaceSourceLine(raw, entry, writeLine(parts, extras, overrides));
 	}
 
 	const n = entry.occurrenceIndex ?? 1;
 	const scheduledDate = localIsoDate(entry.seriesDate ?? entry.date);
 	const baseAmount = entry.baseAmount ?? +entry.amount;
+
+	if (scope === 'series') {
+		if (scheduledDate === date && baseAmount === amount) return raw;
+		return replaceSourceLine(raw, entry, applySeriesEdit(line, entry, date, amount));
+	}
+
+	const currentDate = localIsoDate(entry.date);
+	if (currentDate === date && +entry.amount === amount) return raw;
+
 	const matchesSeries = scheduledDate === date && baseAmount === amount;
 	if (matchesSeries) {
 		return replaceSourceLine(raw, entry, upsertOverrideOnLine(line, n, null));
