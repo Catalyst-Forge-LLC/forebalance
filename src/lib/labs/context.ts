@@ -1,17 +1,10 @@
 import { computeForecastSummary } from '$lib/parser/forecastSummary';
+import { localIsoDate } from '$lib/formatters/dates';
 import { fmt } from '$lib/formatters/fmt';
 import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
 
 const REPLY_RULES =
 	'Use only numbers and names in the brief. Do not invent transactions. Do not give investment or tax advice. No preamble. No markdown fences.';
-
-export const EXPLAIN_SYSTEM = `You are a Labs helper inside ForeBalance. The brief is already computed.
-${REPLY_RULES}
-
-Reply with exactly three short labeled lines:
-Tight: date, balance, and the named line that caused the lowest point
-Watch: the next risky date, or "none in this window"
-Try: one concrete change (skip, move, or add one .psv line)`;
 
 export const UPCOMING_SYSTEM = `You are a Labs helper inside ForeBalance.
 ${REPLY_RULES}
@@ -31,14 +24,12 @@ ${REPLY_RULES}
 Answer Yes, Tight, or No. Then one sentence using the lowest point and the uncomfortable line.
 Then one .psv line they could add to test it (TYPE|WHEN|AMOUNT|DESCRIPTION).`;
 
-export const DRAFT_SYSTEM = `You write ForeBalance .psv lines only.
-Format: TYPE|WHEN|AMOUNT|DESCRIPTION
-Types: B (balance as of a date), C (credit), D (debit).
-Recurrence examples: 2026-09-01,R  |  2026-09-05,RW  |  2026-09-01,R2W
-No markdown fences. No commentary.`;
+export const DRAFT_SYSTEM = `You write ForeBalance .psv lines only, using the format card.
+No markdown fences. No commentary. Do not invent a grid or extra columns.`;
 
-export const FREE_SYSTEM =
-	'You are a Labs helper inside ForeBalance. Be brief. Do not invent account numbers. Answer the question; do not restate it.';
+export const FREE_SYSTEM = `You answer ForeBalance .psv questions using only the format card below.
+If the card does not say, reply: Not in the format card — see the Help tab.
+Never invent grids, matrices, row numbers, or other products. Be brief.`;
 
 const MAX_LINES = 20;
 const MAX_UPCOMING = 8;
@@ -175,4 +166,95 @@ export function buildForecastBrief(
 		lines.push(`… ${money.length - MAX_LINES} more lines omitted.`);
 	}
 	return lines.join('\n');
+}
+
+function vsThreshold(balance: number, threshold: number, label: string): string {
+	const gap = balance - threshold;
+	if (gap >= 0) {
+		return `${fmt.curr(gap)} above your ${label} line (${fmt.curr(threshold)})`;
+	}
+	return `${fmt.curr(-gap)} under your ${label} line (${fmt.curr(threshold)})`;
+}
+
+function nextMoneyAfter(
+	entries: ParsedEntry[],
+	rowIndex: number,
+	useMainBalance: boolean,
+): ParsedEntry | undefined {
+	return entries.slice(rowIndex + 1).find((entry) => {
+		if (!entry.date || (entry.type !== 'C' && entry.type !== 'D')) return false;
+		return runningBalance(entry, useMainBalance) !== undefined;
+	});
+}
+
+function dayBefore(date: Date): Date {
+	const previous = new Date(date.getTime());
+	previous.setDate(previous.getDate() - 1);
+	return previous;
+}
+
+/** Instant “Why is this tight?” — numbers from the table, not the model. */
+export function buildWhyTight(
+	entries: ParsedEntry[],
+	balanceFlags: BalanceFlags,
+	useMainBalance: boolean,
+	scenarioName: string,
+): string {
+	if (!entries.length) return 'No forecast to read yet.';
+	const summary = computeForecastSummary(entries, balanceFlags, useMainBalance);
+	if (!summary.lowest) return 'No dated balances in this scenario.';
+
+	const cause = entries[summary.lowest.rowIndex];
+	const blocks: string[] = [];
+	const heading = scenarioName ? `${scenarioName} — ` : '';
+
+	if (cause?.date) {
+		const kind =
+			cause.type === 'C' ? 'credit' : cause.type === 'D' ? 'debit' : 'balance reset';
+		const amount = moneyAmount(cause);
+		const named = amount === null ? displayName(cause.desc) : `${displayName(cause.desc)} (${kind} ${fmt.curr(amount)})`;
+		blocks.push(
+			`Tight: ${heading}after ${named} on ${fmt.date(cause.date)}, you're at ${fmt.curr(summary.lowest.balance)}. That's the lowest point in this window, ${vsThreshold(summary.lowest.balance, balanceFlags.below.uncomfortable, 'uncomfortable')}.`,
+		);
+	} else {
+		blocks.push(
+			`Tight: ${heading}lowest is ${fmt.curr(summary.lowest.balance)} on ${fmt.date(summary.lowest.date)}, ${vsThreshold(summary.lowest.balance, balanceFlags.below.uncomfortable, 'uncomfortable')}.`,
+		);
+	}
+
+	let watch: string;
+	if (summary.firstNegative) {
+		const hit = entries[summary.firstNegative.rowIndex];
+		watch = `Watch: Crosses zero on ${fmt.date(summary.firstNegative.date)}${hit ? ` after ${displayName(hit.desc)}` : ''}, to ${fmt.curr(summary.firstNegative.balance)}.`;
+	} else if (summary.firstUncomfortable) {
+		const hit = entries[summary.firstUncomfortable.rowIndex];
+		watch = `Watch: First under uncomfortable on ${fmt.date(summary.firstUncomfortable.date)}${hit ? ` after ${displayName(hit.desc)}` : ''}, to ${fmt.curr(summary.firstUncomfortable.balance)}.`;
+	} else {
+		watch = 'Watch: Stays above the uncomfortable line for the whole window.';
+	}
+	const next = nextMoneyAfter(entries, summary.lowest.rowIndex, useMainBalance);
+	if (next) {
+		watch += ` Next after the low: ${formatMoneyLine(next, useMainBalance)}.`;
+	}
+	blocks.push(watch);
+
+	const tryLines = [
+		'Try: A what-if on Entries — then check Forecast for the new lowest.',
+	];
+	if (cause?.type === 'D') {
+		tryLines.push(`Prefix the ${displayName(cause.desc)} line with ! to see the week without it.`);
+	}
+	if (cause?.date) {
+		const need = Math.max(
+			100,
+			Math.ceil(Math.max(0, balanceFlags.below.uncomfortable - summary.lowest.balance) + 100),
+		);
+		tryLines.push('Or add a credit the day before the low:');
+		tryLines.push(
+			`C|${localIsoDate(dayBefore(cause.date))}|${need}|Buffer before ${displayName(cause.desc)}`,
+		);
+	}
+	blocks.push(tryLines.join('\n'));
+
+	return blocks.join('\n\n');
 }

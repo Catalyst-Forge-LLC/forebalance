@@ -4,12 +4,13 @@
     AFFORD_SYSTEM,
     DRAFT_SYSTEM,
     DRAINS_SYSTEM,
-    EXPLAIN_SYSTEM,
     FREE_SYSTEM,
     UPCOMING_SYSTEM,
     buildForecastBrief,
+    buildWhyTight,
     splitModelReply,
   } from '$lib/labs/context';
+  import { FORMAT_CARD, answerSyntaxQuestion } from '$lib/labs/syntax';
   import {
     chooseBackend,
     hasWebGpu,
@@ -107,7 +108,9 @@
   }
 
   function explainForecast() {
-    return run(EXPLAIN_SYSTEM, `What makes this forecast tight?\n\n${brief()}`);
+    error = '';
+    thinking = '';
+    output = buildWhyTight(entries, balanceFlags, useMainBalance, activeName);
   }
 
   function upcomingHits() {
@@ -123,11 +126,24 @@
   }
 
   function draftEntries() {
-    return run(DRAFT_SYSTEM, draftAsk, true);
+    return run(DRAFT_SYSTEM, `${FORMAT_CARD}\n\nWrite lines for:\n${draftAsk}`, true);
   }
 
   function freePrompt() {
-    return run(FREE_SYSTEM, freeAsk);
+    const canned = answerSyntaxQuestion(freeAsk);
+    if (canned) {
+      error = '';
+      thinking = '';
+      output = canned;
+      return;
+    }
+    if (!session) {
+      error = '';
+      thinking = '';
+      output = 'Not a known format token. See the Help tab, or load a model for a custom ask.';
+      return;
+    }
+    return run(FREE_SYSTEM, `${FORMAT_CARD}\n\nQuestion: ${freeAsk}`);
   }
 
   function copyOutput() {
@@ -196,10 +212,10 @@
     <section class="actions">
       <h3>Ask the forecast</h3>
       <p class="hint">
-        These use numbers already on Forecast. The model only names the squeeze and a next move.
-        {#if !session}Load a model to run them.{/if}
+        Why is this tight? and format tokens (R2W, RML, !) read the table and Help. Afford and
+        draft still need a loaded model.
       </p>
-      <button type="button" disabled={!session || running || !forecastReady} on:click={explainForecast}>
+      <button type="button" disabled={running || !forecastReady} on:click={explainForecast}>
         Why is this tight?
       </button>
       <button type="button" disabled={!session || running || !forecastReady} on:click={upcomingHits}>
@@ -242,9 +258,9 @@
 
       <label>
         Syntax or a custom ask
-        <textarea bind:value={freeAsk} rows="2" placeholder="What does ,R2W mean?"></textarea>
+        <textarea bind:value={freeAsk} rows="2" placeholder="What does R2W mean?"></textarea>
       </label>
-      <button type="button" disabled={!session || running || !freeAsk.trim()} on:click={freePrompt}>Ask</button>
+      <button type="button" disabled={running || !freeAsk.trim()} on:click={freePrompt}>Ask</button>
     </section>
 
     {#if running}

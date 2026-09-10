@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildForecastBrief, splitModelReply } from './context';
+import { buildForecastBrief, buildWhyTight, splitModelReply } from './context';
 import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
 
 const flags: BalanceFlags = {
@@ -18,7 +18,10 @@ function row(
 	return {
 		id: String(i),
 		type,
-		date: new Date(date),
+		date: (() => {
+			const [year, month, day] = date.split('-').map(Number);
+			return new Date(year, month - 1, day);
+		})(),
 		amount,
 		desc: desc ?? (type === 'C' ? 'Pay' : 'Bill'),
 		endDate: null,
@@ -48,6 +51,46 @@ describe('buildForecastBrief', () => {
 		expect(brief).toContain('Top debits:');
 		expect(brief).toContain('Rent:');
 		expect(brief).toContain('Lines:');
+	});
+});
+
+describe('buildWhyTight', () => {
+	it('names the debit, the gap, and a relief what-if', () => {
+		const text = buildWhyTight(
+			[
+				row(0, '2026-09-01', 'B', 1000, 1000, 'Start'),
+				row(1, '2026-09-02', 'D', 800, 200, 'Rent (#1)'),
+				row(2, '2026-09-09', 'D', 40, 160, 'Groceries (#1)'),
+			],
+			flags,
+			true,
+			'Close month',
+		);
+		expect(text).toContain('Tight:');
+		expect(text).toContain('Groceries');
+		expect(text).toContain('debit $40');
+		expect(text).toContain('under your uncomfortable line');
+		expect(text).toContain('Watch:');
+		expect(text).toContain('after Rent');
+		expect(text).toContain('Prefix the Groceries line with !');
+		expect(text).toContain('C|2026-09-08|440|Buffer before Groceries');
+	});
+
+	it('says when the window is not actually tight', () => {
+		const text = buildWhyTight(
+			[
+				row(0, '2026-09-01', 'B', 4000, 4000, 'Start'),
+				row(1, '2026-09-17', 'D', 488, 3512, 'IRS (#1)'),
+				row(2, '2026-09-18', 'C', 4700, 8212, 'Pay'),
+			],
+			flags,
+			true,
+			'Comfortable',
+		);
+		expect(text).toContain('IRS');
+		expect(text).toContain('above your uncomfortable line');
+		expect(text).toContain('Stays above the uncomfortable line');
+		expect(text).not.toMatch(/Try:.*\nD /);
 	});
 });
 
