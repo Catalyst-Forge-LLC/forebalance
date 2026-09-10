@@ -46,16 +46,16 @@
 <dialog use:show on:close={onCancel} on:cancel={onCancel}>
   <h2 id="reset-title">Reset everything?</h2>
   <p>
-    This deletes <strong>every entry set</strong> and restores the four starters plus default
+    This deletes <strong>every scenario</strong> and restores the four starters plus default
     thresholds. It cannot be undone.
   </p>
   <p class="warn">Export a backup first if you might want these numbers again.</p>
 
   <button type="button" class="button-action export" on:click={exportFirst}>
-    <Icon name="download" /> Export all sets first
+    <Icon name="download" /> Export every scenario first
   </button>
   {#if exported}
-    <p class="ok">Downloaded <code>forebalance-all-sets-*.json</code>.</p>
+    <p class="ok">Downloaded <code>forebalance-all-sets-*.json</code> (every scenario).</p>
   {/if}
 
   <label>
@@ -73,7 +73,7 @@
   <div class="actions">
     <button type="button" class="button-action cancel" on:click={onCancel}>Cancel</button>
     <button type="button" class="button-action destroy" disabled={!canConfirm} on:click={confirmReset}>
-      Reset all sets
+      Reset all scenarios
     </button>
     </div>
   </dialog>

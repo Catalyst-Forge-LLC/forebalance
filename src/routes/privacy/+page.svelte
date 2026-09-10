@@ -1,12 +1,12 @@
 <svelte:head>
-	<title>About — ForeBalance</title>
+	<title>Privacy — ForeBalance</title>
 </svelte:head>
 
 <script>
-	import About from '../../components/About.svelte';
+	import Privacy from '../../components/Privacy.svelte';
 </script>
 
-<About />
+<Privacy />
 <p class="back"><a href="/">← Back to ForeBalance</a></p>
 
 <style>

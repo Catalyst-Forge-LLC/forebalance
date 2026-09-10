@@ -22,7 +22,7 @@
   $: canDelete = $entrySetsStore.sets.length > 1;
   $: templates = listTemplates();
   $: selectedTemplate = templates.find((template) => template.id === templateToAdd);
-  $: activeName = getActiveSet($entrySetsStore)?.name ?? 'this set';
+  $: activeName = getActiveSet($entrySetsStore)?.name ?? 'this scenario';
 
   function onClone() {
     updateActiveRaw($rawEntriesStore);
@@ -67,7 +67,7 @@
       <button type="button" class="button-action" on:click={onDelete} disabled={!canDelete}>
         <Icon name="trash" /> Delete
       </button>
-      <span class="group" title="This set only — not every set you have">
+      <span class="group" title="This scenario only — not every scenario you have">
         <slot name="files" />
         <button type="button" class="button-action" on:click={downloadCurrentSet}>
           <Icon name="export" /> Export
@@ -92,8 +92,8 @@
 
 <ConfirmModal
   open={deleteOpen}
-  title="Delete this set?"
-  confirmLabel="Delete set"
+  title="Delete this scenario?"
+  confirmLabel="Delete scenario"
   danger
   onCancel={() => (deleteOpen = false)}
   onConfirm={confirmDelete}

@@ -154,7 +154,7 @@
     {/if}
 
     <div slot="files" class="file-slot">
-      <button type="button" class="button-action" on:click={clickImport} title="Replace this set from a .psv file">
+      <button type="button" class="button-action" on:click={clickImport} title="Replace this scenario from a .psv file">
         <Icon name="import" /> Import
       </button>
       {#if fsSupported}
@@ -171,20 +171,20 @@
 
   <div class="dropzone-wrap">
     <Dropzone on:drop={handleFilesSelect}>
-      <p>Drop a <code>.psv</code> here to replace this set</p>
+      <p>Drop a <code>.psv</code> here to replace this scenario</p>
     </Dropzone>
   </div>
 </div>
 
 <ConfirmModal
   open={importOpen}
-  title="Replace this set?"
-  confirmLabel="Replace set"
+  title="Replace this scenario?"
+  confirmLabel="Replace scenario"
   danger
   onCancel={() => (importOpen = false)}
   onConfirm={confirmImport}
 >
-  <p>Replace the current set with <strong>{pendingName}</strong>?</p>
+  <p>Replace the current scenario with <strong>{pendingName}</strong>?</p>
 </ConfirmModal>
 
 <ConfirmModal
@@ -204,7 +204,7 @@
   onCancel={() => (linkOpen = false)}
   onConfirm={confirmLink}
 >
-  <p>Link to <strong>{pendingName}</strong> and load its entries into this set?</p>
+  <p>Link to <strong>{pendingName}</strong> and load its entries into this scenario?</p>
 </ConfirmModal>
 
 <style lang="scss">

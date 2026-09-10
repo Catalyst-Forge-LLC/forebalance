@@ -21,6 +21,7 @@
 <button
 	bind:this={button}
 	type="button"
+	title={id || tabText}
 	class:selected={$selectedTab === tab}
 	on:click={() => selectTab(tab, tabText)}
 >

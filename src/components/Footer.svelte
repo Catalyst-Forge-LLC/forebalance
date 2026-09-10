@@ -1,6 +1,4 @@
 <footer>
-  <a href="/about">About</a>
-  &nbsp;·&nbsp;
   &copy;2020-{new Date().getFullYear()} Catalyst Forge, LLC
 </footer>
 
@@ -10,11 +8,6 @@
     left: 0;
     width: 100vw;
     z-index: 1000;
-
-    a {
-      color: #fff;
-      text-decoration: underline;
-    }
 
     text-align: center;
     background-color: #009900;

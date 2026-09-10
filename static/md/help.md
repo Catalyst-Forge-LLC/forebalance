@@ -16,7 +16,7 @@ D|2026-04-01,R<|1645|Rent
 
 Section labels start with `---` (for example `--- Income`). They are comments only.
 
-Jump to: [TYPE](#type) · [WHEN](#when) · [Debt](#debt-and-sub-accounts) · [Disable a line](#disable-a-line) · [Sets](#entry-sets)
+Jump to: [TYPE](#type) · [WHEN](#when) · [Debt](#debt-and-sub-accounts) · [Disable a line](#disable-a-line) · [Scenarios](#scenarios)
 
 ## TYPE
 
@@ -110,14 +110,14 @@ Prefix `!` or `#` to skip a line without deleting it:
 
 Broken lines are skipped and listed as warnings under the editor.
 
-## Entry sets
+## Scenarios
 
-On **Entries** you can keep more than one forecast (a tight month, a what-if, another household).
+On **Entries** you can keep more than one forecast (a tight month, a what-if, another household). Each one is a **scenario**.
 
-- Switch, rename, clone, or delete (the last set stays)
+- Switch, rename, clone, or delete (the last scenario stays)
 - **Add a starter** copies a built-in profile
-- **Import** / **Export** apply to the *current* set only
-- **Forecast** has the same set switcher, and always uses the set you selected
-- **Settings → Reset** can export every set as one JSON backup first
+- **Import** / **Export** apply to the *current* scenario only
+- **Forecast** has the same scenario picker, and always uses the one you selected
+- **Settings → Reset** can export every scenario as one JSON backup first
 
-Nothing is sent to a server. Data lives in this browser until you clear site data.
+Nothing is sent to a server. See **[Privacy](/#privacy)**. Data lives in this browser until you clear site data.

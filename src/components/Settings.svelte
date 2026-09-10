@@ -48,7 +48,7 @@
     <section class="panel">
         <h2>Forecast thresholds</h2>
         <p class="help">
-            These apply to whichever set you are viewing on Forecast. They do not change your
+            These apply to whichever scenario you are viewing on Forecast. They do not change your
             entry text.
         </p>
 
@@ -93,11 +93,11 @@
     <section class="panel danger">
         <h2>Reset</h2>
         <p class="help">
-            Replace every entry set with the four starters and restore default thresholds.
+            Replace every scenario with the four starters and restore default thresholds.
             You will be asked to export a backup and type RESET.
         </p>
         <button type="button" class="button-action" on:click={() => (resetOpen = true)}>
-            <Icon name="alert" /> Reset all sets and settings
+            <Icon name="alert" /> Reset all scenarios and settings
         </button>
     </section>
 </div>

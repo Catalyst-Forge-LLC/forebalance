@@ -12,6 +12,7 @@ const config = {
         }
         throw new Error(message);
       },
+      handleMissingId: 'ignore',
     },
     adapter: adapter({
       // default options are shown. On some platforms

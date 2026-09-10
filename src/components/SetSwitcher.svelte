@@ -38,7 +38,7 @@
 
 <div class="bar" class:compact={!editable}>
   <label class="inline">
-    <span>Set</span>
+    <span>Scenario</span>
     <select
       value={$entrySetsStore.activeId}
       on:change={(e) => onSelectSet(e.currentTarget.value)}

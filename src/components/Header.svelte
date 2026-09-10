@@ -1,7 +1,9 @@
 <header>
   <h1>
-    <img src="/logo.svg" width="48" height="48" alt="" />
-    ForeBalance
+    <a href="/">
+      <img src="/logo.svg" width="48" height="48" alt="" />
+      ForeBalance
+    </a>
   </h1>
 </header>
 
@@ -33,6 +35,15 @@
         inset 0 0.5rem 1rem -0.5rem rgba(0, 0, 0, 0.95),
         0 0 0.15rem rgba(0, 0, 0, 0.85),
         0 0.25rem 0.5rem rgba(0, 0, 0, 0.5);
+    }
+
+    a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      color: inherit;
+      text-decoration: none;
     }
 
     img {
