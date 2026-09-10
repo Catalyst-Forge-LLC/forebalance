@@ -38,6 +38,7 @@ The plaintext entry format is the core of the product, not an implementation det
 | Forecast | Chronological ledger table grouped by calendar month |
 | Forecast | Columns: Date, Description, Credit, Debit, running Balance |
 | Forecast | Per-occurrence counter appended to descriptions, e.g. `Weekly Food (#3)` |
+| Forecast | Click a row to change that date or amount; recurring edits persist as `|#5=2026-05-08:65` |
 | Forecast | Per-month summary row: total credits, total debits, net |
 | Forecast | Rows color-coded against balance thresholds |
 | Settings | Months to forecast (slider) |

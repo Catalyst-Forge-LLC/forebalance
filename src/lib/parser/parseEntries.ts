@@ -2,6 +2,10 @@ import dayjs from 'dayjs';
 import { fmt } from '$lib/formatters/fmt';
 import { applyBusinessDayShift } from '$lib/parser/businessDays';
 import {
+	applyOverrideToEntry,
+	splitLineFields,
+} from '$lib/parser/occurrenceEdit';
+import {
 	getBalanceFlag,
 	getRandomId,
 	parseDate,
@@ -16,7 +20,6 @@ import type {
 	AccountEntries,
 	Accounts,
 	BalanceFlags,
-	EntryInputs,
 	ParsedEntry,
 	ParseOptions,
 	ParseResult,
@@ -72,6 +75,7 @@ function parseRawEntries(
 					recur: null,
 				};
 			}
+			const { extras, overrides } = splitLineFields(rawEntry);
 			const entry = rawEntry.split('|');
 			const [type, accountId, main] = entry[0].toUpperCase().split('-');
 			const parsedEntry: ParsedEntry = {
@@ -80,12 +84,14 @@ function parseRawEntries(
 				type: type as ParsedEntry['type'],
 				amount: entry[2],
 				desc: entry[3],
-				accountId: accountId && accountId.length > 0 ? accountId : entry[4] || undefined,
+				accountId: accountId && accountId.length > 0 ? accountId : extras[0] || undefined,
 				endDate: null,
 				rawEntry,
 				isMain: false,
 				recur: null,
 				entryOrder: lineIndex,
+				occurrenceIndex: 1,
+				overrides,
 			};
 			if (parsedEntry.type === 'B' && parsedEntry.accountId) {
 				parsedEntry.isMain = main === 'MAIN';
@@ -102,11 +108,11 @@ function parseRawEntries(
 					accounts[parsedEntry.accountId] = {
 						id: parsedEntry.accountId,
 						isMain: false,
-						startingBal: +entry[5],
-						runningBal: +entry[5],
-						interestRate: +entry[6] || 0,
-						interestRate2: +entry[7] || 0,
-						interestRate2Date: entry[8] || null,
+						startingBal: +extras[1],
+						runningBal: +extras[1],
+						interestRate: +extras[2] || 0,
+						interestRate2: +extras[3] || 0,
+						interestRate2Date: extras[4] || null,
 					};
 				}
 				applyAccountDisplay(accounts[parsedEntry.accountId], parsedEntry.desc);
@@ -119,7 +125,10 @@ function parseRawEntries(
 				parsedEntry.endDate = when.endDate;
 				parsedEntry.businessDayShift = when.businessDayShift;
 				shiftEntryDate(parsedEntry, useFederalHolidays);
+				parsedEntry.seriesDate = parsedEntry.date;
 			}
+			parsedEntry.baseAmount = +parsedEntry.amount;
+			applyOverrideToEntry(parsedEntry, overrides[1]);
 			if (!recurringEntries[parsedEntry.id]) {
 				recurringEntries[parsedEntry.id] = 1;
 			}
@@ -137,31 +146,7 @@ function parseRawEntries(
 	return { accounts, parsedEntries };
 }
 
-export function updateEntry(
-	rawEntries: string,
-	parsedEntry: ParsedEntry,
-	entryInputs: EntryInputs,
-): string {
-	let updated = rawEntries;
-	updated
-		.trim()
-		.split('\n')
-		.filter((entry) => entry === parsedEntry.rawEntry.trim())
-		.forEach((entry) => {
-			const valueSets: [string, string][] = [
-				['|' + parsedEntry.desc, '|' + entryInputs.desc],
-				['|' + +parsedEntry.amount, '|' + String(entryInputs.amount)],
-				['|' + fmt.date3(parsedEntry.date), '|' + entryInputs.date],
-				[parsedEntry.type + '|', entryInputs.type + '|'],
-			];
-			valueSets.forEach(([value, input]) => {
-				if (value !== input) {
-					updated = updated.replace(entry, entry.replace(value, input));
-				}
-			});
-		});
-	return updated;
-}
+export { applyForecastEdit } from '$lib/parser/occurrenceEdit';
 
 export function parseEntries(
 	rawEntries: string,
@@ -209,11 +194,15 @@ export function parseEntries(
 
 		tableEntries.push(entry);
 
-		if (entry.recur && entry.date) {
+		if (entry.recur && entry.seriesDate) {
 			const newEntry: ParsedEntry = { ...entry };
 			++recurringEntries[newEntry.id];
-			newEntry.date = updateDateRecur(newEntry.date, newEntry.recur);
+			newEntry.occurrenceIndex = recurringEntries[newEntry.id];
+			newEntry.date = updateDateRecur(entry.seriesDate, newEntry.recur);
 			shiftEntryDate(newEntry, useFederalHolidays);
+			newEntry.seriesDate = newEntry.date;
+			newEntry.amount = newEntry.baseAmount ?? +entry.amount;
+			applyOverrideToEntry(newEntry, newEntry.overrides?.[newEntry.occurrenceIndex]);
 			if (newEntry.desc) {
 				newEntry.desc = updateDescRecur(newEntry.desc, newEntry.recur, recurringEntries[newEntry.id]);
 			}

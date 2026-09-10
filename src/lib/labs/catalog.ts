@@ -92,6 +92,15 @@ export const QUERY_TYPES: QueryType[] = [
 		template: '`,R<` previous business day; `,R>` next. Weekends (and optional US holidays) move.\nD|2026-09-05,R<|1000|Rent',
 	},
 	{
+		id: 'occurrence',
+		kind: 'syntax',
+		title: 'One occurrence',
+		when: '#5= Groceries #5 this occurrence override',
+		match: /#\d+=|occurrence override|this occurrence/i,
+		template:
+			'Append |#N=date:amt, |#N=amt, or |#N=date. Later occurrences stay on cadence.\nD|2026-04-03,RW|80|Groceries|#5=2026-05-08:65',
+	},
+	{
 		id: 'disable',
 		kind: 'syntax',
 		title: 'Disable a line',

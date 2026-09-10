@@ -25,6 +25,9 @@ Examples:
 ,R< = previous business day; ,R> = next business day (weekends, optional US holidays)
 
 Debt on first use: TYPE-ACCOUNT|WHEN|AMOUNT|DESCRIPTION|ACCOUNT|STARTING_BAL|APR
+One occurrence of a recurring line: append |#N=YYYY-MM-DD:AMT or |#N=AMT or |#N=YYYY-MM-DD
+Example: D|2026-04-03,RW|80|Groceries|#5=2026-05-08:65
+# at the start of a line still disables the whole line. |#5= is an override, not a disable.
 Same-day order: B, then C, then D.`;
 
 const UNIT: Record<string, [string, string]> = {
@@ -71,6 +74,9 @@ export function answerSyntaxQuestion(question: string): string | null {
 	const spoken = spokenRecur(question.trim());
 	if (!spoken) return null;
 
+	if (/#\d+=|occurrence override|this occurrence/i.test(spoken)) {
+		return 'A recurring line can override one occurrence: `|#5=2026-05-08:65` (date and amount), `|#5=65` (amount), or `|#5=2026-05-08` (date). Later occurrences stay on the original cadence. `#` at the start of a line still disables the whole line.';
+	}
 	if (/(?:^|[\s,|])[!#](?:$|[\s,|])|\bdisable\b|\bcomment out\b/i.test(spoken)) {
 		return 'Prefix `!` or `#` to skip a line without deleting it. Example: `!D|2026-04-16,R|500|Savings this month`.';
 	}

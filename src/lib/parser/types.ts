@@ -26,6 +26,11 @@ export interface Account {
 	balanceIndex?: number;
 }
 
+export interface OccurrenceOverride {
+	date?: string;
+	amount?: number;
+}
+
 export interface ParsedEntry {
 	id: string;
 	type: EntryType;
@@ -50,6 +55,11 @@ export interface ParsedEntry {
 	subAccountRunningBal?: number;
 	entryOrder?: number;
 	businessDayShift?: BusinessDayShift;
+	occurrenceIndex?: number;
+	seriesDate?: Date | null;
+	baseAmount?: number;
+	overrides?: Record<number, OccurrenceOverride>;
+	overridden?: boolean;
 }
 
 export interface BalanceFlags {
@@ -80,13 +90,6 @@ export interface Settings {
 
 export interface ParseOptions {
 	useFederalHolidays?: boolean;
-}
-
-export interface EntryInputs {
-	desc: string;
-	amount: number;
-	date: string;
-	type: string;
 }
 
 export type ParseResult = [AccountEntries | null, Accounts | null];

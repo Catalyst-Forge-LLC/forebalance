@@ -49,6 +49,7 @@ const lineHighlight = ViewPlugin.fromClass(
 							else if (i === 1) cls = 'cm-psv-when';
 							else if (i === 2) cls = 'cm-psv-amount';
 							else if (i === 3) cls = 'cm-psv-desc';
+							else if (/^#\d+=/.test(part)) cls = 'cm-psv-override';
 							if (cls) {
 								marks.push(Decoration.mark({ class: cls }).range(start, end));
 							}
@@ -92,6 +93,7 @@ export function psvTheme(): import('@codemirror/state').Extension {
 			'.cm-psv-when': { color: '#004488' },
 			'.cm-psv-amount': { color: '#884400' },
 			'.cm-psv-desc': { color: '#333' },
+			'.cm-psv-override': { color: '#663399', fontWeight: '600' },
 			'&.cm-focused': { outline: '2px solid #009900' },
 		}),
 	];

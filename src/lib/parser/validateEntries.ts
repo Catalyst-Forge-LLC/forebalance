@@ -39,6 +39,15 @@ export function validateRawEntries(raw: string): EntryValidation[] {
 		if (parts[2] !== '' && Number.isNaN(+parts[2])) {
 			warnings.push({ line: index + 1, message: `Amount is not a number: "${parts[2]}"` });
 		}
+
+		for (const field of parts.slice(4)) {
+			if (/^#\d+/.test(field) && !/^#\d+=(\d{4}-\d{1,2}-\d{1,2}(?::\S+)?|:?-?\d+(?:\.\d+)?)$/.test(field)) {
+				warnings.push({
+					line: index + 1,
+					message: `Invalid occurrence override "${field}"`,
+				});
+			}
+		}
 	});
 
 	return warnings;

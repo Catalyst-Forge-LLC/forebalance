@@ -16,7 +16,7 @@ D|2026-04-01,R<|1645|Rent
 
 Section labels start with `---` (for example `--- Income`). They are comments only.
 
-Jump to: [TYPE](#type) · [WHEN](#when) · [Debt](#debt-and-sub-accounts) · [Disable a line](#disable-a-line) · [Scenarios](#scenarios)
+Jump to: [TYPE](#type) · [WHEN](#when) · [One occurrence](#one-occurrence) · [Debt](#debt-and-sub-accounts) · [Disable a line](#disable-a-line) · [Scenarios](#scenarios)
 
 ## TYPE
 
@@ -92,6 +92,22 @@ D|2026-01-L,RML|1200|Mortgage
 ```
 D|2026-09-05,R<|1000|Rent
 ```
+
+## One occurrence
+
+On **Forecast**, click a row to change that date or amount. A one-off line is rewritten. A recurring line keeps the series and appends an override for that `#N` only — later occurrences stay on the original cadence:
+
+```
+D|2026-04-03,RW|80|Groceries|#5=2026-05-08:65
+```
+
+| Override | Meaning |
+| --- | --- |
+| `#5=65` | Fifth is $65, same scheduled day |
+| `#5=2026-05-08` | Fifth moves to May 8, same amount |
+| `#5=2026-05-08:65` | Both |
+
+You can stack them: `|#5=65|#8=2026-05-29`. This is not a disable prefix. `#` at the **start** of a line still skips the whole line.
 
 ## Disable a line
 

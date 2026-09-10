@@ -14,6 +14,10 @@ describe('answerSyntaxQuestion', () => {
 		expect(answerSyntaxQuestion('What does ! do?')).toContain('skip a line');
 	});
 
+	it('explains an occurrence override', () => {
+		expect(answerSyntaxQuestion('What does #5= mean?')).toContain('|#5=');
+	});
+
 	it('leaves unknown asks for the model', () => {
 		expect(answerSyntaxQuestion('Write me a haiku about rent')).toBeNull();
 	});
