@@ -19,6 +19,6 @@ The format supports a main checking account plus linked debt accounts with inter
 
 ## The project
 
-ForeBalance is maintained by [Catalyst Forge, LLC](https://github.com/Catalyst-Forge-LLC) as a useful free tool — no paywall, no productization. Domain: [forebalance.app](https://forebalance.app).
+ForeBalance is maintained by [Catalyst Forge, LLC](https://github.com/Catalyst-Forge-LLC) as a useful free tool — no paywall, no productization.
 
 See **[Privacy](/#privacy)** for the local-only guarantee.
