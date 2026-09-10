@@ -17,7 +17,7 @@
 
 	import { initializeData } from '$lib/data/initializeData';
 	import { forecastBlockReason } from '$lib/parser/forecastReady';
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount } from 'svelte';
 	import { logd } from '$lib/util/log';
 	import Icon from '../components/Icon.svelte';
 	import SetSwitcher from '../components/SetSwitcher.svelte';
@@ -25,7 +25,6 @@
   let accountEntries = {};
   let accounts;
   let selectedAccountId = '';
-  let parseTimer: ReturnType<typeof setTimeout> | undefined;
   let parsedOnce = false;
 
   $: balanceFlags = {
@@ -57,19 +56,9 @@
     parsedOnce = true;
   }
 
-  $: if ($rawEntriesStore && $settingsStore.monthsToForecast && balanceFlags) {
-    const raw = $rawEntriesStore;
-    if (parseTimer) clearTimeout(parseTimer);
-    if (!parsedOnce) {
-      applyParsed(raw);
-    } else {
-      parseTimer = setTimeout(() => applyParsed(raw), 350);
-    }
+  $: if ($settingsStore.monthsToForecast && balanceFlags) {
+    applyParsed($rawEntriesStore || null);
   }
-
-  onDestroy(() => {
-    if (parseTimer) clearTimeout(parseTimer);
-  });
 
   $: accountList = accounts ? Object.values(accounts).filter((a) => accountEntries?.[a.id]?.length) : [];
   $: selectedEntries = accountEntries && selectedAccountId ? accountEntries[selectedAccountId] : [];
@@ -113,7 +102,12 @@
     <div class="tab-panel">
       <div class="loader" class:loaded={!$appStateStore.showLoader}>Calculating your forecast...</div>
       <TabPanel>
-        <Welcome></Welcome>
+        <Welcome
+          entries={selectedEntries}
+          {balanceFlags}
+          useMainBalance={selectedIsMain}
+          forecastReady={forecastReady}
+        />
       </TabPanel>
       <TabPanel>
         <Entries></Entries>
