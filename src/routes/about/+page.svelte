@@ -15,20 +15,20 @@
 
 	<h2>Privacy</h2>
 	<p>
-		Nothing you enter is sent to a server. Entries and settings live in your browser's local storage only. There are no accounts, ads, analytics, or tracking. Clear your browser cache and the data is gone — use <strong>Export</strong> on the Entries tab (or a linked <code>.psv</code> file) to keep a copy of the current set.
+		Nothing you enter is sent to a server. Entries and settings live in your browser's local storage only. There are no accounts, ads, analytics, or tracking. Clear your browser cache and the data is gone — use <strong>Export</strong> on the Entries tab (or a linked <code>.psv</code> file) to keep a copy of the current set, or export every set from the Reset dialog on Settings.
 	</p>
 
 	<h2>How to use it</h2>
 	<ol>
-		<li><strong>Entries</strong> — edit the text list or drop a <code>forebalance-*.psv</code> file.</li>
-		<li><strong>Forecast</strong> — scan the chronological ledger; gold rows mark threshold crossings.</li>
+		<li><strong>Entries</strong> — edit the text list or drop a <code>.psv</code> file.</li>
+		<li><strong>Forecast</strong> — scan the chronological ledger; colored rows mark threshold crossings. Switch sets from this tab as well.</li>
 		<li><strong>Settings</strong> — set forecast horizon and balance thresholds.</li>
 		<li><strong>Help</strong> — full syntax reference for recurrence, accounts, and debt lines.</li>
 	</ol>
 
 	<h2>Multi-account &amp; debt</h2>
 	<p>
-		The entry format supports a main checking account plus linked debt accounts with interest and payoff tracking. UI for debt accounts is still being completed; the parser already understands the syntax documented in Help.
+		The entry format supports a main checking account plus linked debt accounts with interest and remaining-balance tracking. The Forecast picker lists each account by name, remaining balance, and APR.
 	</p>
 
 	<h2>About the project</h2>

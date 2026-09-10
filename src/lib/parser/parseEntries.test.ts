@@ -108,12 +108,22 @@ D|2026-01-01,R|1000|Rent`;
 		const [accountEntries] = parseEntries(raw, 3, balanceFlags);
 		const mainId = Object.keys(accountEntries!)[0];
 		const rentRows = accountEntries![mainId].filter((e) => e.desc?.includes('Rent'));
-		expect(rentRows.length).toBe(4);
+		expect(rentRows.length).toBe(3);
 	});
 });
 
 describe('starter templates', () => {
-	it('parses all built-in 2026 profiles', async () => {
+	it('terminates when a single debt is paid off with an overpayment', () => {
+		const raw = `B-CHK-main|2026-01-01|5000|Balance
+C|2026-01-01,R|3000|Pay
+D-CAR|2026-01-05,R|900|Car loan|CAR|1000|5`;
+		const start = Date.now();
+		const [entries] = parseEntries(raw, 6, balanceFlags);
+		expect(Date.now() - start).toBeLessThan(2000);
+		expect(entries).not.toBeNull();
+	});
+
+	it('parses all built-in starter profiles', async () => {
 		const { entryTemplates } = await import('../data/entryTemplates');
 		for (const template of entryTemplates) {
 			const [accountEntries, accounts] = parseEntries(template.build('2026-09-'), 3, balanceFlags);

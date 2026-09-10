@@ -1,6 +1,7 @@
 import { get } from 'svelte/store';
 import { settingsStore } from '$lib/stores/settings';
 import type { Settings } from '$lib/parser/types';
+import { localIsoDate } from './dates';
 
 function getSettings(): Settings {
 	return get(settingsStore);
@@ -25,7 +26,7 @@ export function createFormatter(settings: Settings = getSettings()) {
 			new Intl.DateTimeFormat(settings.locale, { month: 'long', year: 'numeric' }).format(
 				val ?? new Date(),
 			),
-		date3: (val?: Date | null) => (val ?? new Date()).toISOString().substring(0, 10),
+		date3: (val?: Date | null) => localIsoDate(val),
 		upper: (val: string) => val.toUpperCase(),
 		lower: (val: string) => val.toLowerCase(),
 		curr: (val: number | string) => currFormatter.format(+val),

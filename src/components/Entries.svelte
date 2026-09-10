@@ -14,7 +14,9 @@
   } from '$lib/persistence/psvPersistence';
   import Dropzone from 'svelte-file-dropzone';
   import type { EntryValidation } from '$lib/parser/validateEntries';
+  import ConfirmModal from './ConfirmModal.svelte';
   import EntrySetsPanel from './EntrySetsPanel.svelte';
+  import Icon from './Icon.svelte';
   import PsvEditor from './PsvEditor.svelte';
 
   let lastInputEntries = '';
@@ -23,6 +25,12 @@
   let fsSupported = false;
   let importInput: HTMLInputElement;
   let validationWarnings: EntryValidation[] = [];
+
+  let pendingName = '';
+  let pendingContent = '';
+  let importOpen = false;
+  let unusualOpen = false;
+  let linkOpen = false;
 
   $: if ($rawEntriesStore !== lastInputEntries) {
     lastInputEntries = $rawEntriesStore;
@@ -58,18 +66,31 @@
   }
 
   function handleFilesSelect(e: CustomEvent<{ acceptedFiles: File[] }>) {
-    e.detail.acceptedFiles.forEach((file) => importFile(file, true));
+    const file = e.detail.acceptedFiles[0];
+    if (file) void startImport(file);
   }
 
-  async function importFile(file: File, confirmReplace = true) {
-    const content = await readImportFile(file);
-    if (confirmReplace && !confirm('Replace the current entry set with this file?')) {
+  async function startImport(file: File) {
+    pendingContent = await readImportFile(file);
+    pendingName = file.name;
+    importOpen = true;
+  }
+
+  function confirmImport() {
+    importOpen = false;
+    if (!isForebalancePsvName(pendingName)) {
+      unusualOpen = true;
       return;
     }
-    if (!isForebalancePsvName(file.name) && !confirm(`Import "${file.name}" anyway?`)) {
-      return;
-    }
-    applyRawEntries(content);
+    applyPending();
+  }
+
+  function applyPending() {
+    applyRawEntries(pendingContent);
+    pendingName = '';
+    pendingContent = '';
+    unusualOpen = false;
+    importOpen = false;
   }
 
   function clickImport() {
@@ -79,9 +100,7 @@
   async function onImportSelected(e: Event) {
     const input = e.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (file) {
-      await importFile(file, true);
-    }
+    if (file) await startImport(file);
     input.value = '';
   }
 
@@ -89,10 +108,15 @@
     const linked = await linkPsvFile();
     if (linked) {
       linkedFileName = linked.name;
-      if (confirm(`Link to "${linked.name}" and load its entries?`)) {
-        applyRawEntries(linked.content);
-      }
+      pendingName = linked.name;
+      pendingContent = linked.content;
+      linkOpen = true;
     }
+  }
+
+  function confirmLink() {
+    applyRawEntries(pendingContent);
+    linkOpen = false;
   }
 
   async function clickUnlink() {
@@ -130,9 +154,13 @@
     {/if}
 
     <div slot="files" class="file-slot">
-      <button type="button" class="button-action" on:click={clickImport} title="Replace this set from a .psv file">Import</button>
+      <button type="button" class="button-action" on:click={clickImport} title="Replace this set from a .psv file">
+        <Icon name="import" /> Import
+      </button>
       {#if fsSupported}
-        <button type="button" class="button-action" on:click={clickLinkFile}>Link file…</button>
+        <button type="button" class="button-action" on:click={clickLinkFile}>
+          <Icon name="link" /> Link file…
+        </button>
         {#if linkedFileName}
           <span class="linked-file">Linked: {linkedFileName}</span>
           <button type="button" class="button-link" on:click={clickUnlink}>Unlink</button>
@@ -141,8 +169,43 @@
     </div>
   </EntrySetsPanel>
 
-  <Dropzone on:drop={handleFilesSelect} />
+  <div class="dropzone-wrap">
+    <Dropzone on:drop={handleFilesSelect}>
+      <p>Drop a <code>.psv</code> here to replace this set</p>
+    </Dropzone>
+  </div>
 </div>
+
+<ConfirmModal
+  open={importOpen}
+  title="Replace this set?"
+  confirmLabel="Replace set"
+  danger
+  onCancel={() => (importOpen = false)}
+  onConfirm={confirmImport}
+>
+  <p>Replace the current set with <strong>{pendingName}</strong>?</p>
+</ConfirmModal>
+
+<ConfirmModal
+  open={unusualOpen}
+  title="Import this file?"
+  confirmLabel="Import anyway"
+  onCancel={() => (unusualOpen = false)}
+  onConfirm={applyPending}
+>
+  <p><strong>{pendingName}</strong> is not a <code>.psv</code> file. Import it anyway?</p>
+</ConfirmModal>
+
+<ConfirmModal
+  open={linkOpen}
+  title="Load the linked file?"
+  confirmLabel="Load entries"
+  onCancel={() => (linkOpen = false)}
+  onConfirm={confirmLink}
+>
+  <p>Link to <strong>{pendingName}</strong> and load its entries into this set?</p>
+</ConfirmModal>
 
 <style lang="scss">
   .entries-page {
@@ -195,6 +258,24 @@
     ul {
       margin: 0.25rem 0 0;
       padding-left: 1.25rem;
+    }
+  }
+
+  .dropzone-wrap {
+    margin-top: 0.75rem;
+
+    :global(div[role='presentation']),
+    :global(.dropzone) {
+      border: 1px dashed #009900 !important;
+      background: #f8fff8 !important;
+      border-radius: 0.5rem !important;
+      color: #004400;
+      font-size: 0.9rem;
+    }
+
+    p {
+      margin: 0;
+      padding: 0;
     }
   }
 </style>

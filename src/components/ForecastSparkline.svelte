@@ -59,7 +59,7 @@
   $: visibleThresholds = thresholds.filter((th) => th.value >= yMin && th.value <= yMax);
   $: startLabel = dates.length ? fmt.date(dates[0]) : '';
   $: endLabel = dates.length ? fmt.date(dates[dates.length - 1]) : '';
-  $: balanceLabel = useMainBalance ? 'Main checking balance' : 'Sub-account balance';
+  $: balanceLabel = useMainBalance ? 'Main checking balance' : 'Remaining balance';
 </script>
 
 {#if plotEntries.length > 1}

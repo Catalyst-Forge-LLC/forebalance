@@ -4,6 +4,7 @@
     import { settingsStore } from '$lib/stores/settings';
     import type { Settings } from '$lib/parser/types';
     import ConfirmResetModal from './ConfirmResetModal.svelte';
+    import Icon from './Icon.svelte';
 
     const ranges: Record<
         keyof Pick<
@@ -95,7 +96,9 @@
             Replace every entry set with the four starters and restore default thresholds.
             You will be asked to export a backup and type RESET.
         </p>
-        <button type="button" class="button-action" on:click={() => (resetOpen = true)}>Reset all sets and settings</button>
+        <button type="button" class="button-action" on:click={() => (resetOpen = true)}>
+            <Icon name="alert" /> Reset all sets and settings
+        </button>
     </section>
 </div>
 
@@ -193,7 +196,9 @@
     }
 
     .panel :global(.button-action) {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
         margin: 0;
     }
 </style>

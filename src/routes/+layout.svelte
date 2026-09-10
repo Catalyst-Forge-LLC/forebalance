@@ -10,7 +10,7 @@
 		max-width: 56em;
 		padding: 0;
 		margin: 0 auto;
-		overflow: overlay;
+		overflow: auto;
 		position: relative;
 	}
 

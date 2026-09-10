@@ -115,8 +115,9 @@ Broken lines are skipped and listed as warnings under the editor.
 On **Entries** you can keep more than one forecast (a tight month, a what-if, another household).
 
 - Switch, rename, clone, or delete (the last set stays)
-- **Add a starter** copies a built-in 2026 profile
+- **Add a starter** copies a built-in profile
 - **Import** / **Export** apply to the *current* set only
-- **Forecast** always uses the set selected on Entries
+- **Forecast** has the same set switcher, and always uses the set you selected
+- **Settings → Reset** can export every set as one JSON backup first
 
 Nothing is sent to a server. Data lives in this browser until you clear site data.

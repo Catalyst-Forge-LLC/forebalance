@@ -71,6 +71,8 @@
     </ul>
     {#if dayCountParts.length}
       <p class="day-counts">{dayCountParts.join(' · ')}</p>
+    {:else if summary.lowest}
+      <p class="day-counts ok">You stay above your uncomfortable line for the whole forecast.</p>
     {/if}
   </section>
 {/if}
@@ -128,5 +130,9 @@
     margin: 0.75rem 0 0;
     font-size: 0.85rem;
     color: #333;
+
+    &.ok {
+      color: #006600;
+    }
   }
 </style>

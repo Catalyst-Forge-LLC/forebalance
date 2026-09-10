@@ -2,12 +2,14 @@
 
 ForeBalance projects your account balance forward from a plaintext list of credits, debits, and balance resets.
 
-Enter one line per transaction, set how many months to forecast, and scan the ledger for the lowest balance and threshold crossings. Recurring paychecks, bills, and savings are first-class — specify them once in the entry format and ForeBalance expands them across the forecast window.
+1. **Entries** — pick a starter set, rename it, or type your own lines.
+2. **Forecast** — scan the ledger, chart, and at-a-glance crossings. Switch sets there too.
+3. **Settings** — how many months to look ahead, and where “uncomfortable” starts.
 
-New visitors get four 2026 starter sets aimed at people who need to watch cashflow closely: a tight single-paycheck month, variable gig pay, a two-paycheck household with childcare, and a debt-focus mix. On the **Entries** tab you pick a set, rename it, clone a what-if, or delete extras (one set always remains), then edit the text. **Forecast** is always for the set you left selected there. **Settings** is only thresholds and a full reset.
+Recurring paychecks, bills, and savings are first-class: write them once and ForeBalance expands them across the forecast window.
 
 **Nothing is ever sent to a server.** All data stays in your browser. There is no tracking or advertising.
 
-If you clear browser storage, your entries will be lost. Use **Export** on the Entries tab to save the current set as a `.psv` file, or **Import** / drag a file to replace that set.
+If you clear browser storage, your entries will be lost. Use **Export** on Entries to save the current set as a `.psv` file, or **Settings → Reset** to download a backup of every set.
 
 See **Help** for the full entry syntax, or **About** for more on privacy and the project.

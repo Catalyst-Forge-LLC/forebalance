@@ -1,7 +1,5 @@
-<script>
-  import { appStateStore, rawEntriesStore } from '$lib/stores/settings';
-  import { setRawEntries } from '$lib/data/entriesPersistence';
-  import { updateEntry } from '$lib/parser/parseEntries';
+<script lang="ts">
+  import { appStateStore } from '$lib/stores/settings';
   import { onMount } from 'svelte';
   import { fmt } from '$lib/formatters/fmt';
   import { accountDisplayName } from '$lib/parser/accountLabel';
@@ -11,7 +9,7 @@
   export let accounts = {};
   export let viewingMainAccount = true;
 
-  const mainAccount = Object.values(accounts).find((account) => account.isMain);
+  $: mainAccount = Object.values(accounts).find((account) => account.isMain);
 
   function displayBalance(entry) {
     if (viewingMainAccount) {
@@ -29,9 +27,7 @@
     return '';
   }
 
-  const isNewMonth = (date1, date2) => {
-    return date1.getMonth() != date2.getMonth();
-  };
+  const isNewMonth = (date1, date2) => date1.getMonth() != date2.getMonth();
 
   $: entryCount = tableEntries.length;
   $: monthStartIndexes = new Set(
@@ -39,10 +35,6 @@
       i === 0 || isNewMonth(entry.date, tableEntries[i - 1].date) ? [i] : [],
     ),
   );
-
-  let entryInputs = {};
-
-  let showEntryEdit = null;
 
   function monthStartFor(i) {
     for (let j = i; j >= 0; j--) {
@@ -58,14 +50,11 @@
   const showMonthHeader = (i) => monthStartIndexes.has(i);
 
   const showMonthFooter = (i) => {
-    let showFooter = false;
     const entry = tableEntries[i];
     if (i >= 0 && i < entryCount - 1 && isNewMonth(entry.date, tableEntries[i + 1].date)) {
-      showFooter = true;
-    } else if (i === entryCount - 1) {
-      showFooter = true;
+      return true;
     }
-    return showFooter;
+    return i === entryCount - 1;
   };
 
   const monthSummary = (i) => {
@@ -94,34 +83,13 @@
         if (entry.monthlyInterest) {
           debtInterest += +entry.monthlyInterest;
         }
-        if (entry.accountId !== mainAccount.id) {
+        if (mainAccount && entry.accountId !== mainAccount.id) {
           debtDetails += `${entry.accountId}: ${fmt.curr(entry.subAccountRunningBal)} (${entry.monthlyInterest ? fmt.curr(entry.monthlyInterest) : 'n/a'})<br>`;
         }
       }
     });
     return { debtBalance, debtInterest, debtDetails };
   };
-
-  function clickEntry(e, entry, i) {
-    if (showEntryEdit === null) {
-      // document.querySelector('.entry-modal').style.top = e.layerY + 'px';
-      entryInputs = { ...entry };
-      entryInputs.date = fmt.date3(entryInputs.date);
-      entryInputs.amount = +entryInputs.amount;
-      showEntryEdit = i;
-    }
-  }
-
-  function saveEntry(e, entry, i) {
-    e.stopPropagation();
-    showEntryEdit = null;
-    setRawEntries(updateEntry($rawEntriesStore, entry, entryInputs));
-  }
-
-  function cancelEntry(e) {
-    e.stopPropagation();
-    showEntryEdit = null;
-  }
 
   function getAccountSummary(entry) {
     const account = accounts[entry.accountId];
@@ -135,110 +103,100 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     }
     return '';
   }
+
+  function descriptionFor(entry) {
+    const extra =
+      mainAccount && entry.accountId && mainAccount.id !== entry.accountId
+        ? ` [${accountDisplayName(accounts[entry.accountId])}]`
+        : '';
+    if (extra && entry.desc && entry.desc.includes(accountDisplayName(accounts[entry.accountId]))) {
+      return entry.desc;
+    }
+    return `${entry.desc ?? ''}${extra}`;
+  }
 </script>
 
-<table>
-  <tbody>
-    {#each tableEntries as entry, i}
-      {#if showMonthHeader(i)}
-        <tr>
-          <td class="new-month" colspan="5">{fmt.date2(entry.date)}</td>
-        </tr>
-        <tr class="headings">
-          <td>Date</td>
-          <td>Description</td>
-          <td>Credit</td>
-          <td>Debit</td>
-          <td>Balance</td>
-        </tr>
-      {/if}
-      <tr
-        id="forecast-row-{i}"
-        class:balance-reset={entry.type === 'B'}
-        class="balance-{entry.flag}"
-        on:click={(e) => {
-          clickEntry(e, entry, i);
-        }}
-      >
-        {#if showEntryEdit === i}
-          <td>
-            <input type="date" bind:value={entryInputs.date} />
-          </td>
-          <td>
-            <textarea bind:value={entryInputs.desc}></textarea>
-          </td>
-          <td colspan="2">
-            <select bind:value={entryInputs.type} disabled={entryInputs.type === 'B'}>
-              <option value="B" disabled>Balance</option>
-              <option value="C">Credit</option>
-              <option value="D">Debit</option>
-            </select>
-
-            <input type="number" bind:value={entryInputs.amount} />
-          </td>
-          <td>
-            <button
-              on:click={(e) => {
-                cancelEntry(e);
-              }}>CANCEL</button
-            >
-
-            <button
-              on:click={(e) => {
-                saveEntry(e, entry, i);
-              }}>SAVE</button
-            >
-          </td>
-        {:else}
-          <td>{fmt.date(entry.date)}</td>
-          <td align="left"
-            ><Tooltip content={getAccountSummary(entry)}>{entry.desc}{mainAccount.id !== entry.accountId ? ` [${accountDisplayName(accounts[entry.accountId])}]` : ''}</Tooltip></td
-          >
-          <td align="right">{entry.type === 'C' ? fmt.curr(entry.amount) : ''}</td>
-          <td align="right">{entry.type === 'D' ? fmt.curr(entry.amount) : ''}</td>
-          <td align="right">{flagIndicator(entry.flag)}{displayBalance(entry)}</td>
+<div class="table-wrap">
+  <table>
+    <tbody>
+      {#each tableEntries as entry, i}
+        {#if showMonthHeader(i)}
+          <tr>
+            <td class="new-month" colspan="5">{fmt.date2(entry.date)}</td>
+          </tr>
+          <tr class="headings">
+            <td>Date</td>
+            <td>Description</td>
+            <td class="num-col">Credit</td>
+            <td class="num-col">Debit</td>
+            <td>Balance</td>
+          </tr>
         {/if}
-      </tr>
-      {#if showMonthFooter(i)}
-        {@const { debtBalance, debtInterest, debtDetails } = runningBalanceMonthlySummary(i)}
-        <tr class="month-summary">
-          <td colspan="2">Summary</td>
-          {#each monthSummary(i) as summary}
-            <td>{summary}</td>
-          {/each}
+        <tr
+          id="forecast-row-{i}"
+          class:balance-reset={entry.type === 'B'}
+          class="balance-{entry.flag}"
+        >
+          <td>{fmt.date(entry.date)}</td>
+          <td class="desc"
+            ><Tooltip content={getAccountSummary(entry)}>{descriptionFor(entry)}</Tooltip></td
+          >
+          <td class="num-col" align="right">{entry.type === 'C' ? fmt.curr(entry.amount) : ''}</td>
+          <td class="num-col" align="right">{entry.type === 'D' ? fmt.curr(entry.amount) : ''}</td>
+          <td align="right">{flagIndicator(entry.flag)}{displayBalance(entry)}</td>
         </tr>
-        <tr class="debt-summary">
-          <td colspan="5"><Tooltip content={debtDetails}>Debt Balance: {fmt.curr(debtBalance)}, Debt Interest: {fmt.curr(debtInterest)}</Tooltip></td>
-        </tr>
-      {/if}
-    {/each}
-  </tbody>
-</table>
+        {#if showMonthFooter(i)}
+          {@const { debtBalance, debtInterest, debtDetails } = runningBalanceMonthlySummary(i)}
+          <tr class="month-summary">
+            <td colspan="2">Summary</td>
+            {#each monthSummary(i) as summary, si}
+              <td class:num-col={si < 2}>{summary}</td>
+            {/each}
+          </tr>
+          {#if debtBalance > 0 || debtInterest > 0}
+            <tr class="debt-summary">
+              <td colspan="5"
+                ><Tooltip content={debtDetails}
+                  >Debt remaining: {fmt.curr(debtBalance)}, interest this month: {fmt.curr(
+                    debtInterest,
+                  )}</Tooltip
+                ></td
+              >
+            </tr>
+          {/if}
+        {/if}
+      {/each}
+    </tbody>
+  </table>
+</div>
 
 <style lang="scss">
-  table {
+  .table-wrap {
     width: calc(100% - 2rem);
-    margin: 0 0.125rem;
-    font-family: monospace;
-    font-size: 0.75rem;
-    transform: opacity 2s;
+    margin: 0 auto 2rem;
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    min-width: 28em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.8rem;
     tr {
-      opacity: 0.85;
-      transition: opacity 0.125s;
-      &:hover {
-        opacity: 1;
-      }
+      opacity: 0.9;
     }
     td {
-      padding: 0 3px;
+      padding: 0.15rem 0.35rem;
       box-shadow: inset -6px 0 8px -8px rgba(0, 0, 0, 0.25);
       &.new-month {
         box-shadow: none;
       }
-      margin-top: 1px;
       > :global(div) {
         display: block !important;
       }
+    }
+    .desc {
+      text-align: left;
     }
     .headings {
       background-color: #990099 !important;
@@ -297,15 +255,19 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     }
   }
 
-  .entry-modal {
-    position: absolute;
-    margin: 0 auto;
-    top: -1000px;
-    width: 75%;
-    left: 12.5%;
-    background: #fff;
-    border-radius: 1rem;
-    padding: 0.5rem;
-    box-shadow: 0.25rem 0.25rem 0.5rem rgba(0, 0, 0, 0.75);
+  @media (max-width: 40em) {
+    table {
+      min-width: 0;
+      font-size: 0.75rem;
+    }
+    .num-col {
+      display: none;
+    }
+    .month-summary td:nth-child(n + 2) {
+      display: none;
+    }
+    .month-summary td:first-child {
+      display: table-cell;
+    }
   }
 </style>

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { exportAllSetsBackup } from '$lib/data/entrySets';
   import { rawEntriesStore } from '$lib/stores/settings';
+  import Icon from './Icon.svelte';
 
   export let open = false;
   export let onCancel: () => void = () => {};
@@ -27,74 +28,59 @@
     onConfirm();
   }
 
-  function onKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape') onCancel();
-  }
-
   function focusConfirm(el: HTMLInputElement) {
     el.focus();
   }
+
+  function show(node: HTMLDialogElement) {
+    node.showModal();
+    return {
+      destroy() {
+        if (node.open) node.close();
+      },
+    };
+  }
 </script>
 
-<svelte:window on:keydown={onKeydown} />
-
 {#if open}
-  <div class="backdrop" role="presentation" on:click={onCancel}></div>
-  <div
-    class="modal"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="reset-title"
-  >
-    <h2 id="reset-title">Reset everything?</h2>
-    <p>
-      This deletes <strong>every entry set</strong> and restores the four 2026 starters plus default
-      thresholds. It cannot be undone.
-    </p>
-    <p class="warn">Export a backup first if you might want these numbers again.</p>
+<dialog use:show on:close={onCancel} on:cancel={onCancel}>
+  <h2 id="reset-title">Reset everything?</h2>
+  <p>
+    This deletes <strong>every entry set</strong> and restores the four starters plus default
+    thresholds. It cannot be undone.
+  </p>
+  <p class="warn">Export a backup first if you might want these numbers again.</p>
 
-    <button type="button" class="button-action export" on:click={exportFirst}>
-      Export all sets first
+  <button type="button" class="button-action export" on:click={exportFirst}>
+    <Icon name="download" /> Export all sets first
+  </button>
+  {#if exported}
+    <p class="ok">Downloaded <code>forebalance-all-sets-*.json</code>.</p>
+  {/if}
+
+  <label>
+    Type <strong>{REQUIRED}</strong> to confirm
+    <input
+      type="text"
+      bind:value={typed}
+      autocomplete="off"
+      spellcheck="false"
+      placeholder={REQUIRED}
+      use:focusConfirm
+    />
+  </label>
+
+  <div class="actions">
+    <button type="button" class="button-action cancel" on:click={onCancel}>Cancel</button>
+    <button type="button" class="button-action destroy" disabled={!canConfirm} on:click={confirmReset}>
+      Reset all sets
     </button>
-    {#if exported}
-      <p class="ok">Downloaded <code>forebalance-all-sets-*.json</code>.</p>
-    {/if}
-
-    <label>
-      Type <strong>{REQUIRED}</strong> to confirm
-      <input
-        type="text"
-        bind:value={typed}
-        autocomplete="off"
-        spellcheck="false"
-        placeholder={REQUIRED}
-        use:focusConfirm
-      />
-    </label>
-
-    <div class="actions">
-      <button type="button" class="button-action cancel" on:click={onCancel}>Cancel</button>
-      <button type="button" class="button-action destroy" disabled={!canConfirm} on:click={confirmReset}>
-        Reset all sets
-      </button>
     </div>
-  </div>
+  </dialog>
 {/if}
 
 <style lang="scss">
-  .backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    z-index: 40;
-  }
-
-  .modal {
-    position: fixed;
-    z-index: 41;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
+  dialog {
     width: min(32em, calc(100vw - 2rem));
     padding: 1.15rem 1.25rem 1.25rem;
     background: #fff;
@@ -102,6 +88,10 @@
     border-radius: 0.6rem;
     box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.35);
     text-align: left;
+  }
+
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.45);
   }
 
   h2 {
@@ -150,8 +140,10 @@
     justify-content: flex-end;
   }
 
-  .modal :global(.button-action) {
-    display: inline-block;
+  dialog :global(.button-action) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
     margin: 0;
   }
 

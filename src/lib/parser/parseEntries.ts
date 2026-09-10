@@ -188,7 +188,10 @@ export function parseEntries(
 		return [null, null];
 	}
 
-	const endDate = dayjs(balanceDate).add(monthsToForecast, 'month').endOf('month').toDate();
+	const endDate = dayjs(balanceDate)
+		.add(Math.max(monthsToForecast, 1) - 1, 'month')
+		.endOf('month')
+		.toDate();
 	const mainAccount = Object.values(accounts).find((account) => account.isMain);
 	if (!mainAccount) {
 		console.error('main account not found.', accounts);
@@ -198,7 +201,6 @@ export function parseEntries(
 	sortEntries(parsedEntries);
 
 	const tableEntries: ParsedEntry[] = [];
-	let extraMonthlyPayment = 0;
 	const queue = [...parsedEntries];
 
 	while (queue.length > 0) {
@@ -221,11 +223,6 @@ export function parseEntries(
 				(newEntry.recur.count === null ||
 					recurringEntries[newEntry.id] <= (newEntry.recur.count ?? 0))
 			) {
-				const entryAccount = newEntry.accountId ? accounts[newEntry.accountId] : undefined;
-				if (entryAccount?.extraPayment) {
-					newEntry.amount = +newEntry.amount + +entryAccount.extraPayment;
-					accounts[newEntry.accountId!] = { ...entryAccount, extraPayment: 0 };
-				}
 				queue.push(newEntry);
 			}
 		}
@@ -248,27 +245,12 @@ export function parseEntries(
 						entryAccount.runningBal += interest;
 					}
 					if (entryAccount.runningBal <= +entry.amount && entryAccount.runningBal > 1) {
-						extraMonthlyPayment += +entry.amount - +entryAccount.runningBal;
 						entry.amount = entryAccount.runningBal;
 						entry.flag = 'paid-off';
 					}
 					entryAccount.runningBal += entry.type === 'C' ? +entry.amount : -entry.amount;
 					const last = tableEntries.at(-1);
 					if (last) last.subAccountRunningBal = entryAccount.runningBal;
-
-					const extraAmount = 250;
-					while (extraMonthlyPayment > extraAmount) {
-						for (const account of Object.values(accounts)) {
-							if (
-								account.runningBal > 0 &&
-								(account.interestRate ?? 0) > 0 &&
-								extraMonthlyPayment >= extraAmount
-							) {
-								account.extraPayment = +(account.extraPayment ?? 0) + extraAmount;
-								extraMonthlyPayment -= extraAmount;
-							}
-						}
-					}
 				} else {
 					const last = tableEntries.at(-1);
 					if (last) last.subAccountRunningBal = 0;

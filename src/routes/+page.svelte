@@ -13,10 +13,12 @@
 	import Help from '../components/Help.svelte';
 	import Welcome from '../components/Welcome.svelte';
 
-	import { entrySetsStore, getActiveSet } from '$lib/data/entrySets';
 	import { initializeData } from '$lib/data/initializeData';
+	import { forecastBlockReason } from '$lib/parser/forecastReady';
 	import { onMount, onDestroy } from 'svelte';
 	import { logd } from '$lib/util/log';
+	import Icon from '../components/Icon.svelte';
+	import SetSwitcher from '../components/SetSwitcher.svelte';
 
   let accountEntries = {};
   let accounts;
@@ -71,7 +73,8 @@
   $: selectedEntries = accountEntries && selectedAccountId ? accountEntries[selectedAccountId] : [];
   $: selectedAccount = accounts?.[selectedAccountId];
   $: selectedIsMain = selectedAccount?.isMain ?? true;
-  $: forecastSetName = getActiveSet($entrySetsStore)?.name ?? '';
+  $: forecastReady = !!(accountEntries && selectedAccountId && accountEntries[selectedAccountId]);
+  $: forecastReason = forecastReady ? '' : forecastBlockReason($rawEntriesStore);
 
   function selectedAccountHelp(account: typeof selectedAccount): string {
     if (!account) return '';
@@ -97,11 +100,11 @@
 <div class="content">
   <Tabs>
     <TabList>
-      <Tab>Welcome</Tab>
-      <Tab>Entries</Tab>
-      <Tab>Forecast</Tab>
-      <Tab>Settings</Tab>
-      <Tab>Help</Tab>
+      <Tab id="welcome"><Icon name="welcome" /> Welcome</Tab>
+      <Tab id="entries"><Icon name="entries" /> Entries</Tab>
+      <Tab id="forecast"><Icon name="forecast" /> Forecast</Tab>
+      <Tab id="settings"><Icon name="settings" /> Settings</Tab>
+      <Tab id="help"><Icon name="help" /> Help</Tab>
     </TabList>
     <div class="tab-panel">
       <div class="loader" class:loaded={!$appStateStore.showLoader}>Calculating your forecast...</div>
@@ -112,10 +115,8 @@
         <Entries></Entries>
       </TabPanel>
       <TabPanel showLoader="true">
-        {#if accountEntries && selectedAccountId && accountEntries[selectedAccountId]}
-          {#if forecastSetName}
-            <p class="forecast-set">Forecast for <strong>{forecastSetName}</strong> — switch sets on the Entries tab.</p>
-          {/if}
+        <SetSwitcher editable={false} />
+        {#if forecastReady}
           {#if accountList.length > 1}
             <div class="account-picker">
               <p class="account-picker-heading">Account in this set</p>
@@ -163,6 +164,11 @@
             {accounts}
             viewingMainAccount={selectedIsMain}
           ></ForecastTable>
+        {:else if parsedOnce}
+          <div class="forecast-empty">
+            <p>{forecastReason}</p>
+            <p class="hint">Edit the text on Entries, or pick another set above.</p>
+          </div>
         {/if}
       </TabPanel>
       <TabPanel>
@@ -210,18 +216,30 @@
 
   .tab-panel {
     flex-grow: 1;
-    overflow: overlay;
+    overflow: auto;
     position: relative;
     padding-bottom: 4rem;
   }
 
-  .forecast-set {
-    max-width: 55em;
-    margin: 0.75rem auto 0.5rem;
-    padding: 0 1rem;
+  .forecast-empty {
+    max-width: 36em;
+    margin: 1.5rem auto;
+    padding: 1rem 1.25rem;
     text-align: left;
-    font-size: 0.9rem;
-    color: #333;
+    background: #fff8e6;
+    border: 1px solid #cc8800;
+    border-radius: 0.5rem;
+
+    p {
+      margin: 0;
+      padding: 0;
+    }
+
+    .hint {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
   }
 
   .account-picker {

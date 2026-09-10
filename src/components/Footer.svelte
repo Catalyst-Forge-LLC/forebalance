@@ -19,7 +19,7 @@
     text-align: center;
     background-color: #009900;
     color: #fff;
-    font-size: calc(min(3.75vw, 1.75rem));
+    font-size: calc(min(3.25vw, 1.1rem));
     font-weight: 400;
     margin-top: 0;
     display: block;

@@ -1,3 +1,4 @@
+import { localIsoDate } from '$lib/formatters/dates';
 import type { BalanceFlags, ParsedEntry } from './types';
 
 export interface SummaryPoint {
@@ -27,7 +28,7 @@ function effectiveBalance(entry: ParsedEntry, useMainBalance: boolean): number |
 }
 
 function dateKey(date: Date): string {
-	return date.toISOString().slice(0, 10);
+	return localIsoDate(date);
 }
 
 /** Last effective balance per calendar day (in entry order). */

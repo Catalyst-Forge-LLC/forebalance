@@ -31,11 +31,9 @@ export function validateRawEntries(raw: string): EntryValidation[] {
 			warnings.push({ line: index + 1, message: `Unknown type "${typeCode}"` });
 		}
 
-		if (parts[1] && Number.isNaN(Date.parse(parts[1].split(',')[0]))) {
-			const datePart = parts[1].split(',')[0];
-			if (!/^\d{4}-\d{1,2}-\d{1,2}/.test(datePart)) {
-				warnings.push({ line: index + 1, message: `Invalid date "${datePart}"` });
-			}
+		const datePart = parts[1]?.split(',')[0] ?? '';
+		if (datePart && !/^\d{4}-\d{1,2}-(?:\d{1,2}|L)$/i.test(datePart)) {
+			warnings.push({ line: index + 1, message: `Invalid date "${datePart}"` });
 		}
 
 		if (parts[2] !== '' && Number.isNaN(+parts[2])) {
