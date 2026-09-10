@@ -157,7 +157,7 @@ export const QUERY_TYPES: QueryType[] = [
 		match:
 			/\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)s?\b/i,
 		template:
-			'C|{next that weekday},RW|{amt}|{name}\nEarn / Uber / pay is C, never D. One line per weekday.',
+			'C|2026-09-15,RW|120|Uber\nC|2026-09-17,RW|120|Uber\nWHEN must be YYYY-MM-DD,RW — never the weekday name. Earn / Uber is C.',
 	},
 	{
 		id: 'draft-biweekly',

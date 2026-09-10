@@ -50,12 +50,38 @@ function amountIn(text: string): string | null {
 	return match ? match[1].replace(/,/g, '') : null;
 }
 
+const WEEKDAY_NAMES = Object.keys(WEEKDAY).sort((a, b) => b.length - a.length);
+
+function weekdayInWhen(when: string): number | null {
+	const first = when.split(',')[0]?.trim() ?? '';
+	for (const name of WEEKDAY_NAMES) {
+		if (new RegExp(`^${name}s?$`, 'i').test(first)) return WEEKDAY[name];
+	}
+	return null;
+}
+
+/** Rewrite `C|Tuesday,R|120|Uber` to `C|2026-09-15,RW|120|Uber`. */
+export function normalizeDraftLine(line: string, now = new Date()): string {
+	const parts = line.split('|');
+	if (parts.length < 4) return line;
+	const weekday = weekdayInWhen(parts[1] ?? '');
+	if (weekday === null) return line;
+	const recur = /r2w/i.test(parts[1]) ? 'R2W' : 'RW';
+	parts[1] = `${localIsoDate(nextWeekday(now, weekday))},${recur}`;
+	return parts.join('|');
+}
+
+export function normalizeDraftLines(lines: string[], now = new Date()): string[] {
+	return lines.map((line) => normalizeDraftLine(line, now));
+}
+
 /** Keep only lines that look like ForeBalance .psv. Drops essays and leftover thinking. */
 export function keepPsvLines(text: string): string[] {
 	return text
 		.split(/\n/)
 		.map((line) => line.trim().replace(/^`+|`+$/g, ''))
-		.filter((line) => PSV_LINE.test(line));
+		.filter((line) => PSV_LINE.test(line))
+		.map((line) => normalizeDraftLine(line));
 }
 
 /**

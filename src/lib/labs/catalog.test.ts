@@ -41,7 +41,7 @@ describe('query catalog', () => {
 		]);
 		const specialist = specialistPrompt(rentPay);
 		expect(specialist).toContain('D|{YYYY-MM-DD},R|{amt}|Rent');
-		expect(specialist).toContain('C|{next that weekday},RW|{amt}|');
+		expect(specialist).toContain('C|2026-09-15,RW|120|Uber');
 		expect(specialist).not.toContain('[afford]');
 		expect(specialist.length).toBeLessThan(catalogPrompt().length / 2);
 	});

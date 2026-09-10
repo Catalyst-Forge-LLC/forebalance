@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { draftPsvFromDescription, keepPsvLines } from './draft';
+import { draftPsvFromDescription, keepPsvLines, normalizeDraftLines } from './draft';
 
 describe('draftPsvFromDescription', () => {
 	it('drafts rent on the 7th and pay on Tue/Thu', () => {
@@ -11,6 +11,21 @@ describe('draftPsvFromDescription', () => {
 			'D|2026-09-07,R|1546|Rent',
 			'C|2026-09-15,RW|120|Pay',
 			'C|2026-09-10,RW|120|Pay',
+		]);
+	});
+});
+
+describe('normalizeDraftLines', () => {
+	it('turns weekday names into the next ISO date and RW', () => {
+		expect(
+			normalizeDraftLines(
+				['D|2026-09-10,R|14322|Rent', 'C|Tuesday,R|120|Uber', 'C|Thursday,R|120|Uber'],
+				new Date(2026, 8, 10),
+			),
+		).toEqual([
+			'D|2026-09-10,R|14322|Rent',
+			'C|2026-09-15,RW|120|Uber',
+			'C|2026-09-10,RW|120|Uber',
 		]);
 	});
 });
