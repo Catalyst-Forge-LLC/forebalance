@@ -119,17 +119,15 @@
         <Entries></Entries>
       </TabPanel>
       <TabPanel showLoader="true">
-        <SetSwitcher editable={false} />
-        {#if forecastReady}
-          {#if accountList.length > 1}
-            <div class="account-picker">
-              <p class="account-picker-heading">Account in this scenario</p>
-              <p class="account-picker-help">{selectedAccountHelp(selectedAccount)}</p>
+        <SetSwitcher editable={false}>
+          <div slot="extra" class="account-slot">
+            {#if forecastReady && accountList.length > 1}
               {#if accountList.length > 4}
                 <label class="account-select">
-                  <span class="sr-only">Select account</span>
+                  <span class="sr-only">Account</span>
                   <select
                     value={selectedAccountId}
+                    title={selectedAccountHelp(selectedAccount)}
                     on:change={(e) => (selectedAccountId = e.currentTarget.value)}
                   >
                     {#each accountList as account}
@@ -138,7 +136,7 @@
                   </select>
                 </label>
               {:else}
-                <div class="account-buttons">
+                <div class="account-buttons" title={selectedAccountHelp(selectedAccount)}>
                   {#each accountList as account}
                     <button
                       type="button"
@@ -150,19 +148,23 @@
                   {/each}
                 </div>
               {/if}
-            </div>
-          {/if}
-          <ForecastSummary
-            entries={selectedEntries}
-            {balanceFlags}
-            useMainBalance={selectedIsMain}
-            onScrollToRow={scrollToForecastRow}
-          />
-          <ForecastSparkline
-            entries={selectedEntries}
-            {balanceFlags}
-            useMainBalance={selectedIsMain}
-          />
+            {/if}
+          </div>
+        </SetSwitcher>
+        {#if forecastReady}
+          <div class="forecast-glance">
+            <ForecastSummary
+              entries={selectedEntries}
+              {balanceFlags}
+              useMainBalance={selectedIsMain}
+              onScrollToRow={scrollToForecastRow}
+            />
+            <ForecastSparkline
+              entries={selectedEntries}
+              {balanceFlags}
+              useMainBalance={selectedIsMain}
+            />
+          </div>
           <ForecastTable
             tableEntries={accountEntries[selectedAccountId]}
             {accounts}
@@ -252,58 +254,66 @@
     }
   }
 
-  .account-picker {
+  .account-slot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+  }
+
+  .account-select select {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.4rem;
+    border: 1px solid #009900;
+    border-radius: 0.35rem;
+    max-width: 18em;
+  }
+
+  .account-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .account-buttons button {
+    background: #e8f5e8;
+    border: 1px solid #009900;
+    border-radius: 0.4rem;
+    color: #004400;
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+
+    &.selected {
+      background: #009900;
+      color: #fff;
+      font-weight: 700;
+    }
+  }
+
+  .forecast-glance {
     max-width: 55em;
-    margin: 0.5rem auto 1rem;
-    padding: 0.75rem 1rem;
+    margin: 0 auto 0.5rem;
+    padding: 0.4rem 0.75rem 0.45rem;
+    display: grid;
+    grid-template-columns: minmax(14em, 1fr) minmax(12em, 1.2fr);
+    gap: 0.5rem 1rem;
+    align-items: center;
     text-align: left;
     background: #f8fff8;
     border: 1px solid #cce8cc;
     border-radius: 0.5rem;
+  }
 
-    .account-picker-heading {
-      margin: 0 0 0.25rem;
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #006600;
+  @media (max-width: 40em) {
+    .forecast-glance {
+      grid-template-columns: 1fr;
     }
 
-    .account-picker-help {
-      margin: 0 0 0.75rem;
-      font-size: 0.85rem;
-      color: #444;
-      line-height: 1.4;
-    }
-
-    .account-select select {
+    .account-slot {
+      margin-left: 0;
       width: 100%;
-      max-width: 40em;
-      font-size: 0.95rem;
-      padding: 0.4rem 0.5rem;
-      border: 1px solid #009900;
-      border-radius: 0.35rem;
-    }
-
-    .account-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    button {
-      background: #e8f5e8;
-      border: 1px solid #009900;
-      border-radius: 0.5rem;
-      color: #004400;
-      cursor: pointer;
-      font-size: 0.85rem;
-      padding: 0.35rem 0.75rem;
-
-      &.selected {
-        background: #009900;
-        color: #fff;
-        font-weight: 700;
-      }
     }
   }
 

@@ -54,6 +54,7 @@
       <input type="text" bind:value={draftName} on:change={commitName} on:blur={commitName} />
     </label>
   {/if}
+  <slot name="extra" />
 </div>
 
 <style lang="scss">
@@ -73,7 +74,9 @@
 
   .compact {
     max-width: 55em;
-    margin: 0.75rem auto 0.5rem;
+    width: calc(100% - 2rem);
+    margin: 0.4rem auto 0.35rem;
+    flex-wrap: wrap;
   }
 
   .inline {

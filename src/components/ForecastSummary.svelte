@@ -19,27 +19,21 @@
 
   $: summaryItems = (
     [
-      { key: 'lowest', label: 'Lowest balance', point: summary.lowest },
+      { key: 'lowest', label: 'Lowest', point: summary.lowest },
       {
         key: 'uncomfortable',
-        label: 'First below uncomfortable',
+        label: 'Uncomfortable',
         point: summary.firstUncomfortable,
       },
-      { key: 'low', label: 'First below low', point: summary.firstLow },
-      { key: 'negative', label: 'First negative', point: summary.firstNegative, loud: true },
+      { key: 'low', label: 'Low', point: summary.firstLow },
+      { key: 'negative', label: 'Negative', point: summary.firstNegative, loud: true },
     ] satisfies SummaryItem[]
   ).filter((item) => item.point !== null);
 
   $: dayCountParts = [
-    summary.daysBelowUncomfortable > 0
-      ? `${summary.daysBelowUncomfortable} day${summary.daysBelowUncomfortable === 1 ? '' : 's'} below uncomfortable`
-      : null,
-    summary.daysBelowLow > 0
-      ? `${summary.daysBelowLow} day${summary.daysBelowLow === 1 ? '' : 's'} below low`
-      : null,
-    summary.daysBelowZero > 0
-      ? `${summary.daysBelowZero} day${summary.daysBelowZero === 1 ? '' : 's'} below zero`
-      : null,
+    summary.daysBelowUncomfortable > 0 ? `${summary.daysBelowUncomfortable}d uncomf.` : null,
+    summary.daysBelowLow > 0 ? `${summary.daysBelowLow}d low` : null,
+    summary.daysBelowZero > 0 ? `${summary.daysBelowZero}d below 0` : null,
   ].filter(Boolean);
 
   function scrollTo(point: { rowIndex: number } | null) {
@@ -47,67 +41,38 @@
   }
 
   function formatPoint(label: string, point: { balance: number; date: Date }) {
-    return `${label}: ${fmt.curr(point.balance)} on ${fmt.date(point.date)}`;
+    return `${label} ${fmt.curr(point.balance)} · ${fmt.date(point.date)}`;
   }
 </script>
 
 {#if entries.length && summaryItems.length}
   <section class="forecast-summary" aria-label="Forecast summary">
-    <h2>At a glance</h2>
-    <p class="summary-intro">Click a line to jump to that date in the table below.</p>
-    <ul>
-      {#each summaryItems as item}
-        <li>
-          <button
-            type="button"
-            class="summary-link"
-            class:loud={item.loud && item.point !== null}
-            on:click={() => scrollTo(item.point)}
-          >
-            {formatPoint(item.label, item.point!)}
-          </button>
-        </li>
-      {/each}
-    </ul>
+    {#each summaryItems as item}
+      <button
+        type="button"
+        class="summary-link"
+        class:loud={item.loud && item.point !== null}
+        title="Jump to this date in the table"
+        on:click={() => scrollTo(item.point)}
+      >
+        {formatPoint(item.label, item.point!)}
+      </button>
+    {/each}
     {#if dayCountParts.length}
-      <p class="day-counts">{dayCountParts.join(' · ')}</p>
+      <span class="day-counts">{dayCountParts.join(' · ')}</span>
     {:else if summary.lowest}
-      <p class="day-counts ok">You stay above your uncomfortable line for the whole forecast.</p>
+      <span class="day-counts ok">Above uncomfortable the whole window</span>
     {/if}
   </section>
 {/if}
 
 <style lang="scss">
   .forecast-summary {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.85rem;
     text-align: left;
-    max-width: 55em;
-    margin: 0 auto 1rem;
-    padding: 0.75rem 1rem;
-    background: #f4fff4;
-    border: 1px solid #009900;
-    border-radius: 0.5rem;
-
-    h2 {
-      margin: 0 0 0.25rem;
-      font-size: 1rem;
-      color: #006600;
-    }
-
-    .summary-intro {
-      margin: 0 0 0.5rem;
-      font-size: 0.8rem;
-      color: #555;
-    }
-
-    ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-
-    li {
-      margin: 0.25rem 0;
-    }
   }
 
   .summary-link {
@@ -116,6 +81,7 @@
     color: #004400;
     cursor: pointer;
     font: inherit;
+    font-size: 0.85rem;
     padding: 0;
     text-align: left;
     text-decoration: underline;
@@ -127,9 +93,8 @@
   }
 
   .day-counts {
-    margin: 0.75rem 0 0;
-    font-size: 0.85rem;
-    color: #333;
+    font-size: 0.8rem;
+    color: #555;
 
     &.ok {
       color: #006600;

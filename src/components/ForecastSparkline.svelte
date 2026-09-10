@@ -7,8 +7,8 @@
   export let useMainBalance = true;
 
   const width = 640;
-  const height = 120;
-  const pad = { top: 12, right: 12, bottom: 28, left: 56 };
+  const height = 72;
+  const pad = { top: 6, right: 8, bottom: 16, left: 48 };
 
   $: plotEntries = entries.filter(
     (e) => e.date && (e.type === 'B' || e.type === 'C' || e.type === 'D'),
@@ -64,11 +64,11 @@
 
 {#if plotEntries.length > 1}
   <figure class="sparkline">
-    <figcaption class="sparkline-caption">
-      {balanceLabel} over the forecast window. Red dot = lowest point; dashed lines = your Settings
-      thresholds.
-    </figcaption>
-    <svg viewBox="0 0 {width} {height}" role="img" aria-label="{balanceLabel} chart">
+    <svg
+      viewBox="0 0 {width} {height}"
+      role="img"
+      aria-label="{balanceLabel}. Red dot is the lowest point; dashed lines are your Settings thresholds."
+    >
       {#each yTicks as tick, i}
         <line
           x1={pad.left}
@@ -129,13 +129,9 @@
 
 <style lang="scss">
   .sparkline {
-    max-width: 55em;
-    margin: 0 auto 0.75rem;
-    padding: 0.5rem 0.75rem 0.25rem;
-    background: #fafafa;
-    border: 1px solid #ddd;
-    border-radius: 0.5rem;
-    text-align: left;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
 
     svg {
       display: block;
@@ -145,15 +141,8 @@
 
     :global(.axis-label) {
       fill: #666;
-      font-size: 10px;
+      font-size: 9px;
       font-family: ui-sans-serif, system-ui, sans-serif;
     }
-  }
-
-  .sparkline-caption {
-    margin: 0 0 0.35rem;
-    font-size: 0.8rem;
-    color: #555;
-    line-height: 1.35;
   }
 </style>
