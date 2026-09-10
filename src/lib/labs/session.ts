@@ -6,8 +6,9 @@ export const WEBLLM_MODEL_ID = 'Qwen3-1.7B-q4f16_1-MLC';
 export type LabsProgress = (percent: number, text: string) => void;
 
 export interface LabsPromptOptions {
-	/** Qwen3 thinking. Off for lookups; on for .psv drafts. */
+	/** Qwen3 thinking. Leave off — drafts burn the token budget on homework. */
 	think?: boolean;
+	maxTokens?: number;
 }
 
 export interface LabsSession {
@@ -75,7 +76,7 @@ async function createWebllmSession(onProgress: LabsProgress): Promise<LabsSessio
 					{ role: 'system', content: system },
 					{ role: 'user', content: user },
 				],
-				max_tokens: 320,
+				max_tokens: options?.maxTokens ?? 320,
 				extra_body: { enable_thinking: options?.think === true },
 			});
 			return (reply.choices[0]?.message?.content ?? '').trim();

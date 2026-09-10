@@ -1,35 +1,17 @@
+import { catalogPrompt } from './catalog';
 import { computeForecastSummary } from '$lib/parser/forecastSummary';
 import { localIsoDate } from '$lib/formatters/dates';
 import { fmt } from '$lib/formatters/fmt';
 import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
 
-const REPLY_RULES =
-	'Use only numbers and names in the brief. Do not invent transactions. Do not give investment or tax advice. No preamble. No markdown fences.';
-
-export const UPCOMING_SYSTEM = `You are a Labs helper inside ForeBalance.
-${REPLY_RULES}
-
-List the Upcoming lines, one per row: date, C or D, amount, name, balance after.
-Then one sentence: which of those is the squeeze.`;
-
-export const DRAINS_SYSTEM = `You are a Labs helper inside ForeBalance.
-${REPLY_RULES}
-
-List Top debits largest first (name, total, times).
-Then one sentence: which single change would add the most room before the lowest date.`;
-
-export const AFFORD_SYSTEM = `You are a Labs helper inside ForeBalance. The user is asking whether they can afford something.
-${REPLY_RULES}
-
-Answer Yes, Tight, or No. Then one sentence using the lowest point and the uncomfortable line.
-Then one .psv line they could add to test it (TYPE|WHEN|AMOUNT|DESCRIPTION).`;
-
-export const DRAFT_SYSTEM = `You write ForeBalance .psv lines only, using the format card.
-No markdown fences. No commentary. Do not invent a grid or extra columns.`;
-
-export const FREE_SYSTEM = `You answer ForeBalance .psv questions using only the format card below.
-If the card does not say, reply: Not in the format card — see the Help tab.
-Never invent grids, matrices, row numbers, or other products. Be brief.`;
+/** Full type catalog — the core Labs prompt. */
+export const LABS_SYSTEM = catalogPrompt();
+export const FORECAST_SYSTEM = catalogPrompt(['forecast']);
+export const DRAFT_SYSTEM = catalogPrompt(['draft']);
+export const UPCOMING_SYSTEM = FORECAST_SYSTEM;
+export const DRAINS_SYSTEM = FORECAST_SYSTEM;
+export const AFFORD_SYSTEM = FORECAST_SYSTEM;
+export const FREE_SYSTEM = LABS_SYSTEM;
 
 const MAX_LINES = 20;
 const MAX_UPCOMING = 8;
@@ -49,7 +31,7 @@ export function splitModelReply(text: string): { thinking: string; answer: strin
 		.trim();
 	return {
 		thinking: blocks.filter(Boolean).join('\n\n'),
-		answer: answer || text.replace(/<\/?think>/gi, '').trim(),
+		answer,
 	};
 }
 

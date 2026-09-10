@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildForecastBrief, buildWhyTight, splitModelReply } from './context';
+import { DRAFT_SYSTEM, buildForecastBrief, buildWhyTight, splitModelReply } from './context';
 import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
 
 const flags: BalanceFlags = {
@@ -94,6 +94,15 @@ describe('buildWhyTight', () => {
 	});
 });
 
+describe('DRAFT_SYSTEM', () => {
+	it('is the draft slice of the type catalog', () => {
+		expect(DRAFT_SYSTEM).toContain('[draft-rent]');
+		expect(DRAFT_SYSTEM).toContain('D|{YYYY-MM-DD},R|{amt}|Rent');
+		expect(DRAFT_SYSTEM).toContain('stack those templates');
+		expect(DRAFT_SYSTEM).not.toMatch(/same-day order/i);
+	});
+});
+
 describe('splitModelReply', () => {
 	it('hides think blocks and keeps the answer', () => {
 		const reply = splitModelReply(
@@ -102,5 +111,11 @@ describe('splitModelReply', () => {
 		expect(reply.thinking).toContain('assignment');
 		expect(reply.answer).toBe('Tight: rent week is $200.');
 		expect(reply.answer).not.toContain('<think>');
+	});
+
+	it('does not treat leftover thinking as the answer', () => {
+		const reply = splitModelReply('<think>Okay, rent is probably a credit…');
+		expect(reply.thinking).toContain('probably a credit');
+		expect(reply.answer).toBe('');
 	});
 });

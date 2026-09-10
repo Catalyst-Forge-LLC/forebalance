@@ -1,16 +1,17 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
+  import { buildForecastBrief, buildWhyTight, splitModelReply } from '$lib/labs/context';
   import {
-    AFFORD_SYSTEM,
-    DRAFT_SYSTEM,
-    DRAINS_SYSTEM,
-    FREE_SYSTEM,
-    UPCOMING_SYSTEM,
-    buildForecastBrief,
-    buildWhyTight,
-    splitModelReply,
-  } from '$lib/labs/context';
-  import { FORMAT_CARD, answerSyntaxQuestion } from '$lib/labs/syntax';
+    describeMatches,
+    matchQueryTypes,
+    parseRouterReply,
+    routerPrompt,
+    specialistPrompt,
+    typesById,
+    type QueryType,
+  } from '$lib/labs/catalog';
+  import { answerSyntaxQuestion } from '$lib/labs/syntax';
+  import { draftPsvFromDescription, keepPsvLines } from '$lib/labs/draft';
   import {
     chooseBackend,
     hasWebGpu,
@@ -86,23 +87,6 @@
     }
   }
 
-  async function run(system: string, user: string, think = false) {
-    if (!session || !user.trim()) return;
-    error = '';
-    running = true;
-    output = '';
-    thinking = '';
-    try {
-      const reply = splitModelReply(await session.prompt(system, user.trim(), { think }));
-      output = reply.answer;
-      thinking = reply.thinking;
-    } catch (err) {
-      error = err instanceof Error ? err.message : String(err);
-    } finally {
-      running = false;
-    }
-  }
-
   function brief() {
     return buildForecastBrief(entries, balanceFlags, useMainBalance, activeName);
   }
@@ -113,20 +97,78 @@
     output = buildWhyTight(entries, balanceFlags, useMainBalance, activeName);
   }
 
+  function catalogAsk(ask: string, types: QueryType[], extra = '') {
+    return `${describeMatches(types)}\n\nAsk: ${ask}${extra ? `\n\n${extra}` : ''}`;
+  }
+
+  async function runRouted(ask: string, extra = '', forceIds?: string[]) {
+    if (!session) return;
+    error = '';
+    running = true;
+    output = '';
+    thinking = '';
+    try {
+      let types = forceIds ? typesById(forceIds) : matchQueryTypes(ask);
+      if (!types.length) {
+        const routed = splitModelReply(
+          await session.prompt(routerPrompt(), `Ask: ${ask}`, { maxTokens: 48 }),
+        );
+        types = typesById(parseRouterReply(routed.answer));
+      }
+      const reply = splitModelReply(
+        await session.prompt(specialistPrompt(types), catalogAsk(ask, types, extra)),
+      );
+      output = reply.answer;
+      thinking = reply.thinking;
+    } catch (err) {
+      error = err instanceof Error ? err.message : String(err);
+    } finally {
+      running = false;
+    }
+  }
+
   function upcomingHits() {
-    return run(UPCOMING_SYSTEM, `What hits next?\n\n${brief()}`);
+    return runRouted('What hits next?', brief(), ['upcoming']);
   }
 
   function moneyDrains() {
-    return run(DRAINS_SYSTEM, `Where does the money go?\n\n${brief()}`);
+    return runRouted('Where does the money go?', brief(), ['drains']);
   }
 
   function affordCheck() {
-    return run(AFFORD_SYSTEM, `${affordAsk}\n\n${brief()}`);
+    return runRouted(affordAsk, brief(), ['afford']);
   }
 
-  function draftEntries() {
-    return run(DRAFT_SYSTEM, `${FORMAT_CARD}\n\nWrite lines for:\n${draftAsk}`, true);
+  function showResult(text: string) {
+    error = '';
+    thinking = '';
+    output = text;
+  }
+
+  async function draftEntries() {
+    const local = draftPsvFromDescription(draftAsk);
+    if (local.length) {
+      showResult(local.join('\n'));
+      return;
+    }
+    if (!session) {
+      const hits = matchQueryTypes(draftAsk);
+      showResult(
+        hits.length
+          ? `That looks like ${hits.map((type) => type.title).join(' + ')}. Say “Rent $1185 on the 1st” or load a model to mix the templates.`
+          : 'Could not turn that into .psv. Try “Rent $1185 on the 1st” or load a model.',
+      );
+      return;
+    }
+    await runRouted(draftAsk);
+    const lines = keepPsvLines(output);
+    if (lines.length) {
+      output = lines.join('\n');
+      thinking = '';
+      return;
+    }
+    output = '';
+    error = 'The model did not produce .psv lines. Try a shorter description.';
   }
 
   function freePrompt() {
@@ -138,12 +180,15 @@
       return;
     }
     if (!session) {
+      const hits = matchQueryTypes(freeAsk);
       error = '';
       thinking = '';
-      output = 'Not a known format token. See the Help tab, or load a model for a custom ask.';
+      output = hits.length
+        ? `That looks like ${hits.map((type) => type.title).join(' + ')}. See Help, or load a model to fill the template.`
+        : 'Not a known type. See the Help tab, or load a model.';
       return;
     }
-    return run(FREE_SYSTEM, `${FORMAT_CARD}\n\nQuestion: ${freeAsk}`);
+    return runRouted(freeAsk);
   }
 
   function copyOutput() {
@@ -212,8 +257,8 @@
     <section class="actions">
       <h3>Ask the forecast</h3>
       <p class="hint">
-        Why is this tight? and format tokens (R2W, RML, !) read the table and Help. Afford and
-        draft still need a loaded model.
+        A router picks a type (or two), then a specialist template is filled. Known types
+        (tight, R2W, rent on the 7th) skip the model.
       </p>
       <button type="button" disabled={running || !forecastReady} on:click={explainForecast}>
         Why is this tight?
@@ -252,7 +297,7 @@
           placeholder="Rent $1,185 on the 1st, gig pay around $500 each Friday…"
         ></textarea>
       </label>
-      <button type="button" disabled={!session || running || !draftAsk.trim()} on:click={draftEntries}>
+      <button type="button" disabled={running || !draftAsk.trim()} on:click={draftEntries}>
         Draft lines
       </button>
 
