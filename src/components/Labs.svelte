@@ -1,6 +1,15 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
-  import { DRAFT_SYSTEM, EXPLAIN_SYSTEM, buildForecastBrief } from '$lib/labs/context';
+  import {
+    AFFORD_SYSTEM,
+    DRAFT_SYSTEM,
+    DRAINS_SYSTEM,
+    EXPLAIN_SYSTEM,
+    FREE_SYSTEM,
+    UPCOMING_SYSTEM,
+    buildForecastBrief,
+    splitModelReply,
+  } from '$lib/labs/context';
   import {
     chooseBackend,
     hasWebGpu,
@@ -27,8 +36,10 @@
   let progress = 0;
   let progressText = '';
   let output = '';
+  let thinking = '';
   let error = '';
   let draftAsk = '';
+  let affordAsk = '';
   let freeAsk = '';
 
   $: activeName =
@@ -74,13 +85,16 @@
     }
   }
 
-  async function run(system: string, user: string) {
+  async function run(system: string, user: string, think = false) {
     if (!session || !user.trim()) return;
     error = '';
     running = true;
     output = '';
+    thinking = '';
     try {
-      output = await session.prompt(system, user.trim());
+      const reply = splitModelReply(await session.prompt(system, user.trim(), { think }));
+      output = reply.answer;
+      thinking = reply.thinking;
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     } finally {
@@ -88,20 +102,32 @@
     }
   }
 
+  function brief() {
+    return buildForecastBrief(entries, balanceFlags, useMainBalance, activeName);
+  }
+
   function explainForecast() {
-    const brief = buildForecastBrief(entries, balanceFlags, useMainBalance, activeName);
-    return run(EXPLAIN_SYSTEM, `Explain this forecast:\n\n${brief}`);
+    return run(EXPLAIN_SYSTEM, `What makes this forecast tight?\n\n${brief()}`);
+  }
+
+  function upcomingHits() {
+    return run(UPCOMING_SYSTEM, `What hits next?\n\n${brief()}`);
+  }
+
+  function moneyDrains() {
+    return run(DRAINS_SYSTEM, `Where does the money go?\n\n${brief()}`);
+  }
+
+  function affordCheck() {
+    return run(AFFORD_SYSTEM, `${affordAsk}\n\n${brief()}`);
   }
 
   function draftEntries() {
-    return run(DRAFT_SYSTEM, draftAsk);
+    return run(DRAFT_SYSTEM, draftAsk, true);
   }
 
   function freePrompt() {
-    return run(
-      'You are a Labs helper inside ForeBalance. Be brief. Do not invent account numbers.',
-      freeAsk,
-    );
+    return run(FREE_SYSTEM, freeAsk);
   }
 
   function copyOutput() {
@@ -166,15 +192,41 @@
     </section>
   {/if}
 
-  {#if session}
+  {#if preferred !== 'none'}
     <section class="actions">
-      <h3>Try it</h3>
-      <button type="button" disabled={running || !forecastReady} on:click={explainForecast}>
-        Explain this forecast
+      <h3>Ask the forecast</h3>
+      <p class="hint">
+        These use numbers already on Forecast. The model only names the squeeze and a next move.
+        {#if !session}Load a model to run them.{/if}
+      </p>
+      <button type="button" disabled={!session || running || !forecastReady} on:click={explainForecast}>
+        Why is this tight?
+      </button>
+      <button type="button" disabled={!session || running || !forecastReady} on:click={upcomingHits}>
+        What hits next?
+      </button>
+      <button type="button" disabled={!session || running || !forecastReady} on:click={moneyDrains}>
+        Where does the money go?
       </button>
       {#if !forecastReady}
         <p class="hint">Open a scenario with a forecast first.</p>
       {/if}
+
+      <label>
+        Can I afford this?
+        <textarea
+          bind:value={affordAsk}
+          rows="2"
+          placeholder="A $240 tire on Friday / skip eating out this month"
+        ></textarea>
+      </label>
+      <button
+        type="button"
+        disabled={!session || running || !forecastReady || !affordAsk.trim()}
+        on:click={affordCheck}
+      >
+        Check
+      </button>
 
       <label>
         Draft .psv from a description
@@ -184,19 +236,19 @@
           placeholder="Rent $1,185 on the 1st, gig pay around $500 each Friday…"
         ></textarea>
       </label>
-      <button type="button" disabled={running || !draftAsk.trim()} on:click={draftEntries}>
+      <button type="button" disabled={!session || running || !draftAsk.trim()} on:click={draftEntries}>
         Draft lines
       </button>
 
       <label>
-        Free prompt
+        Syntax or a custom ask
         <textarea bind:value={freeAsk} rows="2" placeholder="What does ,R2W mean?"></textarea>
       </label>
-      <button type="button" disabled={running || !freeAsk.trim()} on:click={freePrompt}>Ask</button>
+      <button type="button" disabled={!session || running || !freeAsk.trim()} on:click={freePrompt}>Ask</button>
     </section>
 
     {#if running}
-      <p class="hint">Thinking…</p>
+      <p class="hint">Working…</p>
     {/if}
     {#if output}
       <section class="output">
@@ -205,6 +257,12 @@
           <button type="button" on:click={copyOutput}>Copy</button>
         </div>
         <pre>{output}</pre>
+        {#if thinking}
+          <details>
+            <summary>How it reasoned</summary>
+            <pre class="think">{thinking}</pre>
+          </details>
+        {/if}
       </section>
     {/if}
   {/if}
@@ -349,5 +407,21 @@
     border-radius: 0.4rem;
     white-space: pre-wrap;
     font-size: 0.85rem;
+  }
+
+  details {
+    margin-top: 0.65rem;
+    color: #555;
+    font-size: 0.85rem;
+  }
+
+  details summary {
+    cursor: pointer;
+  }
+
+  pre.think {
+    margin-top: 0.4rem;
+    background: #222;
+    color: #ccc;
   }
 </style>
