@@ -48,5 +48,11 @@
     "sass": "^1.87.0",
     "svelte-file-dropzone": "^2.0.9",
     "tippy.js": "^6.3.7"
+  },
+  "pnpm": {
+    "overrides": {
+      "sharp": "0.35.4",
+      "cookie@<0.7.0": "0.7.2"
+    }
   }
 }
