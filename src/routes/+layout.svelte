@@ -15,9 +15,10 @@
 		display: flex;
 		flex-direction: column;
 		position: relative;
-		background: #fff;
+		background: linear-gradient(180deg, #ffffff 0%, #fbfcfb 100%);
 		border-left: 1px solid #d5d9d3;
 		border-right: 1px solid #d5d9d3;
+		box-shadow: var(--fb-shadow-page);
 	}
 
 	:global(p) {

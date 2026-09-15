@@ -19,10 +19,13 @@
   @use '../scss/colors' as *;
 
   header {
+    position: relative;
+    z-index: 3;
     width: 100%;
     box-sizing: border-box;
-    background: $clr-surface;
+    background: linear-gradient(180deg, #ffffff 0%, #f3f8f2 100%);
     border-bottom: 2px solid $clr-accent;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85), var(--fb-shadow-bar);
   }
 
   .bar {

@@ -11,11 +11,18 @@
 	--fb-border: #d5d9d3;
 	--fb-body-max: 56em;
 	--fb-header-max: calc(var(--fb-body-max) * 1.1);
+	--fb-shadow-bar: 0 0.2rem 0.7rem rgba(13, 92, 20, 0.08);
+	--fb-shadow-page: 0 0.45rem 1.8rem rgba(28, 33, 28, 0.08);
+	--fb-shadow-card: 0 0.12rem 0.45rem rgba(28, 33, 28, 0.05);
+	--fb-wash:
+		radial-gradient(ellipse 90% 48% at 50% -12%, rgba(0, 153, 0, 0.1), transparent 55%),
+		linear-gradient(180deg, #eef2ea 0%, #f5f5f2 42%, #f2f0ea 100%);
 }
 
 html,
 body {
-	background: $clr-bg;
+	background-color: $clr-bg;
+	background-image: var(--fb-wash);
 	color: $clr-text;
 }
 
@@ -23,7 +30,8 @@ body {
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
-	background: $clr-bg;
+	background-color: transparent;
+	background-image: var(--fb-wash);
 }
 
 input[type='range'] {
@@ -113,7 +121,9 @@ fieldset {
 	display: block;
 	border-radius: 0.4rem;
 	background-color: $clr-surface;
+	background-image: linear-gradient(180deg, #ffffff 0%, #f8faf7 100%);
 	border: 1px solid $clr-border;
+	box-shadow: var(--fb-shadow-card);
 	padding: 0.5rem;
 	margin-top: 0.5rem;
 

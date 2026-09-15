@@ -196,10 +196,11 @@
     align-items: center;
     margin: 0 0 1.25rem;
     padding: 0.7rem 0.85rem;
-    background: $clr-surface;
+    background: linear-gradient(180deg, #ffffff 0%, #f7faf6 100%);
     border: 1px solid $clr-border;
     border-left: 3px solid $clr-accent;
     border-radius: 0.4rem;
+    box-shadow: var(--fb-shadow-card);
     color: inherit;
     text-decoration: none;
 
@@ -338,9 +339,10 @@
     align-items: flex-start;
     gap: 0.25rem;
     padding: 0.65rem 0.75rem;
-    background: $clr-surface;
+    background: linear-gradient(180deg, #ffffff 0%, #f7faf6 100%);
     border: 1px solid $clr-border;
     border-radius: 0.4rem;
+    box-shadow: var(--fb-shadow-card);
     color: $clr-text;
     cursor: pointer;
     text-align: left;
