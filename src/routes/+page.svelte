@@ -293,8 +293,9 @@
   }
 
   .labs-boot {
-    margin: 1.5rem auto;
-    max-width: 36em;
+    margin: 1.5rem 0;
+    width: 100%;
+    box-sizing: border-box;
     padding: 0 1rem;
     text-align: left;
     color: #5c635c;

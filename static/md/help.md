@@ -18,8 +18,6 @@ A shorter paycheck-and-rent walkthrough, including how rows get threshold marks,
 
 Section labels start with `---` (for example `--- Income`). They are comments only.
 
-Jump to: [TYPE](#type) · [WHEN](#when) · [One occurrence](#one-occurrence) · [Debt](#debt-and-sub-accounts) · [Disable a line](#disable-a-line) · [Same-day order](#same-day-order) · [Already in balance](#balance-already-includes-todays-items) · [Roll recurring starts](#roll-recurring-starts) · [Scenarios](#scenarios)
-
 ## TYPE
 
 | Code | Meaning |

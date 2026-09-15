@@ -325,8 +325,10 @@
 
 <style lang="scss">
   .labs {
-    max-width: 40em;
-    margin: 0 auto;
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+    margin: 0;
     padding: 0.75rem 1rem 2rem;
     text-align: left;
     color: #222;

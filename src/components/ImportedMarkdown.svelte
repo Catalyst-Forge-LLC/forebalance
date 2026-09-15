@@ -2,15 +2,27 @@
     import { onMount } from 'svelte';
     import { dev } from '$app/environment';
     import { marked } from 'marked';
+    import { githubSlug, tocFromMarkdown } from '$lib/md/toc';
 
     export let filePath;
+    export let toc = [];
 
     let fileContent = '';
     let html = '';
 
-    marked.use({ gfm: true, breaks: false });
+    marked.use({
+        gfm: true,
+        breaks: false,
+        renderer: {
+            heading({ text, tokens, depth }) {
+                const inner = this.parser.parseInline(tokens);
+                return `<h${depth} id="${githubSlug(text)}">${inner}</h${depth}>\n`;
+            },
+        },
+    });
 
     $: html = fileContent ? marked.parse(fileContent, { async: false }) : '';
+    $: toc = tocFromMarkdown(fileContent);
 
     onMount(async () => {
         if (filePath) {
@@ -43,12 +55,14 @@
             padding-bottom: 0.2rem;
             border-bottom: 1px solid #cce8cc;
             color: #006600;
+            scroll-margin-top: 0.75rem;
         }
 
         :global(h3) {
             font-size: 1rem;
             margin: 1.1rem 0 0.4rem;
             color: #004400;
+            scroll-margin-top: 0.75rem;
         }
 
         :global(p),
