@@ -89,6 +89,16 @@ export function psvTheme(): import('@codemirror/state').Extension {
 			'.cm-line.cm-activeLine, .cm-line:nth-child(even).cm-activeLine': {
 				backgroundColor: '#dceeff',
 			},
+			'.cm-selectionBackground': {
+				background: '#8ec0f0',
+			},
+			'&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground': {
+				background: '#2f7fd0',
+			},
+			'.cm-content ::selection': {
+				backgroundColor: '#2f7fd0',
+				color: '#111',
+			},
 			'.cm-psv-type': { color: '#006600', fontWeight: 'bold' },
 			'.cm-psv-when': { color: '#004488' },
 			'.cm-psv-amount': { color: '#884400' },
