@@ -46,6 +46,7 @@
   $: exampleRaw = buildSimpleExample();
   $: exampleParsed = parseEntries(exampleRaw, 3, balanceFlags, {
     useFederalHolidays: $settingsStore.useFederalHolidays,
+    balanceIncludesSameDay: $settingsStore.balanceIncludesSameDay,
   });
   $: exampleMain = exampleParsed[1]
     ? Object.values(exampleParsed[1]).find((account) => account.isMain)
@@ -144,11 +145,10 @@
     </p>
     <pre class="example-src">{exampleRaw.trim()}</pre>
     <p>
-      Same-day order is balance, then credits, then debits. Rent on the 1st therefore lands after
-      the starting balance, and the paycheck on the 15th raises the running total. (If your bank
-      balance already includes the day's charges, Settings can treat a <code>B</code> line as the
-      end-of-day number.) These are made-up amounts used to show the format. They are not personal
-      financial advice.
+      A <code>B</code> line is the end-of-day number by default, so rent on the 1st is already in
+      the $420 and does not deduct again. The paycheck on the 15th still raises the running total.
+      If a same-day charge has not posted yet, mark that row <em>Not yet posted</em> on Forecast.
+      These are made-up amounts used to show the format. They are not personal financial advice.
     </p>
     {#if exampleRows.length}
       <div class="example-table-wrap">
@@ -167,7 +167,10 @@
             {#each exampleRows as row}
               <tr class="balance-{row.flag || 'plain'}">
                 <td>{fmt.date(row.date)}</td>
-                <td class="desc">{row.desc}</td>
+                <td class="desc"
+                  >{row.desc}{#if row.inBalance}
+                    <span class="in-balance-tag">in balance</span>{/if}</td
+                >
                 <td class="num">{row.type === 'C' ? fmt.curr(row.amount) : ''}</td>
                 <td class="num">{row.type === 'D' ? fmt.curr(row.amount) : ''}</td>
                 <td class="num">
@@ -391,6 +394,20 @@
 
   .desc {
     text-align: left;
+  }
+
+  .in-balance-tag {
+    display: inline-block;
+    margin-left: 0.35rem;
+    padding: 0 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #555;
+    background: rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.3rem;
+    vertical-align: middle;
+    white-space: nowrap;
   }
 
   .num {

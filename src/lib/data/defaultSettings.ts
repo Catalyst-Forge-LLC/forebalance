@@ -8,5 +8,5 @@ export const defaultSettings: Settings = {
 	locale: 'en-US',
 	currencyIsoCode: 'USD',
 	useFederalHolidays: true,
-	balanceIncludesSameDay: false,
+	balanceIncludesSameDay: true,
 };

@@ -29,6 +29,8 @@ export interface Account {
 export interface OccurrenceOverride {
 	date?: string;
 	amount?: number;
+	/** Still apply this occurrence even when the same-day B amount already includes the rest. */
+	pending?: boolean;
 }
 
 export interface ParsedEntry {
@@ -62,6 +64,10 @@ export interface ParsedEntry {
 	overridden?: boolean;
 	/** Same-day item on a balance date that the B amount already reflects. Shown, but does not move the balance. */
 	inBalance?: boolean;
+	/** Same calendar day as a main-account B while the end-of-day setting is on. */
+	inBalanceEligible?: boolean;
+	/** Override: apply this occurrence even though it is same-day as B. */
+	pending?: boolean;
 }
 
 export interface BalanceFlags {

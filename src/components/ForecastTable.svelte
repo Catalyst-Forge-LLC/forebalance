@@ -18,6 +18,7 @@
   let editDate = '';
   let editAmount = 0;
   let editScope: ForecastEditScope = 'occurrence';
+  let editPending = false;
 
   $: mainAccount = Object.values(accounts).find((account) => account.isMain);
 
@@ -101,6 +102,7 @@
     editDate = fmt.date3(entry.date);
     editAmount = +entry.amount;
     editScope = 'occurrence';
+    editPending = !!entry.pending;
   }
 
   function cancelEdit(e?: Event) {
@@ -114,6 +116,7 @@
       date: editDate,
       amount: +editAmount,
       scope: entry.recur ? editScope : 'occurrence',
+      pending: entry.inBalanceEligible ? editPending : undefined,
     });
     editIndex = null;
     if (next !== $rawEntriesStore) {
@@ -159,9 +162,10 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
 <div class="table-wrap">
   <p class="edit-hint">
     Click a row to change date or amount. Recurring rows can update this occurrence
-    (<code>#5=</code>) or the whole series. Rows marked <em>in balance</em> are dated the
-    same day as a <code>B</code> line and are already counted in it (Settings). These
-    balances are a projection from the lines you entered, not a promise about real accounts.
+    (<code>#5=</code>) or the whole series. Rows marked <em>in balance</em> are the same day
+    as a <code>B</code> line and already counted in it. If one has not posted yet, open the
+    row and check <em>Not yet posted</em>. These balances are a projection from the lines
+    you entered, not a promise about real accounts.
   </p>
   <ThresholdLegend compact />
   <table>
@@ -187,7 +191,9 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
           class:in-balance={entry.inBalance}
           class="balance-{entry.flag}"
           title={entry.inBalance
-            ? 'Already counted in the same-day balance line. Click to edit.'
+            ? 'Already counted in the same-day balance line. Click to mark as not yet posted.'
+            : entry.pending && entry.inBalanceEligible
+              ? 'Marked not yet posted — this amount still applies after the balance.'
             : entry.recur
               ? `Click to adjust occurrence #${entry.occurrenceIndex ?? 1} or the whole series`
               : 'Click to edit this line'}
@@ -204,6 +210,19 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
             </td>
             <td class="desc">
               {descriptionFor(entry)}
+              {#if entry.inBalanceEligible}
+                <label class="pending-toggle" on:click|stopPropagation>
+                  <input type="checkbox" bind:checked={editPending} />
+                  Not yet posted
+                </label>
+                <span class="occ">
+                  {#if editPending}
+                    Apply this amount after the balance.
+                  {:else}
+                    Already in today's balance.
+                  {/if}
+                </span>
+              {/if}
               {#if entry.recur}
                 <fieldset class="scope" on:click|stopPropagation>
                   <legend class="sr-only">Apply edit to</legend>
@@ -258,7 +277,8 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
             <td class="desc"
               ><Tooltip content={getAccountSummary(entry)}>{descriptionFor(entry)}</Tooltip
               >{#if entry.inBalance}
-                <span class="in-balance-tag">in balance</span>{/if}</td
+                <span class="in-balance-tag">in balance</span>{/if}{#if entry.pending && entry.inBalanceEligible}
+                <span class="in-balance-tag pending-tag">not yet posted</span>{/if}</td
             >
             <td class="num-col" align="right"
               >{#if entry.type === 'C'}{#if entry.inBalance}<s>{fmt.curr(entry.amount)}</s
@@ -444,6 +464,23 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     border-radius: 0.3rem;
     vertical-align: middle;
     white-space: nowrap;
+  }
+
+  .pending-tag {
+    color: $clr-accent-ink;
+    background: $clr-accent-soft;
+    border-color: $clr-border-strong;
+  }
+
+  .pending-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 0.25rem 0 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: $clr-accent-ink;
+    cursor: pointer;
   }
 
   .scope {

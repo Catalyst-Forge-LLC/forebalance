@@ -111,31 +111,13 @@ D|2026-01-01,R|1000|Rent`;
 		expect(rentRows.length).toBe(3);
 	});
 
-	it('applies same-day lines after B by default', () => {
-		const raw = `B-CHCK-main|2026-09-15|2000|Balance
-D|2026-09-15,R|500|Rent
-C|2026-09-15|100|Deposit`;
-
-		const [accountEntries] = parseEntries(raw, 1, balanceFlags);
-		const mainId = Object.keys(accountEntries!)[0];
-		const rows = accountEntries![mainId];
-		expect(rows.map((e) => `${e.desc?.split(' ')[0]}:${e.mainBalance}`)).toEqual([
-			'Balance:2000',
-			'Deposit:2100',
-			'Rent:1600',
-		]);
-		expect(rows.some((e) => e.inBalance)).toBe(false);
-	});
-
-	it('treats same-day lines as already in B when balanceIncludesSameDay is on', () => {
+	it('treats same-day lines as already in B by default', () => {
 		const raw = `B-CHCK-main|2026-09-15|2000|Balance
 D|2026-09-15,R|500|Rent
 C|2026-09-15|100|Deposit
 D|2026-09-16|50|Gas`;
 
-		const [accountEntries] = parseEntries(raw, 2, balanceFlags, {
-			balanceIncludesSameDay: true,
-		});
+		const [accountEntries] = parseEntries(raw, 2, balanceFlags);
 		const mainId = Object.keys(accountEntries!)[0];
 		const rows = accountEntries![mainId];
 		expect(
@@ -152,13 +134,52 @@ D|2026-09-16|50|Gas`;
 		]);
 	});
 
+	it('still posts same-day lines when the setting is off', () => {
+		const raw = `B-CHCK-main|2026-09-15|2000|Balance
+D|2026-09-15,R|500|Rent
+C|2026-09-15|100|Deposit`;
+
+		const [accountEntries] = parseEntries(raw, 1, balanceFlags, {
+			balanceIncludesSameDay: false,
+		});
+		const mainId = Object.keys(accountEntries!)[0];
+		const rows = accountEntries![mainId];
+		expect(rows.map((e) => `${e.desc?.split(' ')[0]}:${e.mainBalance}`)).toEqual([
+			'Balance:2000',
+			'Deposit:2100',
+			'Rent:1600',
+		]);
+		expect(rows.some((e) => e.inBalance)).toBe(false);
+	});
+
+	it('posts a same-day occurrence marked pending', () => {
+		const raw = `B-CHCK-main|2026-09-15|2000|Balance
+D|2026-09-15,R|500|Rent|#1=pending
+C|2026-09-15|100|Deposit`;
+
+		const [accountEntries] = parseEntries(raw, 2, balanceFlags);
+		const mainId = Object.keys(accountEntries!)[0];
+		const rows = accountEntries![mainId];
+		expect(
+			rows.map(
+				(e) =>
+					`${e.desc?.split(' ')[0]}#${e.occurrenceIndex}:${e.mainBalance}:${e.inBalance ? 'in' : 'post'}`,
+			),
+		).toEqual([
+			'Balance#1:2000:post',
+			'Deposit#1:2000:in',
+			'Rent#1:1500:post',
+			'Rent#2:1000:post',
+		]);
+		expect(rows[2]?.pending).toBe(true);
+		expect(rows[2]?.inBalanceEligible).toBe(true);
+	});
+
 	it('does not touch a debt balance for an in-balance payment', () => {
 		const raw = `B-CHCK-main|2026-09-15|2000|Balance
 D-CO|2026-09-15,R|150|Capital One|CO|1000|0`;
 
-		const [accountEntries, accounts] = parseEntries(raw, 2, balanceFlags, {
-			balanceIncludesSameDay: true,
-		});
+		const [accountEntries, accounts] = parseEntries(raw, 2, balanceFlags);
 		const mainId = Object.values(accounts!).find((a) => a.isMain)!.id;
 		const rows = accountEntries![mainId];
 		expect(rows[1]?.inBalance).toBe(true);

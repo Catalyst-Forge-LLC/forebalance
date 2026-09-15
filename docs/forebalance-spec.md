@@ -198,7 +198,7 @@ Parser support for multi-account and debt tracking already exists but is undocum
 | 4 | Docs | Help examples are dated 2021; refresh to current-year dates so they don't read as stale |
 | 5 | Copy | Welcome tab calls it both a "fun little tool" and an "amazing tool" — pick one register. Given the DSL, lean toward plain and confident: *ForeBalance projects your account balance forward from a plaintext list of credits and debits.* |
 | 6 | Behavior | Undefined/undocumented: what happens to a malformed line? Silently skipped, or error surfaced? Should be surfaced. |
-| 7 | Behavior | `B` resets the running balance. Entries dated before it are dropped. Same-day items post after `B` by default; the Settings toggle **A balance line is the end-of-day number** (`balanceIncludesSameDay`) marks them *in balance* — shown, not applied. |
+| 7 | Behavior | `B` resets the running balance. Entries dated before it are dropped. Same-day items on a `B` date are *in balance* by default (`balanceIncludesSameDay`). `|#N=pending` (Forecast: Not yet posted) still applies that occurrence. |
 | 8 | Behavior | Same-day sort is stable: date, then type (`B`, `C`, `D`), then entry order. |
 | 9 | Accessibility | Threshold row coloring is the only signal for low/uncomfortable balances. Add a non-color indicator (icon or bold) for color-blind users. |
 | 10 | Accessibility | Slider-only settings with no numeric input; add typed entry for precise threshold values. |

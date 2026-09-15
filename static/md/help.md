@@ -134,17 +134,17 @@ Prefix `!` or `#` to skip a line without deleting it:
 
 ### Balance already includes today's items
 
-When you paste today's bank balance, that number usually already reflects charges that hit this morning. By default ForeBalance still posts same-day credits and debits after the `B` line, so rent due today would be deducted a second time.
+A `B` line is the **end-of-day number** by default. Same-day credits and debits still appear on Forecast, marked *in balance*, but they do not add or deduct again. Later repeats of a recurring line forecast as usual.
 
-Turn on **Settings → A balance line is the end-of-day number** to treat every `B` amount as already including same-day credits and debits. Those rows still appear on Forecast, marked *in balance* with the amount struck through, but they do not change the running balance. Later repeats of a recurring line forecast as usual.
+If one same-day item has not posted yet, open that Forecast row and check **Not yet posted**. That writes `|#1=pending` (or `|#N=pending` for a later occurrence) so only that hit still applies.
 
 ```
 B-CHCK1775-main|2026-09-15|2000|Balance Checking 1775
-D|2026-09-15,R|1645|Rent
+D|2026-09-15,R|1645|Rent|#1=pending
 C|2026-09-15,R2W|1684|Paycheck
 ```
 
-With the setting on, rent and paycheck on 9/15 are both counted as part of the $2000. Leave it off if you enter balances before the day's activity posts.
+Here rent still deducts from the $2000; paycheck on 9/15 stays in the balance. Turn the setting off under Settings if you enter a balance before the day's activity posts.
 
 Broken lines are skipped and listed as warnings under the editor.
 

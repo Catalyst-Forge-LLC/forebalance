@@ -16,6 +16,7 @@ describe('answerSyntaxQuestion', () => {
 
 	it('explains an occurrence override', () => {
 		expect(answerSyntaxQuestion('What does #5= mean?')).toContain('|#5=');
+		expect(answerSyntaxQuestion('What does #1=pending mean?')).toContain('pending');
 	});
 
 	it('explains same-day lines already in the balance', () => {

@@ -25,10 +25,10 @@ Examples:
 ,R< = previous business day; ,R> = next business day (weekends, optional US holidays)
 
 Debt on first use: TYPE-ACCOUNT|WHEN|AMOUNT|DESCRIPTION|ACCOUNT|STARTING_BAL|APR
-One occurrence of a recurring line: append |#N=YYYY-MM-DD:AMT or |#N=AMT or |#N=YYYY-MM-DD
+One occurrence of a recurring line: append |#N=YYYY-MM-DD:AMT or |#N=AMT or |#N=YYYY-MM-DD or |#N=pending
 Example: D|2026-04-03,RW|80|Groceries|#5=2026-05-08:65
 # at the start of a line still disables the whole line. |#5= is an override, not a disable.
-Same-day order: B, then C, then D. Settings has a toggle "A balance line is the end-of-day number"; when on, same-day C/D on a B date are already in that balance and do not post again.`;
+Same-day order: B, then C, then D. A B line is the end-of-day number by default: same-day C/D on that date are already in the balance (shown as in balance). |#N=pending means that occurrence has not posted yet and still applies.`;
 
 const UNIT: Record<string, [string, string]> = {
 	D: ['day', 'days'],
@@ -74,8 +74,8 @@ export function answerSyntaxQuestion(question: string): string | null {
 	const spoken = spokenRecur(question.trim());
 	if (!spoken) return null;
 
-	if (/#\d+=|occurrence override|this occurrence/i.test(spoken)) {
-		return 'A recurring line can override one occurrence: `|#5=2026-05-08:65` (date and amount), `|#5=65` (amount), or `|#5=2026-05-08` (date). Later occurrences stay on the original cadence. `#` at the start of a line still disables the whole line.';
+	if (/#\d+=|occurrence override|this occurrence|#\d+=pending|not yet posted/i.test(spoken)) {
+		return 'A recurring line can override one occurrence: `|#5=2026-05-08:65` (date and amount), `|#5=65` (amount), `|#5=2026-05-08` (date), or `|#1=pending` (still apply this same-day hit after the balance). Later occurrences stay on the original cadence. `#` at the start of a line still disables the whole line.';
 	}
 	if (/(?:^|[\s,|])[!#](?:$|[\s,|])|\bdisable\b|\bcomment out\b/i.test(spoken)) {
 		return 'Prefix `!` or `#` to skip a line without deleting it. Example: `!D|2026-04-16,R|500|Savings this month`.';
@@ -96,7 +96,7 @@ export function answerSyntaxQuestion(question: string): string | null {
 	}
 
 	if (/\bsame[- ]day|already in (the )?(bank |today'?s )?balance|posted today|deduct(ed|s)? (again|twice)\b/i.test(spoken)) {
-		return 'Same-day order is `B`, then credits, then debits. If today\'s bank balance already includes today\'s charges, turn on **Settings → A balance line is the end-of-day number**. Same-day lines on a `B` date then show as *in balance* on Forecast and do not post again; later repeats of a recurring line still forecast.';
+		return 'Same-day order is `B`, then credits, then debits. A `B` line is the end-of-day number by default, so same-day lines show as *in balance* and do not post again. If one has not hit yet, mark it **Not yet posted** on Forecast (`|#N=pending`). Later repeats of a recurring line still forecast.';
 	}
 	if (/\bwhat (is|does)\s+B\b|\btype b\b|\bbalance reset\b/i.test(spoken)) {
 		return '`B` is a balance as of a date. It resets the running balance. Example: `B-CHCK1775-main|2026-04-01|1840|Balance Checking 1775`.';

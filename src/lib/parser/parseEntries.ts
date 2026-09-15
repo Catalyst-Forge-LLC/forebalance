@@ -156,7 +156,7 @@ export function parseEntries(
 	options: ParseOptions = {},
 ): ParseResult {
 	const useFederalHolidays = options.useFederalHolidays ?? true;
-	const balanceIncludesSameDay = options.balanceIncludesSameDay ?? false;
+	const balanceIncludesSameDay = options.balanceIncludesSameDay ?? true;
 	const recurringEntries: Record<string, number> = {};
 	const { accounts, parsedEntries } = parseRawEntries(
 		rawEntries,
@@ -197,11 +197,12 @@ export function parseEntries(
 			}
 		}
 	}
-	const isInBalance = (entry: ParsedEntry): boolean =>
+	const isBalanceDay = (entry: ParsedEntry): boolean =>
 		balanceDays.size > 0 &&
 		entry.type !== 'B' &&
 		entry.date !== null &&
 		balanceDays.has(dayKey(entry.date));
+	const isInBalance = (entry: ParsedEntry): boolean => isBalanceDay(entry) && !entry.pending;
 
 	const tableEntries: ParsedEntry[] = [];
 	const queue = [...parsedEntries];
@@ -210,6 +211,7 @@ export function parseEntries(
 		const entry = queue.shift();
 		if (!entry) continue;
 
+		entry.inBalanceEligible = isBalanceDay(entry);
 		entry.inBalance = isInBalance(entry);
 		tableEntries.push(entry);
 

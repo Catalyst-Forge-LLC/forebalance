@@ -22,30 +22,47 @@ export function parseOverrideField(field: string): { n: number; value: Occurrenc
 	return { n, value };
 }
 
+const PENDING_ONLY = /^pending$/i;
+const PENDING_SUFFIX = /\+pending$/i;
+
 export function parseOverrideValue(raw: string): OccurrenceOverride | null {
-	const trimmed = raw.trim();
+	let trimmed = raw.trim();
 	if (!trimmed) return null;
+	if (PENDING_ONLY.test(trimmed)) {
+		return { pending: true };
+	}
+	let pending = false;
+	if (PENDING_SUFFIX.test(trimmed)) {
+		pending = true;
+		trimmed = trimmed.replace(PENDING_SUFFIX, '');
+	}
 	const dated = DATE_THEN_AMOUNT.exec(trimmed);
 	if (dated) {
 		const amountPart = dated[2];
 		if (amountPart !== undefined && amountPart !== '') {
 			if (!AMOUNT_ONLY.test(amountPart)) return null;
-			return { date: dated[1], amount: +amountPart };
+			return pending
+				? { date: dated[1], amount: +amountPart, pending: true }
+				: { date: dated[1], amount: +amountPart };
 		}
-		return { date: dated[1] };
+		return pending ? { date: dated[1], pending: true } : { date: dated[1] };
 	}
 	if (AMOUNT_ONLY.test(trimmed)) {
-		return { amount: +trimmed.replace(/^:/, '') };
+		const amount = +trimmed.replace(/^:/, '');
+		return pending ? { amount, pending: true } : { amount };
 	}
 	return null;
 }
 
 export function formatOverrideField(n: number, value: OccurrenceOverride): string {
+	const suffix = value.pending ? '+pending' : '';
 	if (value.date && value.amount !== undefined) {
-		return `#${n}=${value.date}:${value.amount}`;
+		return `#${n}=${value.date}:${value.amount}${suffix}`;
 	}
-	if (value.date) return `#${n}=${value.date}`;
-	return `#${n}=${value.amount}`;
+	if (value.date) return `#${n}=${value.date}${suffix}`;
+	if (value.amount !== undefined) return `#${n}=${value.amount}${suffix}`;
+	if (value.pending) return `#${n}=pending`;
+	return `#${n}=`;
 }
 
 export function splitLineFields(line: string): { parts: string[]; extras: string[]; overrides: Record<number, OccurrenceOverride> } {
@@ -65,7 +82,12 @@ export function splitLineFields(line: string): { parts: string[]; extras: string
 
 export function applyOverrideToEntry(entry: ParsedEntry, override: OccurrenceOverride | undefined): void {
 	entry.overridden = false;
+	entry.pending = false;
 	if (!override) return;
+	if (override.pending) {
+		entry.pending = true;
+		entry.overridden = true;
+	}
 	if (override.date) {
 		const next = getDate(override.date);
 		if (next) {
@@ -147,10 +169,21 @@ function applySeriesEdit(line: string, entry: ParsedEntry, date: string, amount:
 	return writeLine(parts, extras, {});
 }
 
+function withPending(
+	value: OccurrenceOverride | null,
+	pending: boolean,
+): OccurrenceOverride | null {
+	if (pending) {
+		return { ...(value ?? {}), pending: true };
+	}
+	if (!value) return null;
+	return value;
+}
+
 export function applyForecastEdit(
 	raw: string,
 	entry: ParsedEntry,
-	edit: { date: string; amount: number; scope?: ForecastEditScope },
+	edit: { date: string; amount: number; scope?: ForecastEditScope; pending?: boolean },
 ): string {
 	const date = edit.date.trim();
 	const amount = +edit.amount;
@@ -164,13 +197,22 @@ export function applyForecastEdit(
 			: lines.findIndex((line) => line === entry.rawEntry);
 	if (idx < 0) return raw;
 	const line = lines[idx];
+	const nextPending = edit.pending ?? !!entry.pending;
 
 	if (!entry.recur) {
 		const currentDate = localIsoDate(entry.date);
-		if (currentDate === date && +entry.amount === amount) return raw;
+		if (currentDate === date && +entry.amount === amount && nextPending === !!entry.pending) {
+			return raw;
+		}
 		const { parts, extras, overrides } = splitLineFields(line);
 		parts[1] = setWhenStart(parts[1], date);
 		parts[2] = String(amount);
+		const oneOff = withPending(null, nextPending);
+		if (oneOff) {
+			overrides[1] = oneOff;
+		} else {
+			delete overrides[1];
+		}
 		return replaceSourceLine(raw, entry, writeLine(parts, extras, overrides));
 	}
 
@@ -179,14 +221,16 @@ export function applyForecastEdit(
 	const baseAmount = entry.baseAmount ?? +entry.amount;
 
 	if (scope === 'series') {
-		if (scheduledDate === date && baseAmount === amount) return raw;
+		if (scheduledDate === date && baseAmount === amount && !nextPending) return raw;
 		return replaceSourceLine(raw, entry, applySeriesEdit(line, entry, date, amount));
 	}
 
 	const currentDate = localIsoDate(entry.date);
-	if (currentDate === date && +entry.amount === amount) return raw;
+	if (currentDate === date && +entry.amount === amount && nextPending === !!entry.pending) {
+		return raw;
+	}
 
-	const matchesSeries = scheduledDate === date && baseAmount === amount;
+	const matchesSeries = scheduledDate === date && baseAmount === amount && !nextPending;
 	if (matchesSeries) {
 		return replaceSourceLine(raw, entry, upsertOverrideOnLine(line, n, null));
 	}
@@ -194,5 +238,5 @@ export function applyForecastEdit(
 	const value: OccurrenceOverride = {};
 	if (scheduledDate !== date) value.date = date;
 	if (baseAmount !== amount) value.amount = amount;
-	return replaceSourceLine(raw, entry, upsertOverrideOnLine(line, n, value));
+	return replaceSourceLine(raw, entry, upsertOverrideOnLine(line, n, withPending(value, nextPending)));
 }

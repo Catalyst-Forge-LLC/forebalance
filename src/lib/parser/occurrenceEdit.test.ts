@@ -29,6 +29,18 @@ describe('parseOverrideField', () => {
 			value: { date: '2026-01-28', amount: 65 },
 		});
 	});
+
+	it('parses pending alone or as a suffix', () => {
+		expect(parseOverrideField('#1=pending')).toEqual({ n: 1, value: { pending: true } });
+		expect(parseOverrideField('#5=65+pending')).toEqual({
+			n: 5,
+			value: { amount: 65, pending: true },
+		});
+		expect(parseOverrideField('#5=2026-01-28:65+pending')).toEqual({
+			n: 5,
+			value: { date: '2026-01-28', amount: 65, pending: true },
+		});
+	});
 });
 
 describe('occurrence overrides', () => {
@@ -99,6 +111,26 @@ D|2026-01-02,RW|80|Groceries|#5=65`;
 		expect(localIsoDate(rows.find((e) => e.occurrenceIndex === 1)?.date)).toBe('2026-01-01');
 		expect(localIsoDate(rows.find((e) => e.occurrenceIndex === 5)?.date)).toBe('2026-01-29');
 		expect(rows.every((e) => +e.amount === 90)).toBe(true);
+	});
+
+	it('writes #N=pending for a same-day occurrence that has not posted', () => {
+		const raw = `B-CHCK-main|2026-01-01|2000|Balance
+D|2026-01-01,R|500|Rent`;
+		const [accountEntries] = parseEntries(raw, 2, balanceFlags);
+		const first = accountEntries!.CHCK.find((e) => e.desc?.includes('Rent') && e.occurrenceIndex === 1)!;
+		expect(first.inBalance).toBe(true);
+		const updated = applyForecastEdit(raw, first, {
+			date: '2026-01-01',
+			amount: 500,
+			pending: true,
+		});
+		expect(updated).toContain('D|2026-01-01,R|500|Rent|#1=pending');
+
+		const [again] = parseEntries(updated, 2, balanceFlags);
+		const posted = again!.CHCK.find((e) => e.desc?.includes('Rent') && e.occurrenceIndex === 1)!;
+		expect(posted.pending).toBe(true);
+		expect(posted.inBalance).toBe(false);
+		expect(posted.mainBalance).toBe(1500);
 	});
 
 	it('rewrites a one-off line in place', () => {

@@ -98,10 +98,11 @@
                 on:change={commitSettings}
             />
             <span>
-                A balance line is the end-of-day number. Credits and debits dated the same day as a
-                <code>B</code> line are already in it, so they show on Forecast but do not change
-                the balance again. Turn this on when you paste today's bank balance and today's
-                charges have already hit.
+                A balance line is the end-of-day number (on by default). Credits and debits dated
+                the same day as a <code>B</code> line are already in it, so they show on Forecast
+                but do not change the balance again. If one has not posted yet, open that Forecast
+                row and check <em>Not yet posted</em>. Turn this off if you enter a balance before
+                the day's activity hits.
             </span>
         </label>
     </section>

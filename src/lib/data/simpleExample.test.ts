@@ -32,11 +32,12 @@ describe('simple walkthrough example', () => {
 		expect(rows[0].flag).toBe('uncomfortable');
 		expect(rows[1].type).toBe('D');
 		expect(rows[1].desc).toMatch(/^Rent/);
-		expect(rows[1].mainBalance).toBe(-1080);
-		expect(rows[1].flag).toBe('negative');
+		expect(rows[1].inBalance).toBe(true);
+		expect(rows[1].mainBalance).toBe(420);
+		expect(rows[1].flag).toBe('uncomfortable');
 		expect(rows[2].type).toBe('C');
 		expect(rows[2].desc).toMatch(/^Paycheck/);
-		expect(rows[2].mainBalance).toBe(720);
+		expect(rows[2].mainBalance).toBe(2220);
 		expect(rows[2].flag ?? '').toBe('');
 	});
 });

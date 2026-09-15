@@ -126,7 +126,7 @@ Code in `parseEntries.js` already implements more than the product spec document
 
 | Issue | Code evidence |
 |---|---|
-| Same-day sort order | `sortEntries()` — date, then type (`B`, `C`, `D`), then entry order. `ParseOptions.balanceIncludesSameDay` marks same-day C/D on a `B` date as `inBalance` (shown, not applied) |
+| Same-day sort order | `sortEntries()` — date, then type (`B`, `C`, `D`), then entry order. `balanceIncludesSameDay` defaults on; same-day C/D are `inBalance` unless `|#N=pending` |
 | Malformed lines | Silently dropped — should surface in editor |
 | `B` mid-forecast | Resets balance; prior-entry semantics undocumented |
 | Month-end recurrence | `dayjs.add(n, 'month')` drifts on 29/30/31 |

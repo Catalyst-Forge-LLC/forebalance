@@ -82,12 +82,13 @@ D|2026-04-01,R&lt;|1645|Rent</pre>
 
       <h4>Same day</h4>
       <p>
-        <code>B</code>, then credits, then debits. If today's bank balance already includes today's
-        charges, turn on <a href="#settings">Settings → end-of-day balance</a>.
+        <code>B</code> is the end-of-day number by default. Same-day credits and debits show as
+        <em>in balance</em>. Check <em>Not yet posted</em> on Forecast if one still has to hit
+        (<code>|#1=pending</code>).
       </p>
 
       <h4>One occurrence</h4>
-      <p><code>|#5=2026-05-08:65</code> — fifth only. Or <code>#5=65</code> / <code>#5=2026-05-08</code>.</p>
+      <p><code>|#5=2026-05-08:65</code> — fifth only. Or <code>#5=65</code> / <code>#5=2026-05-08</code> / <code>#1=pending</code>.</p>
 
       <h4>Debt</h4>
       <pre class="example">D-CO|2026-04-15,R|150|Capital One-4321|CO|2800|19.99</pre>
