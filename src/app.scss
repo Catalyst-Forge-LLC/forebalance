@@ -9,6 +9,8 @@
 	--fb-text: #1c211c;
 	--fb-muted: #5c635c;
 	--fb-border: #d5d9d3;
+	--fb-body-max: 56em;
+	--fb-header-max: calc(var(--fb-body-max) * 1.1);
 }
 
 html,

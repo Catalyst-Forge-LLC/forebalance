@@ -7,7 +7,7 @@
 	main {
 		flex-grow: 1;
 		min-height: 0;
-		max-width: 56em;
+		max-width: var(--fb-body-max);
 		width: 100%;
 		padding: 0;
 		margin: 0 auto;
