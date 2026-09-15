@@ -1,6 +1,6 @@
 # ForeBalance — Product Spec
 
-**Status:** Working prototype (formerly *My Balance Forecaster*, originally *Cashflow SANITY*)
+**Status:** Working prototype
 **Domain:** forebalance.app
 **Last updated:** 2026-09-03
 
@@ -203,7 +203,7 @@ Parser support for multi-account and debt tracking already exists but is undocum
 | 9 | Accessibility | Threshold row coloring is the only signal for low/uncomfortable balances. Add a non-color indicator (icon or bold) for color-blind users. |
 | 10 | Accessibility | Slider-only settings with no numeric input; add typed entry for precise threshold values. |
 | 11 | Responsive | Layout appears desktop-first; verify the forecast table and editor are usable on mobile |
-| 12 | Naming | All product surfaces still say "My Balance Forecaster" — rename to ForeBalance across header, title tag, copy, and downloaded filenames |
+| 12 | Naming | Done — product surfaces, title, and download names use ForeBalance. |
 
 ---
 

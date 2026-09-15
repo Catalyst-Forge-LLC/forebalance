@@ -17,7 +17,7 @@ The repo needs a foundation refresh (dependencies, hygiene, branding, tests, Typ
 1. **Foundation** — cleanup, ForeBalance rename, Svelte 5, TypeScript, Vitest, tooling integration.
 2. **Finish multi-account / debt** — code exists; expose it in UI and docs.
 3. **Product features** — P0 summary block, persistence safety, then P1+ from product spec.
-4. **Deploy** — Wrangler → `forebalance.app`; redirect `mybalanceforecaster.com`.
+4. **Deploy** — Wrangler → `forebalance.app`.
 
 Work can proceed in this repo; a **new git remote** will be provided later — structure the project so migration is a straight copy.
 
@@ -33,10 +33,9 @@ Work can proceed in this repo; a **new git remote** will be provided later — s
 | **TypeScript** | **Yes.** Move parser, util, stores, formatters to `$lib/` as `.ts`. |
 | **Tests** | **Yes.** Vitest; parser coverage before new DSL syntax. |
 | **Package manager** | **pnpm** — delete stale `package-lock.json`. |
-| **File format** | **Keep `.psv`** (pipe-separated values). Rename download pattern to `forebalance-*.psv`; accept legacy `myBalanceForcaster-*.psv` on import. |
+| **File format** | **Keep `.psv`** (pipe-separated values). Download as `forebalance-*.psv`. Import any `.psv`. |
 | **Deployment** | **Wrangler** → Cloudflare Pages. Static output from `adapter-static` (`build/`). |
 | **Publish intent** | **Public free web tool** — not productized, no charging. Still worth solid a11y and mobile layout. |
-| **Fynn persona** | **Retired.** ForeBalance branding only. |
 | **Toolchain** | **ForgeTrail** (lifecycle + tracking), **LocalSlip** (dev port), **LocalHelm** (fleet enrollment). **Not FilePress** — this app is distinct; no FilePress plugin/site pipeline. |
 | **New repo** | `https://github.com/Catalyst-Forge-LLC/forebalance.git` |
 | **Forecast max** | **24 months** — slider cap stays at 24 for now. |
@@ -49,13 +48,11 @@ Work can proceed in this repo; a **new git remote** will be provided later — s
 
 | Surface | Current |
 |---|---|
-| **Live site** | [mybalanceforecaster.com](https://mybalanceforecaster.com) |
+| **Live site** | [forebalance.app](https://forebalance.app) |
 | **Target repo** | [github.com/Catalyst-Forge-LLC/forebalance](https://github.com/Catalyst-Forge-LLC/forebalance.git) |
-| **Repo UI** | MyFynn (header, title, manifest, welcome copy) |
-| **Download filenames** | `myBalanceForcaster-*.psv` (typo: Forcaster) |
-| **Package name** | `"~TODO~"` |
+| **Download filenames** | `forebalance-*.psv` |
+| **Package name** | `forebalance` |
 | **Dev server** | LocalSlip lease `forebalance` on port **46000** |
-| **Legacy remote** | `github.com/acmegeek/my-balance-forecaster` (superseded) |
 
 ---
 
@@ -230,7 +227,7 @@ pnpm ship               # build/ then wrangler pages deploy
 - `wrangler.jsonc` — `pages_build_output_dir: "build"`, project name `forebalance`
 - `package.json` scripts: `"ship": "pnpm build && wrangler pages deploy build --project-name=forebalance"`
 - `.gitignore` — ensure `.wrangler/` excluded
-- `docs/DEPLOYMENT.md` — domain setup, `forebalance.app` DNS, redirect from `mybalanceforecaster.com`
+- `docs/DEPLOYMENT.md` — domain setup, `forebalance.app` DNS
 
 No FilePress build step. No server-side routes needed (pure static SPA).
 
@@ -302,7 +299,6 @@ From `forebalance-spec.md`, with parser tests and debt UI inserted:
 
 - [ ] Wrangler deploy to Cloudflare Pages.
 - [ ] `forebalance.app` DNS.
-- [ ] Redirect `mybalanceforecaster.com`.
 - [ ] PWA manifest polish (`display: standalone`, icons).
 - [ ] `adapter-static` `strict: true` once routes are clean.
 - [ ] About page: what ForeBalance is, privacy promise, `.psv` format, no accounts/tracking.
@@ -311,17 +307,7 @@ From `forebalance-spec.md`, with parser tests and debt UI inserted:
 
 ## 10. Rename Checklist
 
-| Location | Current | Target |
-|---|---|---|
-| `Header.svelte` | MyFynn | ForeBalance |
-| `app.html` `<title>` | MyFynn | ForeBalance |
-| `manifest.json` | MyFynn / MBF | ForeBalance / FB |
-| `welcome.md`, `help.md` | MyFynn / old copy | ForeBalance |
-| Download filename | `myBalanceForcaster-*.psv` | `forebalance-*.psv` |
-| Import regex | `myBalanceForcaster.*\.psv` | accept legacy + `forebalance-*.psv` |
-| `Entries.svelte` error text | "MyFynn PSV file" | "ForeBalance PSV file" |
-| `README.md` | boilerplate + Fynn | ForeBalance project README |
-| `package.json` name | ~TODO~ | forebalance |
+Done. Header, title, manifest, Help, README, package name, and `forebalance-*.psv` downloads all say ForeBalance. Import still accepts older `.psv` filenames.
 
 ---
 
@@ -346,7 +332,6 @@ Product + Ship (Week 3+)
 ├── P1 features
 ├── PWA + mobile layout
 ├── Wrangler deploy → forebalance.app
-├── Redirect mybalanceforecaster.com
 └── Push to github.com/Catalyst-Forge-LLC/forebalance
 ```
 

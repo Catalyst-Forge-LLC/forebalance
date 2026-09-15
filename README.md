@@ -4,7 +4,7 @@ See how the cash flows you enter affect your projected balance, and when it cros
 
 ForeBalance projects a checking balance from a plaintext list of credits, debits, and balance resets. One line per transaction, pipe-separated (`.psv`). Data stays in this browser. There are no accounts, no tracking, and no server-side data.
 
-**Live:** [forebalance.app](https://forebalance.app) · Legacy: [mybalanceforecaster.com](https://mybalanceforecaster.com)
+**Live:** [forebalance.app](https://forebalance.app)
 
 **This is not personal financial, tax, legal, or investment advice.** The table is a projection from the lines you type. It is not a statement about real accounts, and it is not a recommendation to spend, save, borrow, or invest. The software is provided as-is under the [MIT License](LICENSE), without warranty.
 
