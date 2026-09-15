@@ -20,7 +20,7 @@ describe('answerSyntaxQuestion', () => {
 
 	it('explains same-day lines already in the balance', () => {
 		expect(answerSyntaxQuestion('What if rent is already in the balance?')).toContain(
-			'above',
+			'end-of-day',
 		);
 	});
 

@@ -33,6 +33,7 @@
             thresholdUncomfortableBalance: draftSettings.thresholdUncomfortableBalance,
             thresholdLowBalance: draftSettings.thresholdLowBalance,
             useFederalHolidays: draftSettings.useFederalHolidays,
+            balanceIncludesSameDay: draftSettings.balanceIncludesSameDay,
         };
         localStorage.setItem('settings', JSON.stringify($settingsStore));
     }
@@ -87,6 +88,20 @@
             <span>
                 Treat US federal holidays as non-business days when using
                 <code>R&lt;</code> / <code>R&gt;</code> date shifting
+            </span>
+        </label>
+
+        <label class="checkbox-row">
+            <input
+                type="checkbox"
+                bind:checked={draftSettings.balanceIncludesSameDay}
+                on:change={commitSettings}
+            />
+            <span>
+                A balance line is the end-of-day number. Credits and debits dated the same day as a
+                <code>B</code> line are already in it, so they show on Forecast but do not change
+                the balance again. Turn this on when you paste today's bank balance and today's
+                charges have already hit.
             </span>
         </label>
     </section>

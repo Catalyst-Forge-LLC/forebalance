@@ -148,7 +148,7 @@ export const QUERY_TYPES: QueryType[] = [
 		when: 'same day, which posts first, already in balance',
 		match: /\b(same[- ]day|order of (B|C|D)|which (posts|hits) first|already in (the )?balance|posted today)\b/i,
 		template:
-			'Same day as B: lines above B are already in that bank number. Lines below B still post (C then D).',
+			'Same day: B, then C, then D, then original line order. Settings toggle "A balance line is the end-of-day number" makes same-day C/D on a B date count as already in that balance.',
 	},
 	{
 		id: 'draft-rent',

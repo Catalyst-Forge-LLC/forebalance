@@ -10,33 +10,19 @@ const balanceFlags: BalanceFlags = {
 };
 
 describe('sortEntries', () => {
-	it('keeps B first when the balance line is listed first', () => {
+	it('orders same day: balance reset, credits, debits, then entry order', () => {
 		const entries = [
-			{ date: new Date(2026, 0, 1), type: 'D', entryOrder: 3 },
-			{ date: new Date(2026, 0, 1), type: 'C', entryOrder: 2 },
+			{ date: new Date(2026, 0, 1), type: 'D', entryOrder: 2 },
 			{ date: new Date(2026, 0, 1), type: 'C', entryOrder: 1 },
-			{ date: new Date(2026, 0, 1), type: 'B', entryOrder: 0 },
+			{ date: new Date(2026, 0, 1), type: 'C', entryOrder: 0 },
+			{ date: new Date(2026, 0, 1), type: 'B', entryOrder: 3 },
 		];
 		const sorted = sortEntries(entries);
 		expect(sorted.map((e) => `${e.type}:${e.entryOrder}`)).toEqual([
-			'B:0',
+			'B:3',
+			'C:0',
 			'C:1',
-			'C:2',
-			'D:3',
-		]);
-	});
-
-	it('places same-day lines listed above B before the balance reset', () => {
-		const entries = [
-			{ date: new Date(2026, 0, 1), type: 'D', entryOrder: 0 },
-			{ date: new Date(2026, 0, 1), type: 'C', entryOrder: 2 },
-			{ date: new Date(2026, 0, 1), type: 'B', entryOrder: 1 },
-		];
-		const sorted = sortEntries(entries);
-		expect(sorted.map((e) => `${e.type}:${e.entryOrder}`)).toEqual([
-			'D:0',
-			'B:1',
-			'C:2',
+			'D:2',
 		]);
 	});
 });

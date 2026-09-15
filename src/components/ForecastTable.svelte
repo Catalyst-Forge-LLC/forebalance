@@ -63,6 +63,9 @@
     let summaryDebit = 0;
     let summaryNet = 0;
     tableEntries.slice(monthStartFor(i), i + 1).forEach((entry) => {
+      if (entry.inBalance) {
+        return;
+      }
       if (entry.type === 'C') {
         summaryCredit += +entry.amount;
         summaryNet += +entry.amount;
@@ -156,9 +159,9 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
 <div class="table-wrap">
   <p class="edit-hint">
     Click a row to change date or amount. Recurring rows can update this occurrence
-    (<code>#5=</code>) or the whole series. On the balance date, lines listed above
-    the <code>B</code> line in Entries are already in that number. These balances are
-    a projection from the lines you entered, not a promise about real accounts.
+    (<code>#5=</code>) or the whole series. Rows marked <em>in balance</em> are dated the
+    same day as a <code>B</code> line and are already counted in it (Settings). These
+    balances are a projection from the lines you entered, not a promise about real accounts.
   </p>
   <ThresholdLegend compact />
   <table>
@@ -181,10 +184,13 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
           class:balance-reset={entry.type === 'B'}
           class:editing={editIndex === i}
           class:overridden={entry.overridden}
+          class:in-balance={entry.inBalance}
           class="balance-{entry.flag}"
-          title={entry.recur
-            ? `Click to adjust occurrence #${entry.occurrenceIndex ?? 1} or the whole series`
-            : 'Click to edit this line'}
+          title={entry.inBalance
+            ? 'Already counted in the same-day balance line. Click to edit.'
+            : entry.recur
+              ? `Click to adjust occurrence #${entry.occurrenceIndex ?? 1} or the whole series`
+              : 'Click to edit this line'}
           on:click={() => beginEdit(entry, i)}
         >
           {#if editIndex === i}
@@ -250,10 +256,18 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
           {:else}
             <td>{fmt.date(entry.date)}{#if entry.overridden}<abbr title="This occurrence was adjusted">*</abbr>{/if}</td>
             <td class="desc"
-              ><Tooltip content={getAccountSummary(entry)}>{descriptionFor(entry)}</Tooltip></td
+              ><Tooltip content={getAccountSummary(entry)}>{descriptionFor(entry)}</Tooltip
+              >{#if entry.inBalance}
+                <span class="in-balance-tag">in balance</span>{/if}</td
             >
-            <td class="num-col" align="right">{entry.type === 'C' ? fmt.curr(entry.amount) : ''}</td>
-            <td class="num-col" align="right">{entry.type === 'D' ? fmt.curr(entry.amount) : ''}</td>
+            <td class="num-col" align="right"
+              >{#if entry.type === 'C'}{#if entry.inBalance}<s>{fmt.curr(entry.amount)}</s
+                  >{:else}{fmt.curr(entry.amount)}{/if}{/if}</td
+            >
+            <td class="num-col" align="right"
+              >{#if entry.type === 'D'}{#if entry.inBalance}<s>{fmt.curr(entry.amount)}</s
+                  >{:else}{fmt.curr(entry.amount)}{/if}{/if}</td
+            >
             <td align="right"
               >{flagIndicator(entry.flag)}{displayBalance(entry)}{#if flagLabel(entry.flag)}
                 <span class="flag-word">{flagLabel(entry.flag)}</span>{/if}</td
@@ -406,6 +420,30 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     color: inherit;
     text-decoration: none;
     font-weight: 700;
+  }
+
+  tr.in-balance .num-col {
+    color: #666;
+
+    s {
+      text-decoration: line-through;
+      text-decoration-color: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  .in-balance-tag {
+    display: inline-block;
+    margin-left: 0.4rem;
+    padding: 0 0.4rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #555;
+    background: rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.3rem;
+    vertical-align: middle;
+    white-space: nowrap;
   }
 
   .scope {

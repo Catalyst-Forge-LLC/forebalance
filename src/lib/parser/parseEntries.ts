@@ -6,6 +6,7 @@ import {
 	splitLineFields,
 } from '$lib/parser/occurrenceEdit';
 import {
+	dayKey,
 	getBalanceFlag,
 	getRandomId,
 	parseDate,
@@ -155,6 +156,7 @@ export function parseEntries(
 	options: ParseOptions = {},
 ): ParseResult {
 	const useFederalHolidays = options.useFederalHolidays ?? true;
+	const balanceIncludesSameDay = options.balanceIncludesSameDay ?? false;
 	const recurringEntries: Record<string, number> = {};
 	const { accounts, parsedEntries } = parseRawEntries(
 		rawEntries,
@@ -185,6 +187,22 @@ export function parseEntries(
 
 	sortEntries(parsedEntries);
 
+	// Days with a main-account B line. When the setting is on, same-day C/D on those
+	// days are treated as already reflected in that balance.
+	const balanceDays = new Set<number>();
+	if (balanceIncludesSameDay) {
+		for (const entry of parsedEntries) {
+			if (entry.type === 'B' && entry.date && entry.accountId === mainAccount.id) {
+				balanceDays.add(dayKey(entry.date));
+			}
+		}
+	}
+	const isInBalance = (entry: ParsedEntry): boolean =>
+		balanceDays.size > 0 &&
+		entry.type !== 'B' &&
+		entry.date !== null &&
+		balanceDays.has(dayKey(entry.date));
+
 	const tableEntries: ParsedEntry[] = [];
 	const queue = [...parsedEntries];
 
@@ -192,6 +210,7 @@ export function parseEntries(
 		const entry = queue.shift();
 		if (!entry) continue;
 
+		entry.inBalance = isInBalance(entry);
 		tableEntries.push(entry);
 
 		if (entry.recur && entry.seriesDate) {
@@ -216,7 +235,7 @@ export function parseEntries(
 			}
 		}
 
-		if (entry.accountId && entry.accountId !== mainAccount.id) {
+		if (entry.accountId && entry.accountId !== mainAccount.id && !entry.inBalance) {
 			const entryAccount = accounts[entry.accountId];
 			if (entryAccount && entryAccount.startingBal > 0) {
 				if (entryAccount.runningBal > 0) {
@@ -259,7 +278,9 @@ export function parseEntries(
 		if (!accountEntries[account.id]) {
 			accountEntries[account.id] = [];
 		}
-		if (entry.type === 'C') {
+		if (entry.inBalance) {
+			// Already counted in the same-day B amount; leave the running balance alone.
+		} else if (entry.type === 'C') {
 			mainAccount.runningBal += +entry.amount;
 		} else if (entry.type === 'D') {
 			mainAccount.runningBal -= +entry.amount;

@@ -144,11 +144,11 @@
     </p>
     <pre class="example-src">{exampleRaw.trim()}</pre>
     <p>
-      Same-day lines listed after the <code>B</code> line still post (credits, then debits), so rent
-      on the 1st lands after the starting balance. If you later paste today's bank balance and that
-      number already includes rent, move the rent line above <code>B</code>. The paycheck on the
-      15th raises the running total. These are made-up amounts used to show the format. They are not
-      personal financial advice.
+      Same-day order is balance, then credits, then debits. Rent on the 1st therefore lands after
+      the starting balance, and the paycheck on the 15th raises the running total. (If your bank
+      balance already includes the day's charges, Settings can treat a <code>B</code> line as the
+      end-of-day number.) These are made-up amounts used to show the format. They are not personal
+      financial advice.
     </p>
     {#if exampleRows.length}
       <div class="example-table-wrap">

@@ -123,38 +123,20 @@ export function updateDateRecur(date: Date, recur: Recur): Date {
 
 const typeSortOrder: Record<string, number> = { B: 0, C: 1, D: 2 };
 
-function dayKey(date: Date): number {
+/** Local calendar-day key (YYYYMMDD) so same-day checks ignore any time component. */
+export function dayKey(date: Date): number {
 	return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
 }
 
 export function sortEntries<T extends { date: Date; type: string; entryOrder?: number }>(
 	entries: T[],
 ): T[] {
-	const balanceOrderByDay = new Map<number, number>();
-	for (const entry of entries) {
-		if (entry.type !== 'B' || !entry.date) continue;
-		const key = dayKey(entry.date);
-		const order = entry.entryOrder ?? 0;
-		const prev = balanceOrderByDay.get(key);
-		if (prev === undefined || order < prev) {
-			balanceOrderByDay.set(key, order);
-		}
-	}
-
 	return entries.toSorted((a, b) => {
 		const byDate = a.date.valueOf() - b.date.valueOf();
 		if (byDate !== 0) return byDate;
 
-		const balanceOrder = balanceOrderByDay.get(dayKey(a.date));
-		if (balanceOrder !== undefined) {
-			const aBeforeBalance = a.type !== 'B' && (a.entryOrder ?? 0) < balanceOrder;
-			const bBeforeBalance = b.type !== 'B' && (b.entryOrder ?? 0) < balanceOrder;
-			if (aBeforeBalance !== bBeforeBalance) {
-				return aBeforeBalance ? -1 : 1;
-			}
-		}
-
-		const byType = (typeSortOrder[a.type] ?? 99) - (typeSortOrder[b.type] ?? 99);
+		const byType =
+			(typeSortOrder[a.type] ?? 99) - (typeSortOrder[b.type] ?? 99);
 		if (byType !== 0) return byType;
 
 		return (a.entryOrder ?? 0) - (b.entryOrder ?? 0);

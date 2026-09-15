@@ -60,6 +60,8 @@ export interface ParsedEntry {
 	baseAmount?: number;
 	overrides?: Record<number, OccurrenceOverride>;
 	overridden?: boolean;
+	/** Same-day item on a balance date that the B amount already reflects. Shown, but does not move the balance. */
+	inBalance?: boolean;
 }
 
 export interface BalanceFlags {
@@ -84,12 +86,15 @@ export interface Settings {
 	locale: string;
 	currencyIsoCode: string;
 	useFederalHolidays: boolean;
+	/** Treat a B amount as the end-of-day number: same-day credits and debits are already in it. */
+	balanceIncludesSameDay: boolean;
 	/** @deprecated Migrated into named entry sets. Kept so old localStorage still parses. */
 	useDemoEntries?: boolean;
 }
 
 export interface ParseOptions {
 	useFederalHolidays?: boolean;
+	balanceIncludesSameDay?: boolean;
 }
 
 export type ParseResult = [AccountEntries | null, Accounts | null];

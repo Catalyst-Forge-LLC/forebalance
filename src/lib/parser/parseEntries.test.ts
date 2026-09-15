@@ -111,31 +111,60 @@ D|2026-01-01,R|1000|Rent`;
 		expect(rentRows.length).toBe(3);
 	});
 
-	it('skips same-day lines listed above B as already in that balance', () => {
-		const raw = `D|2026-09-15,R|500|Rent
-B-CHCK-main|2026-09-15|2000|Balance
-C|2026-09-15|100|Pending deposit`;
-
-		const [accountEntries] = parseEntries(raw, 2, balanceFlags);
-		const mainId = Object.keys(accountEntries!)[0];
-		const rows = accountEntries![mainId];
-		expect(rows.map((e) => e.desc)).toEqual(['Balance', 'Pending deposit', 'Rent  (#2)']);
-		expect(rows[0]?.mainBalance).toBe(2000);
-		expect(rows[1]?.mainBalance).toBe(2100);
-		expect(rows.at(-1)?.date?.getMonth()).toBe(9);
-	});
-
-	it('still applies same-day lines listed below B', () => {
+	it('applies same-day lines after B by default', () => {
 		const raw = `B-CHCK-main|2026-09-15|2000|Balance
-D|2026-09-15|500|Rent`;
+D|2026-09-15,R|500|Rent
+C|2026-09-15|100|Deposit`;
 
 		const [accountEntries] = parseEntries(raw, 1, balanceFlags);
 		const mainId = Object.keys(accountEntries!)[0];
 		const rows = accountEntries![mainId];
-		expect(rows.map((e) => `${e.desc}:${e.mainBalance}`)).toEqual([
+		expect(rows.map((e) => `${e.desc?.split(' ')[0]}:${e.mainBalance}`)).toEqual([
 			'Balance:2000',
-			'Rent:1500',
+			'Deposit:2100',
+			'Rent:1600',
 		]);
+		expect(rows.some((e) => e.inBalance)).toBe(false);
+	});
+
+	it('treats same-day lines as already in B when balanceIncludesSameDay is on', () => {
+		const raw = `B-CHCK-main|2026-09-15|2000|Balance
+D|2026-09-15,R|500|Rent
+C|2026-09-15|100|Deposit
+D|2026-09-16|50|Gas`;
+
+		const [accountEntries] = parseEntries(raw, 2, balanceFlags, {
+			balanceIncludesSameDay: true,
+		});
+		const mainId = Object.keys(accountEntries!)[0];
+		const rows = accountEntries![mainId];
+		expect(
+			rows.map(
+				(e) =>
+					`${e.desc?.split(' ')[0]}#${e.occurrenceIndex}:${e.mainBalance}:${e.inBalance ? 'in' : 'post'}`,
+			),
+		).toEqual([
+			'Balance#1:2000:post',
+			'Deposit#1:2000:in',
+			'Rent#1:2000:in',
+			'Gas#1:1950:post',
+			'Rent#2:1450:post',
+		]);
+	});
+
+	it('does not touch a debt balance for an in-balance payment', () => {
+		const raw = `B-CHCK-main|2026-09-15|2000|Balance
+D-CO|2026-09-15,R|150|Capital One|CO|1000|0`;
+
+		const [accountEntries, accounts] = parseEntries(raw, 2, balanceFlags, {
+			balanceIncludesSameDay: true,
+		});
+		const mainId = Object.values(accounts!).find((a) => a.isMain)!.id;
+		const rows = accountEntries![mainId];
+		expect(rows[1]?.inBalance).toBe(true);
+		expect(rows[1]?.subAccountRunningBal).toBeUndefined();
+		expect(rows[2]?.subAccountRunningBal).toBe(850);
+		expect(accounts!.CO.runningBal).toBe(850);
 	});
 });
 

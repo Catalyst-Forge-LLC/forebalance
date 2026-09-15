@@ -18,7 +18,7 @@ A shorter paycheck-and-rent walkthrough, including how rows get threshold marks,
 
 Section labels start with `---` (for example `--- Income`). They are comments only.
 
-Jump to: [TYPE](#type) · [WHEN](#when) · [One occurrence](#one-occurrence) · [Debt](#debt-and-sub-accounts) · [Disable a line](#disable-a-line) · [Same-day order](#same-day-order) · [Scenarios](#scenarios)
+Jump to: [TYPE](#type) · [WHEN](#when) · [One occurrence](#one-occurrence) · [Debt](#debt-and-sub-accounts) · [Disable a line](#disable-a-line) · [Same-day order](#same-day-order) · [Already in balance](#balance-already-includes-todays-items) · [Scenarios](#scenarios)
 
 ## TYPE
 
@@ -127,23 +127,24 @@ Prefix `!` or `#` to skip a line without deleting it:
 
 ## Same-day order
 
-On a day with no `B` line: credits, then debits, then original line order.
+1. Balance resets (`B`)
+2. Credits (`C`)
+3. Debits (`D`)
+4. Original line order
 
-On the day of a `B` line, **where that line sits in the file** decides what is already in the bank:
+### Balance already includes today's items
 
-1. Same-day lines **above** the `B` line are already included in that number — they do not add or deduct again. Later repeats of a recurring line still forecast.
-2. The `B` line resets the running balance to what the bank shows.
-3. Same-day lines **below** the `B` line still post: credits, then debits, then original line order.
+When you paste today's bank balance, that number usually already reflects charges that hit this morning. By default ForeBalance still posts same-day credits and debits after the `B` line, so rent due today would be deducted a second time.
 
-When you paste today's bank balance, move anything already reflected in that number above the `B` line. Leave pending same-day items (a paycheck that has not landed, rent still scheduled) below it.
+Turn on **Settings → A balance line is the end-of-day number** to treat every `B` amount as already including same-day credits and debits. Those rows still appear on Forecast, marked *in balance* with the amount struck through, but they do not change the running balance. Later repeats of a recurring line forecast as usual.
 
 ```
-D|2026-09-15,R|1645|Rent
 B-CHCK1775-main|2026-09-15|2000|Balance Checking 1775
+D|2026-09-15,R|1645|Rent
 C|2026-09-15,R2W|1684|Paycheck
 ```
 
-Here rent is already in the $2000; paycheck still pending. Next month's rent still appears.
+With the setting on, rent and paycheck on 9/15 are both counted as part of the $2000. Leave it off if you enter balances before the day's activity posts.
 
 Broken lines are skipped and listed as warnings under the editor.
 

@@ -80,10 +80,10 @@ D|2026-04-01,R&lt;|1645|Rent</pre>
         </tbody>
       </table>
 
-      <h4>Already in today's balance</h4>
+      <h4>Same day</h4>
       <p>
-        On the <code>B</code> date, lines listed <strong>above</strong> that balance are already in
-        the bank number. Lines below it still post (credits, then debits).
+        <code>B</code>, then credits, then debits. If today's bank balance already includes today's
+        charges, turn on <a href="#settings">Settings → end-of-day balance</a>.
       </p>
 
       <h4>One occurrence</h4>

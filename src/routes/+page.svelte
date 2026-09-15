@@ -44,6 +44,7 @@
     [accountEntries, accounts] = raw
       ? parseEntries(raw, $settingsStore.monthsToForecast, balanceFlags, {
           useFederalHolidays: $settingsStore.useFederalHolidays,
+          balanceIncludesSameDay: $settingsStore.balanceIncludesSameDay,
         })
       : [null, null];
     if (accountEntries && accounts) {
