@@ -1,0 +1,30 @@
+{
+  "name": "forebalance",
+  "version": "0.0.1",
+  "private": false,
+  "description": "Name hold. The cashflow forecaster is the site and a git clone (forebalance.app). There is no installer.",
+  "license": "MIT",
+  "author": "Catalyst Forge, LLC",
+  "homepage": "https://forebalance.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Catalyst-Forge-LLC/forebalance.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Catalyst-Forge-LLC/forebalance/issues"
+  },
+  "keywords": [
+    "cashflow",
+    "forecast",
+    "plaintext",
+    "local",
+    "privacy"
+  ],
+  "files": [
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

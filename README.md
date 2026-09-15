@@ -6,6 +6,8 @@ ForeBalance projects a checking balance from a plaintext list of credits, debits
 
 **Live:** [forebalance.app](https://forebalance.app)
 
+The npm name `forebalance` is a hold (`0.0.1`). It does not install this app. Clone the repo or use the site.
+
 **This is not personal financial, tax, legal, or investment advice.** The table is a projection from the lines you type. It is not a statement about real accounts, and it is not a recommendation to spend, save, borrow, or invest. The software is provided as-is under the [MIT License](LICENSE), without warranty.
 
 ## Quick start

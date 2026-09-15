@@ -10,6 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "ship": "pnpm build && wrangler pages deploy build --project-name=forebalance",
+    "hold:pack": "node scripts/publish-hold.mjs",
+    "hold:publish": "node scripts/publish-hold.mjs --publish",
     "lint": "prettier --check . && eslint .",
     "format": "prettier --write ."
   },
