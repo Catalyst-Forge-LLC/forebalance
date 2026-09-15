@@ -25,18 +25,53 @@
   export let onAddStarter: (id: string) => void = () => {};
   export let onRestore: (version: EntryVersion) => void = () => {};
 
+  const OPEN_DELAY = 140;
+  const CLOSE_DELAY = 80;
+
   let open = false;
   let flyout: 'starter' | 'history' | null = null;
   let root: HTMLElement;
+  let openTimer: ReturnType<typeof setTimeout> | undefined;
+  let closeTimer: ReturnType<typeof setTimeout> | undefined;
+
+  function clearFlyoutTimers() {
+    if (openTimer) clearTimeout(openTimer);
+    if (closeTimer) clearTimeout(closeTimer);
+    openTimer = undefined;
+    closeTimer = undefined;
+  }
 
   function close() {
+    clearFlyoutTimers();
     open = false;
     flyout = null;
   }
 
   function toggle() {
     open = !open;
-    if (!open) flyout = null;
+    if (!open) {
+      clearFlyoutTimers();
+      flyout = null;
+    }
+  }
+
+  function scheduleFlyout(which: 'starter' | 'history') {
+    if (closeTimer) clearTimeout(closeTimer);
+    closeTimer = undefined;
+    if (flyout === which) return;
+    if (openTimer) clearTimeout(openTimer);
+    openTimer = setTimeout(() => {
+      flyout = which;
+    }, OPEN_DELAY);
+  }
+
+  function scheduleFlyoutClose() {
+    if (openTimer) clearTimeout(openTimer);
+    openTimer = undefined;
+    if (closeTimer) clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => {
+      flyout = null;
+    }, CLOSE_DELAY);
   }
 
   function run(action: () => void) {
@@ -59,6 +94,7 @@
     return () => {
       document.removeEventListener('pointerdown', onDocumentPointer);
       document.removeEventListener('keydown', onDocumentKey);
+      clearFlyoutTimers();
     };
   });
 </script>
@@ -115,15 +151,20 @@
         <Icon name="calendar" /> Roll recurring starts
       </button>
       <hr />
-      <div class="flyout-row">
+      <div
+        class="flyout-row"
+        on:mouseenter={() => scheduleFlyout('starter')}
+        on:mouseleave={scheduleFlyoutClose}
+      >
         <button
           type="button"
           role="menuitem"
           aria-expanded={flyout === 'starter'}
+          on:focus={() => scheduleFlyout('starter')}
           on:click={() => (flyout = flyout === 'starter' ? null : 'starter')}
         >
+          <span class="chevron" aria-hidden="true">◂</span>
           <Icon name="plus" /> Add starter
-          <span class="chevron">▸</span>
         </button>
         {#if flyout === 'starter'}
           <div class="submenu" role="menu">
@@ -140,15 +181,20 @@
           </div>
         {/if}
       </div>
-      <div class="flyout-row">
+      <div
+        class="flyout-row"
+        on:mouseenter={() => scheduleFlyout('history')}
+        on:mouseleave={scheduleFlyoutClose}
+      >
         <button
           type="button"
           role="menuitem"
           aria-expanded={flyout === 'history'}
+          on:focus={() => scheduleFlyout('history')}
           on:click={() => (flyout = flyout === 'history' ? null : 'history')}
         >
+          <span class="chevron" aria-hidden="true">◂</span>
           <Icon name="history" /> Previous versions
-          <span class="chevron">▸</span>
         </button>
         {#if flyout === 'history'}
           <div class="submenu history" role="menu">
@@ -261,7 +307,7 @@
   }
 
   .chevron {
-    margin-left: auto;
+    flex-shrink: 0;
     color: $clr-muted;
   }
 

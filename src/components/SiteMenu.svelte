@@ -25,18 +25,53 @@
     },
   ];
 
+  const OPEN_DELAY = 140;
+  const CLOSE_DELAY = 80;
+
   let open = false;
   let toolsOpen = false;
   let root: HTMLElement;
+  let openTimer: ReturnType<typeof setTimeout> | undefined;
+  let closeTimer: ReturnType<typeof setTimeout> | undefined;
+
+  function clearFlyoutTimers() {
+    if (openTimer) clearTimeout(openTimer);
+    if (closeTimer) clearTimeout(closeTimer);
+    openTimer = undefined;
+    closeTimer = undefined;
+  }
 
   function close() {
+    clearFlyoutTimers();
     open = false;
     toolsOpen = false;
   }
 
   function toggle() {
     open = !open;
-    if (!open) toolsOpen = false;
+    if (!open) {
+      clearFlyoutTimers();
+      toolsOpen = false;
+    }
+  }
+
+  function scheduleToolsOpen() {
+    if (closeTimer) clearTimeout(closeTimer);
+    closeTimer = undefined;
+    if (toolsOpen) return;
+    if (openTimer) clearTimeout(openTimer);
+    openTimer = setTimeout(() => {
+      toolsOpen = true;
+    }, OPEN_DELAY);
+  }
+
+  function scheduleToolsClose() {
+    if (openTimer) clearTimeout(openTimer);
+    openTimer = undefined;
+    if (closeTimer) clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => {
+      toolsOpen = false;
+    }, CLOSE_DELAY);
   }
 
   function onDocumentPointer(e: PointerEvent) {
@@ -54,6 +89,7 @@
     return () => {
       document.removeEventListener('pointerdown', onDocumentPointer);
       document.removeEventListener('keydown', onDocumentKey);
+      clearFlyoutTimers();
     };
   });
 </script>
@@ -102,16 +138,21 @@
         <img class="mark" src="/cf/catalyst-forge.png" width="16" height="16" alt="" />
         Catalyst Forge
       </a>
-      <div class="flyout-row">
+      <div
+        class="flyout-row"
+        on:mouseenter={scheduleToolsOpen}
+        on:mouseleave={scheduleToolsClose}
+      >
         <button
           type="button"
           role="menuitem"
           aria-expanded={toolsOpen}
+          on:focus={scheduleToolsOpen}
           on:click={() => (toolsOpen = !toolsOpen)}
         >
+          <span class="chevron" aria-hidden="true">◂</span>
           <img class="mark" src="/cf/catalyst-forge.png" width="16" height="16" alt="" />
           CF tools
-          <span class="chevron">▸</span>
         </button>
         {#if toolsOpen}
           <div class="submenu" role="menu">
@@ -239,7 +280,7 @@
   }
 
   .chevron {
-    margin-left: auto;
+    flex-shrink: 0;
     color: $clr-muted;
   }
 
