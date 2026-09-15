@@ -107,6 +107,13 @@
                 </div>
             </label>
         {/each}
+    </section>
+
+    <section class="panel">
+        <h2>Dates and balance lines</h2>
+        <p class="help">
+            These change how the forecast reads your entries. They are not threshold marks.
+        </p>
 
         <label class="checkbox-row">
             <input
@@ -261,6 +268,10 @@
         font-size: 0.95rem;
         line-height: 1.45;
         cursor: pointer;
+
+        &:first-of-type {
+            margin-top: 0;
+        }
 
         input {
             flex-shrink: 0;

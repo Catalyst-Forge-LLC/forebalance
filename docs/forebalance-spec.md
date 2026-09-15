@@ -45,7 +45,7 @@ The plaintext entry format is the core of the product, not an implementation det
 | Forecast | `|#N=pending` / “Not yet posted” still applies a same-day hit after `B` |
 | Forecast | Account selector when more than one account is in the file |
 | Forecast | Toolbar kebab: export / copy CSV, copy glance summary, export all accounts |
-| Settings | Months (3–24), three thresholds (slider + number), display currency, holiday shift, same-day `B` meaning |
+| Settings | Display currency; months (3–24) and three thresholds; Dates and balance lines (holiday shift, same-day `B` meaning) |
 | Settings | Reset (type RESET; optional export of every scenario first) |
 | Persistence | localStorage per scenario; optional Chromium file link; Download stays. Scenario `.psv` export and all-sets JSON include the display currency. Import without a currency asks before applying one. |
 | Labs | Local syntax answers; optional on-demand Chrome Nano / WebLLM (not loaded until asked) |
