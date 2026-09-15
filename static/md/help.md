@@ -18,7 +18,7 @@ A shorter paycheck-and-rent walkthrough, including how rows get threshold marks,
 
 Section labels start with `---` (for example `--- Income`). They are comments only.
 
-Jump to: [TYPE](#type) · [WHEN](#when) · [One occurrence](#one-occurrence) · [Debt](#debt-and-sub-accounts) · [Disable a line](#disable-a-line) · [Same-day order](#same-day-order) · [Already in balance](#balance-already-includes-todays-items) · [Scenarios](#scenarios)
+Jump to: [TYPE](#type) · [WHEN](#when) · [One occurrence](#one-occurrence) · [Debt](#debt-and-sub-accounts) · [Disable a line](#disable-a-line) · [Same-day order](#same-day-order) · [Already in balance](#balance-already-includes-todays-items) · [Roll recurring starts](#roll-recurring-starts) · [Scenarios](#scenarios)
 
 ## TYPE
 
@@ -155,8 +155,15 @@ On **Entries** you can keep more than one forecast (a tight month, a what-if, an
 - Switch, rename, clone, or delete (the last scenario stays)
 - **Add a starter** copies a built-in profile
 - **Import** / **Export** apply to the *current* scenario only
+- **Roll recurring starts** rewrites old `,R` dates (see below)
 - **Forecast** has the same scenario picker, and always uses the one you selected
 - **Settings → Reset** can export every scenario as one JSON copy first
+
+## Roll recurring starts
+
+A line like `D|2020-12-01,R|15|Spotify` still expands every month from 2020, even though Forecast drops rows before the `B` line. That walk is wasted work, and occurrence numbers (`#69`) drift away from “this month.”
+
+**Entries → Roll recurring starts** (with a confirm) rewrites unbounded series so they begin **one period before** the earliest balance date — or today, if there is no `B` line. Spotify becomes `D|2026-08-01,R|15|Spotify`. Cadence, amounts, end dates, and `R<` / `R>` stay put. Counted series (`RW5`) are left alone. Occurrence overrides that still fall in the new series are remapped; older ones are dropped.
 
 Nothing is sent to a server. See **[Privacy](/#privacy)**. Data lives in this browser until you clear site data. Browser storage is not a durable backup.
 

@@ -1,8 +1,8 @@
 # ForeBalance — Review & Modernization Plan
 
-**Status:** Decisions locked — ready for Phase 0  
-**Date:** 2026-09-03  
-**Companion doc:** [`forebalance-spec.md`](./forebalance-spec.md) (product spec)
+**Status:** Historical review (locked 2026-09-03). Foundation, P0/P1 DSL, and public MIT are in the product as of 2026-09-15.  
+**Current truth:** [`forebalance-spec.md`](./forebalance-spec.md) and `CONTEXT_PROMPT.md`.  
+**Date:** 2026-09-03 (status note 2026-09-15)
 
 ---
 

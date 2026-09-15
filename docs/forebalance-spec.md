@@ -1,8 +1,8 @@
 # ForeBalance — Product Spec
 
-**Status:** Working prototype
+**Status:** Public MIT prototype at forebalance.app
 **Domain:** forebalance.app
-**Last updated:** 2026-09-03
+**Last updated:** 2026-09-15
 
 ---
 
@@ -32,23 +32,23 @@ The plaintext entry format is the core of the product, not an implementation det
 
 | Area | Feature |
 |---|---|
-| Entries | Free-text editor, one entry per line |
+| Entries | CodeMirror editor with syntax highlighting, line numbers, and inline warnings |
 | Entries | `--- Label` lines act as section comments/groupings |
-| Entries | Drag-and-drop / click-to-select file import |
-| Forecast | Chronological ledger table grouped by calendar month |
-| Forecast | Columns: Date, Description, Credit, Debit, running Balance |
-| Forecast | Per-occurrence counter appended to descriptions, e.g. `Weekly Food (#3)` |
-| Forecast | Click a row to change that date or amount; this occurrence persists as `|#5=2026-05-08:65`, or rewrite the whole series |
-| Forecast | Per-month summary row: total credits, total debits, net |
-| Forecast | Rows color-coded against balance thresholds |
-| Settings | Months to forecast (slider) |
-| Settings | Goal Balance Threshold (slider) |
-| Settings | Uncomfortable Balance Threshold (slider) |
-| Settings | Low Balance Threshold (slider) |
-| Settings | Reset entries and settings |
-| Settings | Download entries |
-| Persistence | Browser local storage only; cleared with browser cache |
-| Help | Full DSL reference |
+| Entries | Prefix `!` or `#` to disable a line without deleting it |
+| Entries | Multiple named scenarios; import, export, clone, starters |
+| Entries | Drag-and-drop / Import button; optional linked `.psv` via File System Access |
+| Entries | **Roll recurring starts** — confirm, then rewrite old `,R` dates to one period before the `B` line |
+| Forecast | Chronological ledger grouped by calendar month; sparkline + at-a-glance summary |
+| Forecast | Lowest / uncomfortable / low / negative crossings; jump to the row |
+| Forecast | Click a row to change that date or amount (`|#5=…`) or rewrite the series |
+| Forecast | `|#N=pending` / “Not yet posted” still applies a same-day hit after `B` |
+| Forecast | Account selector when more than one account is in the file |
+| Settings | Months (3–24), three thresholds (slider + number), holiday shift, same-day `B` meaning |
+| Settings | Reset (type RESET; optional export of every scenario first) |
+| Persistence | localStorage per scenario; optional Chromium file link; Download stays |
+| Labs | Local syntax answers; optional on-demand Chrome Nano / WebLLM (not loaded until asked) |
+| Help / About | Full DSL, privacy, MIT disclaimer |
+| Publish | App is `private: true` in git. npm `forebalance@0.0.1` is a name hold only. |
 
 ---
 
@@ -98,93 +98,40 @@ Examples:
 
 **Comment/section lines** — begin with `---`.
 
+**Disable** — prefix `!` or `#` on the line (`!D|2026-04-16,R|500|Savings`). `#` at the start of a line is a disable; `|#5=` is an occurrence override.
+
+**Business-day shift** — append `<` or `>` to the recur token (`R<`, `R>`). Settings can treat US federal holidays as non-business days.
+
+**Last day of month** — `2026-01-L,RML` (or `RML`). A fixed day that does not exist (Jan 31 → February) **clamps** to the last day of that month.
+
+**One occurrence** — `|#N=YYYY-MM-DD:AMT`, `|#N=AMT`, `|#N=YYYY-MM-DD`, or `|#N=pending`.
+
+**Debt / extra fields** — `TYPE-ACCOUNT|WHEN|AMOUNT|DESCRIPTION|ACCOUNT|STARTING_BAL|APR` (see Help).
+
 ---
 
-## 4. Priority Improvements
+## 4. Remaining improvements
 
-### P0 — Surface the number that matters
+Shipped (do not rebuild): Forecast summary + sparkline, File System Access + Import, `R<`/`R>`, `RML` / clamp, `!`/`#` disable, multi-account selector + Help, CodeMirror + warnings, `|#N=pending`, Labs on demand, public MIT + npm name hold, **roll recurring starts**.
 
-The entire reason the tool exists is to answer "when do I get close to zero," and today the user must visually scan for gold rows to find it.
+### P2 — Accessibility and mobile
 
-Add a persistent summary block at the top of the Forecast tab:
+- Threshold row coloring is still the loudest low-balance signal. Add a non-color mark (icon or weight) for color-blind users.
+- Forecast table and editor should stay usable on a phone.
 
-- **Lowest projected balance** and the date it occurs (e.g. `$760 on 9/10/26`)
-- **First date the balance crosses below the Uncomfortable threshold**
-- **First date the balance crosses below the Low threshold**
-- **First date it goes negative**, if it ever does — this should be visually loud
-- Count of days spent below each threshold across the forecast window
+### P2 — Engine skip (optional)
 
-Each of these should link/scroll to the relevant row.
-
-### P0 — Persistence safety
-
-Current behavior loses all data on cache clear, mitigated only by a manual Download button and an on-screen warning. Options, in order of preference:
-
-1. **File System Access API** — user picks a `.txt`/`.fbl` file once; app writes back on change. Best fit for the plaintext philosophy. Chromium-only; needs fallback.
-2. **Auto-download on change**, debounced, with a versioned filename.
-3. **IndexedDB** instead of localStorage, plus a "last backed up N days ago" nag.
-
-Keep the Download button regardless. Add an explicit **Import** button alongside the drag-drop zone.
-
-### P1 — Business-day shifting
-
-Real bills move when the due date lands on a weekend or holiday, and different payees move them in different directions. Without this, forecasts drift from reality by a few days each month.
-
-Proposed syntax — a modifier appended to the WHEN field:
-
-- `>` shift to next business day
-- `<` shift to previous business day
-- absent — no shift (current behavior, remains the default)
-
-Example: `D|2026-09-01,R<|1000|Rent`
-
-Holiday calendar: start with US federal holidays, hardcoded, with a settings toggle. Note in Help that bank holidays ≠ federal holidays in every case.
-
-### P1 — Month-end recurrence
-
-`2026-01-31,R` is currently ambiguous. Define and document the behavior explicitly, and support the common case:
-
-- Add a **last-day-of-month** token, e.g. `2026-01-L,R` or a `RML` frequency variant.
-- For a fixed day-of-month that doesn't exist in a given month (31st in February), **clamp to the last day of that month** rather than skipping. Document this.
-- Add a test matrix covering 29/30/31 starts across leap and non-leap years.
-
-### P1 — Disable a line without deleting it
-
-Enables scenario testing ("what if I skip savings this month") without destroying the entry.
-
-- Prefix `!` or `#` on any entry line to exclude it from the forecast.
-- Disabled lines should render visibly greyed in the editor if the editor gains syntax awareness.
-- Consider a Forecast-tab toggle list of all entries with checkboxes, writing back to the text.
-
-### P2 — Balance sparkline / chart
-
-A compact balance-over-time line chart above the table, with the three thresholds drawn as horizontal reference lines and the minimum point marked. Purpose is shape recognition at a glance, not analysis. Keep it small and non-interactive if that keeps it simple.
-
-### P1 — Multi-account & debt support (finish in-flight work)
-
-Parser support for multi-account and debt tracking already exists but is undocumented and not fully exposed in the UI. **Finish this before layering on new DSL syntax.**
-
-- `B-{accountId}-MAIN` — main checking account; balance resets.
-- Debt sub-accounts: optional interest rate(s), rate-change date, running balance, paid-off detection, extra-payment routing.
-- `C`/`D` entries bind to accounts via suffix or field (document the full grammar in Help).
-- UI: account selector or per-account forecast tables; show sub-account running balance and interest where applicable.
-- Tests: golden fixtures for interest accrual, pay-off, and extra-payment scenarios.
-
-### P2 — Editor quality-of-life
-
-- Syntax highlighting for TYPE / WHEN / AMOUNT / DESCRIPTION and `---` sections.
-- Inline validation: mark malformed lines in the editor rather than silently dropping them.
-- Line numbers.
-- The editor is a plain textarea today; a lightweight code editor (CodeMirror 6) would deliver all of the above, at a bundle-size cost. Evaluate against the "stays simple, stays local" principle before committing.
+Rolling the text is the product fix. The parser could also skip expanding occurrences before the period prior to `B` so un-rolled 2020 starts stay cheap. Do not change occurrence numbers in the UI unless the text start moved.
 
 ### P3 — Nice to have
 
-- Amount arithmetic in the AMOUNT field (`1000+250`) for splitting or adjusting without a calculator.
-- Percentage or inflation escalators on recurring entries (`R,+3%Y`) for rent increases.
-- Print stylesheet for the Forecast tab.
-- Export forecast (not entries) to CSV.
+- Amount arithmetic in the AMOUNT field (`1000+250`).
+- Percentage or inflation escalators on recurring entries (`R,+3%Y`).
+- Print stylesheet for Forecast; export the table to CSV.
 - Keyboard shortcut to jump between tabs.
-- URL-encoded share/bookmark of a scenario — **only** if it can be done without any server round-trip; verify this doesn't undercut the privacy promise.
+- Forecast-tab checkboxes that write `!` / `#` back into the text.
+- URL-encoded share of a scenario — **only** if it stays client-side.
+- Deeper debt fixtures (interest, pay-off, extra payments) if the model grows.
 
 ---
 
@@ -192,34 +139,30 @@ Parser support for multi-account and debt tracking already exists but is undocum
 
 | # | Severity | Issue |
 |---|---|---|
-| 1 | Copy | Typo in default data: `Paycheck evey other week` → `every` |
-| 2 | Copy | Typo on Welcome tab: `ths data will go away` → `this` |
-| 3 | Docs | Help examples use `2021-02-1` and `2021-02-5`, inconsistent with the stated `YYYY-MM-DD` format. Either fix the examples or document that the parser accepts non-padded values. |
-| 4 | Docs | Help examples are dated 2021; refresh to current-year dates so they don't read as stale |
-| 5 | Copy | Welcome tab calls it both a "fun little tool" and an "amazing tool" — pick one register. Given the DSL, lean toward plain and confident: *ForeBalance projects your account balance forward from a plaintext list of credits and debits.* |
-| 6 | Behavior | Undefined/undocumented: what happens to a malformed line? Silently skipped, or error surfaced? Should be surfaced. |
-| 7 | Behavior | `B` resets the running balance. Entries dated before it are dropped. Same-day items on a `B` date are *in balance* by default (`balanceIncludesSameDay`). `|#N=pending` (Forecast: Not yet posted) still applies that occurrence. |
+| 1–5 | Copy | **Done** — starter copy, Welcome register, and Help dates were refreshed. |
+| 6 | Behavior | **Done** — malformed lines are skipped and listed as warnings under the editor. |
+| 7 | Behavior | `B` resets the running balance. Entries dated before it are dropped. Same-day items on a `B` date are *in balance* by default (`balanceIncludesSameDay`). `|#N=pending` still applies that occurrence. |
 | 8 | Behavior | Same-day sort is stable: date, then type (`B`, `C`, `D`), then entry order. |
-| 9 | Accessibility | Threshold row coloring is the only signal for low/uncomfortable balances. Add a non-color indicator (icon or bold) for color-blind users. |
-| 10 | Accessibility | Slider-only settings with no numeric input; add typed entry for precise threshold values. |
-| 11 | Responsive | Layout appears desktop-first; verify the forecast table and editor are usable on mobile |
-| 12 | Naming | Done — product surfaces, title, and download names use ForeBalance. |
+| 9 | Accessibility | Threshold row coloring is still the loudest low-balance signal. Add a non-color mark. |
+| 10 | Accessibility | **Done** — Settings thresholds have a number input next to the slider. |
+| 11 | Responsive | Layout is still desktop-first; verify Forecast + editor on a phone. |
+| 12 | Naming | **Done** — ForeBalance on product surfaces, title, and downloads. |
+| 13 | Behavior | Unbounded `,R` lines walk every occurrence from the text start to the forecast end, then slice at `B`. **Roll recurring starts** rewrites the text to one period before `B`. |
 
 ---
 
 ## 6. Suggested Sequencing
 
-1. Rename to ForeBalance; fix copy issues #1–#5.
-2. Define and document behaviors #6–#8; add tests.
-3. Finish multi-account / debt UI and docs (P1).
-4. P0: summary block, persistence safety.
-5. P1: business-day shifting, month-end recurrence, disable-line.
-6. Everything else.
+1. **Done** — rename, copy, documented `B` / same-day / pending, tests.
+2. **Done** — multi-account UI + Help, summary, file link, DSL P1, CodeMirror.
+3. **Done** — public MIT, npm name hold, CI + Dependabot, repo card.
+4. **This pass** — spec/tracking catch-up; roll recurring starts.
+5. Next product: a11y non-color marks, mobile Forecast, optional engine skip for un-rolled old starts.
 
 ---
 
 ## 7. Open Questions for the Owner
 
 - Is the forecast window capped at 24 months by the slider? **Yes — 24 is the cap for now.**
-- Should the tool ever reconcile against an actual bank balance? See **`forebalance-review-and-plan.md` §13** for a full explanation of plan vs actual workflows. **Deferred from v1 unless owner wants a light re-anchor wizard.**
-- Is there an intent to publish this, or is it permanently a personal tool? The answer changes how much matters in §5 (accessibility, mobile, onboarding).
+- Should the tool ever reconcile against an actual bank balance? See **`forebalance-review-and-plan.md` §13**. **Deferred from v1** (manual `B` re-anchor is enough).
+- Public? **Yes** — MIT, `forebalance.app`, GitHub public. Accessibility and mobile still matter for visitors, not only the owner.

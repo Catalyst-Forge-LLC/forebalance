@@ -6,7 +6,7 @@
     "archetype": "product",
     "status": "active"
   },
-  "currentPhase": "2-scaffolding",
+  "currentPhase": "4-feature-iteration",
   "phases": {
     "1-architecture": {
       "status": "completed",
@@ -17,55 +17,86 @@
         "Folder structure confirmed",
         "Data model shape confirmed",
         "First feature batch defined",
-        "PHASE_1_BRIEF.md created, complete, and locked (docs/)",
-        "Major decisions recorded in workflow_tracking.json decisions[]"
+        "Major decisions recorded in workflow_tracking.json decisions[]",
+        "Product spec and review plan locked"
       ],
-      "exitCriteriaRemaining": ["Claude's understanding verified by user"],
-      "notes": ["Architecture locked in docs/forebalance-spec.md and docs/forebalance-review-and-plan.md"]
+      "exitCriteriaRemaining": [],
+      "notes": [
+        {
+          "timestamp": "2026-09-15",
+          "text": "PHASE_1_BRIEF was never a separate file; spec + review plan + CONTEXT_PROMPT.md hold architecture."
+        }
+      ]
     },
     "2-scaffolding": {
-      "status": "in_progress",
+      "status": "completed",
       "startedAt": "2026-09-03",
-      "completedAt": null,
-      "exitCriteriaMet": [],
-      "exitCriteriaRemaining": [
+      "completedAt": "2026-09-15",
+      "exitCriteriaMet": [
         "App runs with pnpm dev",
         "Real data visible on screen",
         "Core CRUD works",
         "Hero flow functions end to end",
-        "CONTEXT_PROMPT.md created and populated by merging PHASE_1_BRIEF.md (then template lessons as needed)",
-        "README.md created (from ForgeTrail template)",
-        "TODO.md created (from ForgeTrail template, seeded from PHASE_1_BRIEF §11)",
-        "IDEAS.md created (from ForgeTrail template)",
-        "Phase 2 doc scope only per WORKFLOW §1a (no premature extra templates)"
+        "README.md written",
+        "CONTEXT_PROMPT.md created from the locked spec (TODO.md / IDEAS.md pruned — spec is the backlog)"
       ],
-      "notes": ["Phase 0 foundation: rename, Capacitor removal, Wrangler, LocalSlip, ForgeTrail bootstrap"]
+      "exitCriteriaRemaining": [],
+      "notes": [
+        {
+          "timestamp": "2026-09-15",
+          "text": "Svelte 5, TypeScript parser, Vitest, Wrangler, LocalSlip, rename, Capacitor removal all landed after the 2026-09-03 bootstrap."
+        }
+      ]
     },
     "3-stabilization": {
-      "status": "not_started",
-      "startedAt": null,
-      "completedAt": null,
-      "exitCriteriaMet": [],
-      "exitCriteriaRemaining": [
-        "Environment variables resolve correctly",
-        "APIs return real data",
-        "Core workflow completes without infrastructure errors",
-        "Error messages are human-readable (not just status codes)"
+      "status": "completed",
+      "startedAt": "2026-09-03",
+      "completedAt": "2026-09-15",
+      "exitCriteriaMet": [
+        "Build and tests pass locally",
+        "Sass deprecations silenced",
+        "Svelte 5 migration in use",
+        "Dependabot alerts fixed; CI + weekly Dependabot added",
+        "Malformed lines surface as editor warnings"
       ],
-      "notes": []
+      "exitCriteriaRemaining": [],
+      "notes": [
+        {
+          "timestamp": "2026-09-15",
+          "text": "No server APIs or env vars — local-only static app. PocketBase-style criteria pruned."
+        }
+      ]
     },
     "4-feature-iteration": {
-      "status": "not_started",
-      "startedAt": null,
+      "status": "in_progress",
+      "startedAt": "2026-09-03",
       "completedAt": null,
-      "exitCriteriaMet": [],
-      "exitCriteriaRemaining": [
-        "Core value proposition delivered",
-        "Hero flow works with real data including edge cases",
-        "Features tested beyond happy path"
+      "exitCriteriaMet": [
+        "Forecast summary + sparkline",
+        "File link + Import",
+        "Business-day shift, RML, disable prefix, pending occurrence",
+        "Multi-account selector + Help",
+        "CodeMirror editor",
+        "Labs on demand (no eager WebLLM)",
+        "Public MIT, npm name hold, GitHub card"
       ],
-      "notes": [],
-      "iterations": []
+      "exitCriteriaRemaining": [
+        "Non-color threshold marks",
+        "Mobile Forecast / editor pass"
+      ],
+      "notes": [
+        {
+          "timestamp": "2026-09-15",
+          "text": "Roll recurring starts: rewrite unbounded ,R dates to one period before the B line (confirm on Entries)."
+        }
+      ],
+      "iterations": [
+        {
+          "feature": "Roll recurring starts",
+          "status": "complete",
+          "approach": "Rewrite unbounded series start to occurrence immediately before first on/after earliest B (or today). Remap overrides by date. Skip counted series."
+        }
+      ]
     },
     "5-refactoring": {
       "status": "not_started",
@@ -86,31 +117,34 @@
       "completedAt": null,
       "exitCriteriaMet": [],
       "exitCriteriaRemaining": [
-        "BRAND_AND_PRODUCT.md created (from ForgeTrail template)",
-        "TODO reorganized by brand value pillars",
-        "Features mapped to brand pillars",
-        "Gap between brand promise and product identified",
-        "IDEAS.md processed into TODO",
-        "Build order decided"
+        "Brand/copy already on About + README; formal BRAND_AND_PRODUCT optional",
+        "Spec remaining items are a11y/mobile, not a brand gap"
       ],
-      "notes": []
+      "notes": [
+        {
+          "timestamp": "2026-09-15",
+          "text": "Public naming, disclaimer, and MIT are done. Skip a full Phase 6 template pass unless branding changes."
+        }
+      ]
     },
     "7-hardening": {
       "status": "not_started",
       "startedAt": null,
       "completedAt": null,
-      "exitCriteriaMet": [],
-      "exitCriteriaRemaining": [
-        "CODE_QUALITY.md produced (from ForgeTrail template) and critical findings fixed",
-        "BLACK_HAT_REPORT.md produced (via ForgeTrail security audit) and critical/high findings fixed",
-        "All findings triaged into TODO.md with P0/P1/P2 priority",
-        "DEPLOYMENT.md created (from ForgeTrail template)",
-        "TEST_PLAN.md complete or extended (from ForgeTrail template)",
-        "TECHNICAL_REFERENCE.md complete and current",
-        "Docs alignment audit passed (via ForgeTrail docs-alignment audit)",
-        "All documentation consolidated and cross-referenced"
+      "exitCriteriaMet": [
+        "Live at forebalance.app via Wrangler",
+        "CI on main/PRs"
       ],
-      "notes": ["Pruned payment/auth exit criteria — local-only static app"]
+      "exitCriteriaRemaining": [
+        "Optional CODE_QUALITY / security audit when wanted",
+        "DEPLOYMENT.md if DNS/runbook needs to live in-repo"
+      ],
+      "notes": [
+        {
+          "timestamp": "2026-09-15",
+          "text": "Payment/auth criteria pruned — local-only static app."
+        }
+      ]
     }
   },
   "decisions": [
@@ -148,13 +182,53 @@
       "decision": "Repo: github.com/Catalyst-Forge-LLC/forebalance",
       "rationale": "Org home under Catalyst Forge",
       "alternatives_considered": ["Keep acmegeek/my-balance-forecaster"]
+    },
+    {
+      "date": "2026-09-15",
+      "phase": "2-scaffolding",
+      "decision": "CONTEXT_PROMPT + spec stand in for TODO.md / IDEAS.md / PHASE_1_BRIEF",
+      "rationale": "User asked to sort spec/tracking, not generate unused ForgeTrail templates",
+      "alternatives_considered": ["Create the full Phase 2 doc set"]
+    },
+    {
+      "date": "2026-09-15",
+      "phase": "4-feature-iteration",
+      "decision": "Roll recurring starts one period before the earliest B date (or today)",
+      "rationale": "2020-era ,R lines still expand every occurrence before Forecast slices at B; rewriting the text keeps the DSL honest and the walk short. Counted series left alone. Overrides remapped by date.",
+      "alternatives_considered": ["Silent parser skip only", "Anchor to today even when B is earlier"]
     }
   ],
-  "gotchas": [],
+  "gotchas": [
+    {
+      "timestamp": "2026-09-15",
+      "phase": "4-feature-iteration",
+      "issue": "parseEntries walks every recurring occurrence from the text start to forecast end, then slices at the B line. Old starts (2020) are extra CPU and inflate #N indexes.",
+      "resolution": "Entries → Roll recurring starts rewrites unbounded series to one period before B. Optional later: skip generation before that period without changing the text.",
+      "category": "performance"
+    },
+    {
+      "timestamp": "2026-09-15",
+      "phase": "4-feature-iteration",
+      "issue": "Rolling a start remaps |#N= overrides; N is occurrence index from the text start, not a calendar date.",
+      "resolution": "Map old N → occurrence date → new index from the new start. Drop overrides whose date is before the new start. Do not roll counted series (RW5).",
+      "category": "data-model"
+    }
+  ],
   "sessions": [
     {
       "date": "2026-09-03",
       "summary": "Phase 0 foundation: ForeBalance rename, Capacitor removal, tooling bootstrap"
+    },
+    {
+      "date": "2026-09-15",
+      "phasesWorked": ["2-scaffolding", "3-stabilization", "4-feature-iteration"],
+      "accomplished": [
+        "Caught spec and ForgeTrail tracking up to the shipped app",
+        "Added CONTEXT_PROMPT.md",
+        "Roll recurring starts with confirm on Entries",
+        "CI, Dependabot, and GitHub repo card (prior turn)"
+      ],
+      "leftOff": "Feature is implemented; verify on Entries with 2020-era lines. Next product: a11y marks and mobile."
     }
   ]
 }

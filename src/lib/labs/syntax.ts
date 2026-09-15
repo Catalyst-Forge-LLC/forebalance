@@ -86,6 +86,9 @@ export function answerSyntaxQuestion(question: string): string | null {
 	if (/\b-main\b|\bmain checking\b/i.test(spoken)) {
 		return 'Put `-ACCOUNTID-main` on the balance line so bare C/D apply to that account. Example: `B-CHCK5432-main|2026-04-01|1000|Balance Checking 5432`.';
 	}
+	if (/\broll recurring|bring (recurring )?dates forward|old start date|2020-\d{2}-\d{2},R\b/i.test(spoken)) {
+		return 'Entries → **Roll recurring starts** rewrites unbounded `,R` lines so they begin one period before the `B` date. Example: `D|2020-12-01,R|15|Spotify` becomes `D|2026-08-01,R|15|Spotify`. Counted series (`RW5`) stay put.';
+	}
 	if (/\bRML\b|\b-L\b|last day of (the |every )?month/i.test(spoken)) {
 		return '`,RML` (or a date like `2026-01-L`) is the last calendar day of each month. Example: `D|2026-01-L,RML|1200|Mortgage`.';
 	}

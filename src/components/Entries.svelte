@@ -14,6 +14,7 @@
   } from '$lib/persistence/psvPersistence';
   import Dropzone from 'svelte-file-dropzone';
   import type { EntryValidation } from '$lib/parser/validateEntries';
+  import { rollRecurringStarts } from '$lib/parser/rollRecurringStarts';
   import ConfirmModal from './ConfirmModal.svelte';
   import EntrySetsPanel from './EntrySetsPanel.svelte';
   import Icon from './Icon.svelte';
@@ -32,12 +33,14 @@
   let importOpen = false;
   let unusualOpen = false;
   let linkOpen = false;
+  let rollOpen = false;
 
   $: if ($rawEntriesStore !== lastInputEntries) {
     lastInputEntries = $rawEntriesStore;
     draftEntries = $rawEntriesStore;
   }
   $: validationWarnings = validateRawEntries(draftEntries || $rawEntriesStore);
+  $: rollPreview = rollRecurringStarts(draftEntries || $rawEntriesStore);
 
   onMount(() => {
     fsSupported = isFileSystemAccessSupported();
@@ -124,6 +127,11 @@
     await unlinkPsvFile();
     linkedFileName = null;
   }
+
+  function confirmRollStarts() {
+    applyRawEntries(rollPreview.raw);
+    rollOpen = false;
+  }
 </script>
 
 <div class="entries-page">
@@ -166,6 +174,17 @@
     <div slot="files" class="file-slot">
       <button type="button" class="button-action" on:click={clickImport} title="Replace this scenario from a .psv file">
         <Icon name="import" /> Import
+      </button>
+      <button
+        type="button"
+        class="button-action"
+        disabled={rollPreview.changed === 0}
+        title={rollPreview.changed
+          ? 'Rewrite old recurring starts to one period before the balance date'
+          : 'Recurring starts are already current'}
+        on:click={() => (rollOpen = true)}
+      >
+        <Icon name="calendar" /> Roll recurring starts
       </button>
       {#if fsSupported}
         <button type="button" class="button-action" on:click={clickLinkFile}>
@@ -215,6 +234,28 @@
   onConfirm={confirmLink}
 >
   <p>Link to <strong>{pendingName}</strong> and load its entries into this scenario?</p>
+</ConfirmModal>
+
+<ConfirmModal
+  open={rollOpen}
+  title="Bring recurring dates forward?"
+  confirmLabel="Update dates"
+  onCancel={() => (rollOpen = false)}
+  onConfirm={confirmRollStarts}
+>
+  <p>
+    Recurring lines still walk every occurrence from the date in the text, even though Forecast
+    drops rows before the <code>B</code> line. This rewrites unbounded series so they start
+    <strong>one period before</strong> that balance date (or today, if there is no balance line).
+    Cadence, amounts, and end dates stay the same. Counted series like <code>RW5</code> are left
+    alone.
+  </p>
+  <p>{rollPreview.changed} line{rollPreview.changed === 1 ? '' : 's'} would change in this scenario:</p>
+  <ul class="roll-examples">
+    {#each rollPreview.examples as change}
+      <li><strong>{change.desc}</strong>: <code>{change.from}</code> → <code>{change.to}</code></li>
+    {/each}
+  </ul>
 </ConfirmModal>
 
 <style lang="scss">
@@ -268,6 +309,16 @@
   .linked-file {
     font-size: 0.85rem;
     color: $clr-accent-ink;
+  }
+
+  .roll-examples {
+    margin: 0.35rem 0 0;
+    padding-left: 1.2rem;
+  }
+
+  .file-slot .button-action:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
   }
 
   .button-link {

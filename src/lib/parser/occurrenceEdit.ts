@@ -112,7 +112,7 @@ function replaceSourceLine(raw: string, entry: ParsedEntry, nextLine: string): s
 	return lines.join('\n');
 }
 
-function setWhenStart(when: string | undefined, date: string): string {
+export function setWhenStart(when: string | undefined, date: string): string {
 	const parts = (when ?? '').split(',');
 	parts[0] = date;
 	return parts.join(',');
@@ -137,7 +137,7 @@ function upsertOverrideOnLine(
 	return [...head, ...extras, ...overrideFields].join('|');
 }
 
-function writeLine(parts: string[], extras: string[], overrides: Record<number, OccurrenceOverride>): string {
+export function writeLine(parts: string[], extras: string[], overrides: Record<number, OccurrenceOverride>): string {
 	const overrideFields = Object.keys(overrides)
 		.map((key) => +key)
 		.sort((a, b) => a - b)

@@ -19,6 +19,12 @@ describe('answerSyntaxQuestion', () => {
 		expect(answerSyntaxQuestion('What does #1=pending mean?')).toContain('pending');
 	});
 
+	it('explains rolling old recurring starts', () => {
+		expect(answerSyntaxQuestion('How do I roll recurring dates forward?')).toContain(
+			'Roll recurring starts',
+		);
+	});
+
 	it('explains same-day lines already in the balance', () => {
 		expect(answerSyntaxQuestion('What if rent is already in the balance?')).toContain(
 			'end-of-day',
