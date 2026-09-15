@@ -7,11 +7,14 @@
 <style lang="scss">
 	main {
 		flex-grow: 1;
+		min-height: 0;
 		max-width: 56em;
 		width: 100%;
 		padding: 0;
 		margin: 0 auto;
-		overflow: auto;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
 		position: relative;
 		background: #fff;
 		border-left: 1px solid #d5d9d3;

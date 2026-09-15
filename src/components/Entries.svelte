@@ -136,30 +136,32 @@
       on:change={onImportSelected}
     />
 
-    <div class="editor-head">
-      <p class="persist-note">
-        This scenario stays in this browser on this device. Clearing site data deletes it. Export a
-        <code>.psv</code> for a copy you keep. Browser storage is not a durable backup.
-      </p>
-      <SyntaxHelp />
-    </div>
-    <PsvEditor
-      value={$rawEntriesStore}
-      hasWarnings={validationWarnings.length > 0}
-      onDraft={handleEditorDraft}
-      onChange={handleEditorCommit}
-    />
-
-    {#if validationWarnings.length}
-      <div class="validation-warnings" role="alert">
-        <strong>Entry warnings</strong>
-        <ul>
-          {#each validationWarnings as warning}
-            <li>Line {warning.line}: {warning.message}</li>
-          {/each}
-        </ul>
+    <div class="editor-pane">
+      <div class="editor-head">
+        <p class="persist-note">
+          This scenario stays in this browser on this device. Clearing site data deletes it. Export a
+          <code>.psv</code> for a copy you keep. Browser storage is not a durable backup.
+        </p>
+        <SyntaxHelp />
       </div>
-    {/if}
+      <PsvEditor
+        value={$rawEntriesStore}
+        hasWarnings={validationWarnings.length > 0}
+        onDraft={handleEditorDraft}
+        onChange={handleEditorCommit}
+      />
+
+      {#if validationWarnings.length}
+        <div class="validation-warnings" role="alert">
+          <strong>Entry warnings</strong>
+          <ul>
+            {#each validationWarnings as warning}
+              <li>Line {warning.line}: {warning.message}</li>
+            {/each}
+          </ul>
+        </div>
+      {/if}
+    </div>
 
     <div slot="files" class="file-slot">
       <button type="button" class="button-action" on:click={clickImport} title="Replace this scenario from a .psv file">
@@ -219,9 +221,23 @@
   @import '../scss/colors';
 
   .entries-page {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
     max-width: 55em;
+    width: 100%;
     margin: 0 auto;
-    padding: 0.5rem 1rem 1rem;
+    padding: 0.5rem 1rem 0.75rem;
+    overflow: hidden;
+  }
+
+  .editor-pane {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
   }
 
   .editor-head {
@@ -229,6 +245,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 0.75rem;
+    flex-shrink: 0;
     margin: 0.35rem 0 0;
   }
 
@@ -289,6 +306,7 @@
   }
 
   .dropzone-wrap {
+    flex-shrink: 0;
     margin-top: 0.75rem;
 
     :global(div[role='presentation']),

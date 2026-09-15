@@ -107,6 +107,8 @@
   .sets-shell {
     display: flex;
     flex-direction: column;
+    flex: 1;
+    min-height: 0;
     gap: 0.5rem;
   }
 
@@ -138,6 +140,7 @@
   }
 
   .dock {
+    flex-shrink: 0;
     justify-content: space-between;
     flex-wrap: wrap;
     padding: 0.4rem 0.6rem;

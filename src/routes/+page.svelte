@@ -210,7 +210,6 @@
     </div>
   </Tabs>
   {#if false}<slot></slot>{/if}
-  <br style="clear: both;" />
 </div>
 
 <style lang="scss">
@@ -218,8 +217,10 @@
     text-align: center;
     padding: 0;
     display: flex;
-    align-items: flex-start;
-    flex-wrap: wrap;
+    align-items: stretch;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
     height: 100%;
   }
 
@@ -245,10 +246,13 @@
   }
 
   .tab-panel {
-    flex-grow: 1;
+    flex: 1;
+    min-height: 0;
     overflow: auto;
     position: relative;
-    padding-bottom: 4rem;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0.75rem;
   }
 
   .forecast-empty {

@@ -100,7 +100,8 @@
 		width: 100vw;
 		height: 100%;
 		max-width: 56em;
-		flex-grow: 1;
+		flex: 1;
+		min-height: 0;
 		display: flex;
 		flex-direction: column;
 	}

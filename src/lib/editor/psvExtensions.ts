@@ -78,7 +78,7 @@ export function psvTheme(): import('@codemirror/state').Extension {
 			},
 			'.cm-content': {
 				fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-				minHeight: '20em',
+				minHeight: '100%',
 			},
 			'.cm-disabled-line': {
 				opacity: '0.55',

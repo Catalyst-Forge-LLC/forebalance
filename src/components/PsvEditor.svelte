@@ -84,9 +84,24 @@
 
 <style lang="scss">
   .psv-editor {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 12em;
     max-width: none;
     margin: 0.5rem 0 0;
     text-align: left;
+    overflow: hidden;
+
+    :global(.cm-editor) {
+      flex: 1;
+      height: 100%;
+      min-height: 0;
+    }
+
+    :global(.cm-scroller) {
+      overflow: auto;
+    }
 
     &.has-warnings :global(.cm-editor) {
       border-color: #cc8800;
