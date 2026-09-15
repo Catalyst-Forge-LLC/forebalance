@@ -156,6 +156,7 @@ On **Entries** you can keep more than one forecast (a tight month, a what-if, an
 - The **menu** (☰) has clone, delete, import, export, drop a file, link, roll recurring starts, add a starter, and previous versions
 - **Previous versions** keeps the last 20 edits of *this* scenario (full text, in this browser)
 - **Forecast** has the same scenario picker, and always uses the one you selected
+- The Forecast **menu** (⋮) exports this table as CSV, copies CSV, copies the glance summary, and can export every account when more than one is in the file
 - **Settings → Reset** can export every scenario as one JSON copy first
 
 ## Roll recurring starts

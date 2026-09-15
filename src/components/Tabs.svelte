@@ -1,26 +1,11 @@
 <script context="module">
 	export const TABS = {};
-	export const TAB_IDS = [
-		'welcome',
-		'entries',
-		'forecast',
-		'settings',
-		'labs',
-		'help',
-		'about',
-		'privacy',
-	];
-
-	export function tabIdFromHash(hash = typeof location !== 'undefined' ? location.hash : '') {
-		const id = hash.replace(/^#/, '').toLowerCase();
-		if (TAB_IDS.includes(id)) return id;
-		if (id) return 'help';
-		return 'welcome';
-	}
+	export { TAB_IDS, tabIdFromHash } from '$lib/nav/hashes';
 </script>
 
 <script>
 	import { appStateStore } from '$lib/stores/settings';
+	import { tabIdFromHash } from '$lib/nav/hashes';
 	import { setContext, onDestroy, onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 
@@ -80,6 +65,7 @@
 
 	function syncFromHash() {
 		const wanted = tabIdFromHash();
+		if (!wanted) return;
 		const i = tabs.findIndex((tab) => tab.id === wanted);
 		if (i >= 0) applyIndex(i, false);
 	}

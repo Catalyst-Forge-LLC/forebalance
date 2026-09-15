@@ -12,15 +12,21 @@
 	import Settings from '../components/Settings.svelte';
 	import Help from '../components/Help.svelte';
 	import Welcome from '../components/Welcome.svelte';
-	import About from '../components/About.svelte';
-	import Privacy from '../components/Privacy.svelte';
 
 	import { initializeData } from '$lib/data/initializeData';
+	import { downloadTextFile, entrySetsStore, getActiveSet } from '$lib/data/entrySets';
+	import {
+		forecastAllAccountsToCsv,
+		forecastEntriesToCsv,
+		forecastFilename,
+		forecastSummaryText,
+	} from '$lib/forecast/exportCsv';
 	import { forecastBlockReason } from '$lib/parser/forecastReady';
 	import { onMount } from 'svelte';
 	import { logd } from '$lib/util/log';
 	import Icon from '../components/Icon.svelte';
 	import SetSwitcher from '../components/SetSwitcher.svelte';
+	import ForecastMenu from '../components/ForecastMenu.svelte';
 
   let accountEntries = {};
   let accounts;
@@ -84,6 +90,45 @@
     document.getElementById(`forecast-row-${rowIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  $: scenarioName = getActiveSet($entrySetsStore)?.name ?? 'scenario';
+  $: exportAccountLabel = selectedAccount ? accountDisplayName(selectedAccount) : 'account';
+
+  function exportForecastCsv() {
+    if (!forecastReady || !accounts) return;
+    downloadTextFile(
+      forecastFilename(scenarioName, exportAccountLabel),
+      forecastEntriesToCsv(selectedEntries, accounts, selectedIsMain),
+      'text/csv',
+    );
+  }
+
+  async function copyForecastCsv() {
+    if (!forecastReady || !accounts) return;
+    await navigator.clipboard.writeText(
+      forecastEntriesToCsv(selectedEntries, accounts, selectedIsMain),
+    );
+  }
+
+  function exportAllAccountsCsv() {
+    if (!forecastReady || !accounts || !accountEntries) return;
+    downloadTextFile(
+      forecastFilename(scenarioName, 'all-accounts'),
+      forecastAllAccountsToCsv(accountList, accountEntries, accounts),
+      'text/csv',
+    );
+  }
+
+  async function copyForecastSummary() {
+    if (!forecastReady) return;
+    await navigator.clipboard.writeText(
+      forecastSummaryText(selectedEntries, balanceFlags, {
+        scenarioName,
+        accountLabel: exportAccountLabel,
+        useMainBalance: selectedIsMain,
+      }),
+    );
+  }
+
   onMount(() => {
     void initializeData();
   });
@@ -98,8 +143,6 @@
       <Tab id="settings"><Icon name="settings" /> <span class="tab-label">Settings</span></Tab>
       <Tab id="labs"><Icon name="labs" /> <span class="tab-label">Labs</span></Tab>
       <Tab id="help"><Icon name="help" /> <span class="tab-label">Help</span></Tab>
-      <Tab id="about" hidden><Icon name="about" /> About</Tab>
-      <Tab id="privacy" hidden><Icon name="privacy" /> Privacy</Tab>
     </TabList>
     <div class="tab-panel">
       <div class="loader" class:loaded={!$appStateStore.showLoader}>Calculating your forecast...</div>
@@ -146,6 +189,14 @@
                   </div>
                 {/if}
               {/if}
+              <ForecastMenu
+                ready={forecastReady}
+                hasMultipleAccounts={accountList.length > 1}
+                onExportCsv={exportForecastCsv}
+                onCopyCsv={copyForecastCsv}
+                onExportAll={exportAllAccountsCsv}
+                onCopySummary={copyForecastSummary}
+              />
             </div>
           </SetSwitcher>
           {#if forecastReady}
@@ -192,12 +243,6 @@
       </TabPanel>
       <TabPanel>
         <Help></Help>
-      </TabPanel>
-      <TabPanel>
-        <About></About>
-      </TabPanel>
-      <TabPanel>
-        <Privacy></Privacy>
       </TabPanel>
     </div>
   </Tabs>

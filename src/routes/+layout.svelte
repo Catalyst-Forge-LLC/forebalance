@@ -1,5 +1,6 @@
 <script>
 	import Header from "../components/Header.svelte";
+	import SiteDocModal from "../components/SiteDocModal.svelte";
 	import '../app.scss';
 </script>
 
@@ -41,3 +42,5 @@
 <main>
 	<slot></slot>
 </main>
+
+<SiteDocModal />

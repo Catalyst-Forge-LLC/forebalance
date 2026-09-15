@@ -44,11 +44,12 @@ The plaintext entry format is the core of the product, not an implementation det
 | Forecast | Click a row to change that date or amount (`|#5=…`) or rewrite the series |
 | Forecast | `|#N=pending` / “Not yet posted” still applies a same-day hit after `B` |
 | Forecast | Account selector when more than one account is in the file |
+| Forecast | Toolbar kebab: export / copy CSV, copy glance summary, export all accounts |
 | Settings | Months (3–24), three thresholds (slider + number), holiday shift, same-day `B` meaning |
 | Settings | Reset (type RESET; optional export of every scenario first) |
 | Persistence | localStorage per scenario; optional Chromium file link; Download stays |
 | Labs | Local syntax answers; optional on-demand Chrome Nano / WebLLM (not loaded until asked) |
-| Help / About | Help is a tab. About, Privacy, and the copyright live in the site menu |
+| Help / About | Help is a tab. About and Privacy open as a large modal from the site menu. That menu also has GitHub, Catalyst Forge, and a flyout to ForgeTrail, LocalSlip, and LocalHelm |
 | Publish | App is `private: true` in git. npm `forebalance@0.0.1` is a name hold only. |
 
 ---

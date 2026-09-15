@@ -3,7 +3,6 @@
 	import { TABS } from './Tabs.svelte';
 
 	export let id = '';
-	export let hidden = false;
 
 	let button;
 	let tabText = id;
@@ -24,9 +23,6 @@
 	type="button"
 	title={id || tabText}
 	class:selected={$selectedTab === tab}
-	class:visually-hidden={hidden}
-	hidden={hidden}
-	tabindex={hidden ? -1 : 0}
 	on:click={() => selectTab(tab, tabText)}
 >
 	<slot></slot>
@@ -63,10 +59,6 @@
 			outline: 2px solid $clr-accent;
 			outline-offset: 2px;
 		}
-	}
-
-	.visually-hidden {
-		display: none;
 	}
 
 	@media (max-width: 36em) {
