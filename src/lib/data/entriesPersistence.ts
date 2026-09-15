@@ -9,6 +9,7 @@ import {
 	resetToStarterSets,
 	updateActiveRaw,
 } from '$lib/data/entrySets';
+import { clearEntryHistory, loadEntryHistory, recordEntryVersion } from '$lib/data/entryHistory';
 import { restoreLinkedFile, writeLinkedPsvFile } from '$lib/persistence/psvPersistence';
 import { rawEntriesStore, settingsStore } from '$lib/stores/settings';
 
@@ -37,6 +38,11 @@ export async function persistRawEntries(rawEntries: string): Promise<void> {
 }
 
 export function setRawEntries(rawEntries: string): void {
+	const previous = get(rawEntriesStore);
+	const setId = get(entrySetsStore).activeId;
+	if (previous !== rawEntries) {
+		recordEntryVersion(setId, previous);
+	}
 	rawEntriesStore.set(rawEntries);
 	void persistRawEntries(rawEntries);
 }
@@ -66,6 +72,7 @@ export async function initializeData(): Promise<void> {
 	const setsState = storedSets ?? migrateLegacyEntries(legacyRaw);
 	entrySetsStore.set(setsState);
 	persistEntrySets(setsState);
+	loadEntryHistory();
 
 	if (storedSets && linked?.content) {
 		updateActiveRaw(linked.content);
@@ -90,6 +97,7 @@ export function resetAllData(): void {
 	localStorage.removeItem('rawEntries');
 	localStorage.removeItem(USER_ENTRIES_KEY);
 	localStorage.removeItem('forebalance_entrySets');
+	clearEntryHistory();
 	const sets = resetToStarterSets();
 	const settings = { ...defaultSettings };
 	settingsStore.set(settings);

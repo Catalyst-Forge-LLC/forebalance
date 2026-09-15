@@ -152,10 +152,9 @@ Broken lines are skipped and listed as warnings under the editor.
 
 On **Entries** you can keep more than one forecast (a tight month, a what-if, another household). Each one is a **scenario**.
 
-- Switch, rename, clone, or delete (the last scenario stays)
-- **Add a starter** copies a built-in profile
-- **Import** / **Export** apply to the *current* scenario only
-- **Roll recurring starts** rewrites old `,R` dates (see below)
+- Switch and rename on the Entries toolbar
+- The **menu** (☰) has clone, delete, import, export, drop a file, link, roll recurring starts, add a starter, and previous versions
+- **Previous versions** keeps the last 20 edits of *this* scenario (full text, in this browser)
 - **Forecast** has the same scenario picker, and always uses the one you selected
 - **Settings → Reset** can export every scenario as one JSON copy first
 
@@ -163,7 +162,7 @@ On **Entries** you can keep more than one forecast (a tight month, a what-if, an
 
 A line like `D|2020-12-01,R|15|Spotify` still expands every month from 2020, even though Forecast drops rows before the `B` line. That walk is wasted work, and occurrence numbers (`#69`) drift away from “this month.”
 
-**Entries → Roll recurring starts** (with a confirm) rewrites unbounded series so they begin **one period before** the earliest balance date — or today, if there is no `B` line. Spotify becomes `D|2026-08-01,R|15|Spotify`. Cadence, amounts, end dates, and `R<` / `R>` stay put. Counted series (`RW5`) are left alone. Occurrence overrides that still fall in the new series are remapped; older ones are dropped.
+**Entries → menu → Roll recurring starts** (with a confirm) rewrites unbounded series so they begin **one period before** the earliest balance date — or today, if there is no `B` line. Spotify becomes `D|2026-08-01,R|15|Spotify`. Cadence, amounts, end dates, and `R<` / `R>` stay put. Counted series (`RW5`) are left alone. Occurrence overrides that still fall in the new series are remapped; older ones are dropped.
 
 Nothing is sent to a server. See **[Privacy](/#privacy)**. Data lives in this browser until you clear site data. Browser storage is not a durable backup.
 

@@ -2,6 +2,13 @@
   import { validateRawEntries } from '$lib/parser/validateEntries';
   import { onMount } from 'svelte';
   import { logd } from '$lib/util/log';
+  import {
+    formatHistoryLabel,
+    listEntryVersions,
+    type EntryVersion,
+    entryHistoryStore,
+  } from '$lib/data/entryHistory';
+  import { entrySetsStore } from '$lib/data/entrySets';
   import { setRawEntries } from '$lib/data/entriesPersistence';
   import { rawEntriesStore } from '$lib/stores/settings';
   import {
@@ -16,15 +23,21 @@
   import type { EntryValidation } from '$lib/parser/validateEntries';
   import { rollRecurringStarts } from '$lib/parser/rollRecurringStarts';
   import ConfirmModal from './ConfirmModal.svelte';
+  import EntriesMenu from './EntriesMenu.svelte';
   import EntrySetsPanel from './EntrySetsPanel.svelte';
   import Icon from './Icon.svelte';
   import PsvEditor from './PsvEditor.svelte';
   import SyntaxHelp from './SyntaxHelp.svelte';
+  import Tooltip from './Tooltip.svelte';
+
+  const persistTip =
+    'This scenario stays in this browser on this device. Clearing site data deletes it. Export a .psv for a copy you keep. Browser storage is not a durable backup. Previous versions (last 20 edits) are kept here too.';
 
   let lastInputEntries = '';
   let draftEntries = '';
   let linkedFileName: string | null = null;
   let fsSupported = false;
+  let showDrop = false;
   let importInput: HTMLInputElement;
   let validationWarnings: EntryValidation[] = [];
 
@@ -34,6 +47,8 @@
   let unusualOpen = false;
   let linkOpen = false;
   let rollOpen = false;
+  let restoreOpen = false;
+  let pendingRestore: EntryVersion | null = null;
 
   $: if ($rawEntriesStore !== lastInputEntries) {
     lastInputEntries = $rawEntriesStore;
@@ -41,6 +56,7 @@
   }
   $: validationWarnings = validateRawEntries(draftEntries || $rawEntriesStore);
   $: rollPreview = rollRecurringStarts(draftEntries || $rawEntriesStore);
+  $: versions = listEntryVersions($entrySetsStore.activeId, $entryHistoryStore);
 
   onMount(() => {
     fsSupported = isFileSystemAccessSupported();
@@ -78,6 +94,7 @@
     pendingContent = await readImportFile(file);
     pendingName = file.name;
     importOpen = true;
+    showDrop = false;
   }
 
   function confirmImport() {
@@ -132,10 +149,57 @@
     applyRawEntries(rollPreview.raw);
     rollOpen = false;
   }
+
+  function askRestore(version: EntryVersion) {
+    pendingRestore = version;
+    restoreOpen = true;
+  }
+
+  function confirmRestore() {
+    if (pendingRestore) applyRawEntries(pendingRestore.raw);
+    pendingRestore = null;
+    restoreOpen = false;
+  }
 </script>
 
 <div class="entries-page">
   <EntrySetsPanel>
+    <div
+      slot="tools"
+      class="tools-slot"
+      let:onClone
+      let:onDelete
+      let:canDelete
+      let:templates
+      let:onAddStarter
+      let:onExport
+    >
+      <Tooltip content={persistTip} position="bottom">
+        <button type="button" class="icon-btn" aria-label="How this is saved">
+          <Icon name="info" />
+        </button>
+      </Tooltip>
+      <SyntaxHelp />
+      <EntriesMenu
+        {canDelete}
+        {templates}
+        {versions}
+        {fsSupported}
+        {linkedFileName}
+        canRoll={rollPreview.changed > 0}
+        {onClone}
+        {onDelete}
+        {onExport}
+        onImport={clickImport}
+        onDrop={() => (showDrop = true)}
+        onLink={clickLinkFile}
+        onUnlink={clickUnlink}
+        onRoll={() => (rollOpen = true)}
+        {onAddStarter}
+        onRestore={askRestore}
+      />
+    </div>
+
     <input
       bind:this={importInput}
       type="file"
@@ -145,13 +209,6 @@
     />
 
     <div class="editor-pane">
-      <div class="editor-head">
-        <p class="persist-note">
-          This scenario stays in this browser on this device. Clearing site data deletes it. Export a
-          <code>.psv</code> for a copy you keep. Browser storage is not a durable backup.
-        </p>
-        <SyntaxHelp />
-      </div>
       <PsvEditor
         value={$rawEntriesStore}
         hasWarnings={validationWarnings.length > 0}
@@ -170,39 +227,19 @@
         </div>
       {/if}
     </div>
-
-    <div slot="files" class="file-slot">
-      <button type="button" class="button-action" on:click={clickImport} title="Replace this scenario from a .psv file">
-        <Icon name="import" /> Import
-      </button>
-      <button
-        type="button"
-        class="button-action"
-        disabled={rollPreview.changed === 0}
-        title={rollPreview.changed
-          ? 'Rewrite old recurring starts to one period before the balance date'
-          : 'Recurring starts are already current'}
-        on:click={() => (rollOpen = true)}
-      >
-        <Icon name="calendar" /> Roll recurring starts
-      </button>
-      {#if fsSupported}
-        <button type="button" class="button-action" on:click={clickLinkFile}>
-          <Icon name="link" /> Link file…
-        </button>
-        {#if linkedFileName}
-          <span class="linked-file">Linked: {linkedFileName}</span>
-          <button type="button" class="button-link" on:click={clickUnlink}>Unlink</button>
-        {/if}
-      {/if}
-    </div>
   </EntrySetsPanel>
 
-  <div class="dropzone-wrap">
-    <Dropzone on:drop={handleFilesSelect}>
-      <p>Drop a <code>.psv</code> here to replace this scenario</p>
-    </Dropzone>
-  </div>
+  {#if showDrop}
+    <div class="dropzone-wrap">
+      <div class="drop-head">
+        <span>Drop a <code>.psv</code> to replace this scenario</span>
+        <button type="button" class="button-link" on:click={() => (showDrop = false)}>Hide</button>
+      </div>
+      <Dropzone on:drop={handleFilesSelect}>
+        <p>Drop a <code>.psv</code> here</p>
+      </Dropzone>
+    </div>
+  {/if}
 </div>
 
 <ConfirmModal
@@ -258,6 +295,25 @@
   </ul>
 </ConfirmModal>
 
+<ConfirmModal
+  open={restoreOpen}
+  title="Restore this version?"
+  confirmLabel="Restore"
+  onCancel={() => {
+    restoreOpen = false;
+    pendingRestore = null;
+  }}
+  onConfirm={confirmRestore}
+>
+  {#if pendingRestore}
+    <p>
+      Replace the current text with the version from
+      <strong>{formatHistoryLabel(pendingRestore.at)}</strong>? The text you have now is kept under
+      Previous versions.
+    </p>
+  {/if}
+</ConfirmModal>
+
 <style lang="scss">
   @use '../scss/colors' as *;
 
@@ -274,6 +330,10 @@
     overflow: hidden;
   }
 
+  .tools-slot {
+    display: contents;
+  }
+
   .editor-pane {
     display: flex;
     flex-direction: column;
@@ -281,44 +341,22 @@
     min-height: 0;
   }
 
-  .editor-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.75rem;
-    flex-shrink: 0;
-    margin: 0.35rem 0 0;
-  }
-
-  .persist-note {
-    margin: 0;
-    padding: 0;
-    font-size: 0.8rem;
-    line-height: 1.4;
-    color: $clr-muted;
-    text-align: left;
-  }
-
-  .file-slot {
-    display: flex;
-    flex-wrap: wrap;
+  .icon-btn {
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-  }
-
-  .linked-file {
-    font-size: 0.85rem;
+    justify-content: center;
+    margin: 0;
+    padding: 0.28rem 0.45rem;
     color: $clr-accent-ink;
+    background: $clr-accent-soft;
+    border: 1px solid $clr-border-strong;
+    border-radius: 0.35rem;
+    cursor: pointer;
   }
 
   .roll-examples {
     margin: 0.35rem 0 0;
     padding-left: 1.2rem;
-  }
-
-  .file-slot .button-action:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
   }
 
   .button-link {
@@ -358,20 +396,30 @@
 
   .dropzone-wrap {
     flex-shrink: 0;
-    margin-top: 0.75rem;
+    margin-top: 0.5rem;
+  }
 
-    :global(div[role='presentation']),
-    :global(.dropzone) {
-      border: 1px dashed $clr-accent !important;
-      background: $clr-accent-soft !important;
-      border-radius: 0.4rem !important;
-      color: $clr-accent-ink;
-      font-size: 0.9rem;
-    }
+  .drop-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+    font-size: 0.8rem;
+    color: $clr-muted;
+  }
 
-    p {
-      margin: 0;
-      padding: 0;
-    }
+  .dropzone-wrap :global(div[role='presentation']),
+  .dropzone-wrap :global(.dropzone) {
+    border: 1px dashed $clr-accent !important;
+    background: $clr-accent-soft !important;
+    border-radius: 0.4rem !important;
+    color: $clr-accent-ink;
+    font-size: 0.9rem;
+  }
+
+  .dropzone-wrap p {
+    margin: 0;
+    padding: 0;
   }
 </style>

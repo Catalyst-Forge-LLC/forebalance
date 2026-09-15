@@ -35,8 +35,9 @@ The plaintext entry format is the core of the product, not an implementation det
 | Entries | CodeMirror editor with syntax highlighting, line numbers, and inline warnings |
 | Entries | `--- Label` lines act as section comments/groupings |
 | Entries | Prefix `!` or `#` to disable a line without deleting it |
-| Entries | Multiple named scenarios; import, export, clone, starters |
-| Entries | Drag-and-drop / Import button; optional linked `.psv` via File System Access |
+| Entries | Multiple named scenarios; toolbar menu for clone, delete, import, export, starters |
+| Entries | Drop zone on demand; optional linked `.psv` via File System Access |
+| Entries | Last 20 full-text edits per scenario (restore with confirm) |
 | Entries | **Roll recurring starts** — confirm, then rewrite old `,R` dates to one period before the `B` line |
 | Forecast | Chronological ledger grouped by calendar month; sparkline + at-a-glance summary |
 | Forecast | Lowest / uncomfortable / low / negative crossings; jump to the row |

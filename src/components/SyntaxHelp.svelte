@@ -103,8 +103,7 @@ D|2026-04-01,R&lt;|1645|Rent</pre>
 
   .syntax-help {
     position: relative;
-    display: flex;
-    justify-content: flex-end;
+    display: inline-flex;
   }
 
   .toggle {

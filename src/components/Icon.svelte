@@ -23,6 +23,9 @@
     check: 'M20 6 9 17l-5-5',
     download: 'M12 3v12M7 11l5 5 5-5M5 21h14',
     calendar: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+    menu: 'M4 6h16M4 12h16M4 18h16',
+    info: 'M12 16v-4M12 8h.01M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18',
+    history: 'M3 3v5h5M3.5 9A9 9 0 1 0 6 5.3',
   };
 </script>
 

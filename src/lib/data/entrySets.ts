@@ -1,4 +1,5 @@
 import { get, writable } from 'svelte/store';
+import { pruneEntryHistory } from '$lib/data/entryHistory';
 import { getRandomId } from '$lib/parser/recurrence';
 import {
 	buildDefaultEntries,
@@ -191,6 +192,7 @@ export function deleteEntrySet(id: string): EntrySetsState {
 	const next: EntrySetsState = { activeId, sets };
 	entrySetsStore.set(next);
 	persistEntrySets(next);
+	pruneEntryHistory(id);
 	return next;
 }
 

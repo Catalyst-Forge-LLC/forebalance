@@ -12,7 +12,7 @@ SvelteKit 2 + Svelte 5 + TypeScript + Vitest + `adapter-static` → Cloudflare P
 
 ## Hero flow
 
-1. Entries: edit `.psv` (CodeMirror), optional Import / linked file / **Roll recurring starts**.
+1. Entries: edit `.psv` (CodeMirror). Toolbar is scenario + name + info + Syntax + ☰ menu (import, drop-on-demand, roll starts, last 20 versions per scenario).
 2. Forecast: table + summary + sparkline from the earliest `B` line forward (`monthsToForecast`).
 3. Settings: months, thresholds, holiday shift, same-day `B` meaning.
 
