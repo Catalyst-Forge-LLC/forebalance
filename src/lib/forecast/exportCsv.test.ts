@@ -5,6 +5,9 @@ import {
 	fileSlug,
 	forecastEntriesToCsv,
 	forecastEntryCsvRow,
+	forecastFilename,
+	forecastSummaryText,
+	formatSummaryStamp,
 } from './exportCsv';
 
 function entry(partial: Partial<ParsedEntry> & Pick<ParsedEntry, 'type' | 'date'>): ParsedEntry {
@@ -82,5 +85,29 @@ describe('forecastEntriesToCsv', () => {
 		);
 		expect(row[3]).toBe('');
 		expect(row[4]).toBe('14');
+	});
+});
+
+describe('forecastSummaryText', () => {
+	it('includes the stamp date and time', () => {
+		const at = new Date(2026, 8, 15, 16, 32);
+		const text = forecastSummaryText([], {
+			below: { negative: 0, low: 200, uncomfortable: 500 },
+			above: { goal: 2500 },
+		}, {
+			scenarioName: 'Close month',
+			accountLabel: 'Checking',
+			useMainBalance: true,
+			at,
+		});
+		expect(text).toContain(`As of ${formatSummaryStamp(at)}`);
+		expect(text).toContain('Close month');
+	});
+});
+
+describe('forecastFilename', () => {
+	it('includes the local date and time', () => {
+		const name = forecastFilename('Close month', 'Checking 1775', new Date(2026, 8, 15, 16, 32, 5));
+		expect(name).toBe('forebalance-close-month-checking-1775-2026-09-15-163205.csv');
 	});
 });

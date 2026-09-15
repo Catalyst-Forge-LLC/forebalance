@@ -1,8 +1,10 @@
-import { localIsoDate } from '$lib/formatters/dates';
+import { get } from 'svelte/store';
+import { localFileStamp, localIsoDate } from '$lib/formatters/dates';
 import { fmt } from '$lib/formatters/fmt';
 import { accountDisplayName } from '$lib/parser/accountLabel';
 import { computeForecastSummary, type ForecastSummary } from '$lib/parser/forecastSummary';
 import type { Account, Accounts, BalanceFlags, ParsedEntry } from '$lib/parser/types';
+import { settingsStore } from '$lib/stores/settings';
 
 export const FORECAST_CSV_HEADERS = [
 	'date',
@@ -92,15 +94,23 @@ export function formatSummaryPoint(
 	return `${label} ${fmt.curr(point.balance)} on ${fmt.date(point.date)}`;
 }
 
+export function formatSummaryStamp(at: Date): string {
+	return at.toLocaleString(get(settingsStore).locale, {
+		dateStyle: 'medium',
+		timeStyle: 'short',
+	});
+}
+
 export function forecastSummaryText(
 	entries: ParsedEntry[],
 	balanceFlags: BalanceFlags,
-	opts: { scenarioName: string; accountLabel: string; useMainBalance: boolean },
+	opts: { scenarioName: string; accountLabel: string; useMainBalance: boolean; at?: Date },
 ): string {
 	const summary = computeForecastSummary(entries, balanceFlags, opts.useMainBalance);
 	const lines = [
 		`ForeBalance forecast — ${opts.scenarioName}`,
 		opts.accountLabel,
+		`As of ${formatSummaryStamp(opts.at ?? new Date())}`,
 		formatSummaryPoint('Lowest', summary.lowest),
 		formatSummaryPoint('Uncomfortable', summary.firstUncomfortable),
 		formatSummaryPoint('Low', summary.firstLow),
@@ -112,10 +122,13 @@ export function forecastSummaryText(
 	return `${lines.join('\n')}\n`;
 }
 
-export function forecastFilename(scenarioName: string, accountLabel: string): string {
-	const day = localIsoDate();
+export function forecastFilename(
+	scenarioName: string,
+	accountLabel: string,
+	at: Date = new Date(),
+): string {
 	const account = fileSlug(accountLabel);
-	return `forebalance-${fileSlug(scenarioName)}-${account}-${day}.csv`;
+	return `forebalance-${fileSlug(scenarioName)}-${account}-${localFileStamp(at)}.csv`;
 }
 
 export function flattenAccountTables(

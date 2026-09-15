@@ -7,6 +7,15 @@ export function localIsoDate(val?: Date | null): string {
 	return `${year}-${month}-${day}`;
 }
 
+/** Local `YYYY-MM-DD-HHmmss` for download names (colons are unsafe on Windows). */
+export function localFileStamp(val?: Date | null): string {
+	const date = val ?? new Date();
+	const hour = String(date.getHours()).padStart(2, '0');
+	const minute = String(date.getMinutes()).padStart(2, '0');
+	const second = String(date.getSeconds()).padStart(2, '0');
+	return `${localIsoDate(date)}-${hour}${minute}${second}`;
+}
+
 export function isLastDayToken(datePart: string): boolean {
 	return /^\d{4}-\d{1,2}-L$/i.test(datePart.trim());
 }
