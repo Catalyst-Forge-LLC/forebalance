@@ -198,7 +198,7 @@ export const QUERY_TYPES: QueryType[] = [
 		kind: 'draft',
 		title: 'Draft starting balance',
 		when: 'starting balance, I have $X on date',
-		match: /\b(starting balance|i have \$?\d|balance of)\b/i,
+		match: /\b(starting balance|i have [$€£¥]?\d|balance of)\b/i,
 		template: 'B-CHCK0000-main|{YYYY-MM-DD}|{amt}|Balance Checking 0000',
 	},
 	{
@@ -243,6 +243,11 @@ export const OUTSIDE_RULES = `Rules:
 - Never write a paragraph about the assignment. Never invent a grid. Never invent account numbers.
 - Rent and bills are D. Pay / making / income / gig are C. No B line unless they gave a starting balance.`;
 
+/** How display currency affects Labs answers. Numbers are never converted. */
+export function currencyPromptNote(currencyIsoCode = 'USD'): string {
+	return `Display currency is ${currencyIsoCode}. Labels only — do not convert amounts. $ € £ or a bare number in the ask is the same figure. In prose, format money as ${currencyIsoCode}. .psv AMOUNT fields stay bare numbers with no symbol.`;
+}
+
 export function matchQueryTypes(text: string): QueryType[] {
 	const ask = text.trim();
 	if (!ask) return [];
@@ -257,10 +262,11 @@ export function typesById(ids: string[]): QueryType[] {
 const CATALOG_IDS = QUERY_TYPES.map((type) => type.id);
 
 /** Tier 1: ids and triggers only — no answer shapes. The model is the router. */
-export function routerPrompt(): string {
+export function routerPrompt(currencyIsoCode = 'USD'): string {
 	const list = QUERY_TYPES.map((type) => `${type.id} — ${type.when}`).join('\n');
 	return `You are the ForeBalance Labs router. Reply with 1-3 type ids, comma-separated, or none.
 Never paste the menu. Never answer the user. Never write .psv.
+${currencyPromptNote(currencyIsoCode)}
 
 ${list}
 
@@ -311,9 +317,10 @@ export function refineRoutedIds(ids: string[], ask: string): string[] {
 }
 
 /** Tier 2: only the routed templates. */
-export function specialistPrompt(types: QueryType[]): string {
+export function specialistPrompt(types: QueryType[], currencyIsoCode = 'USD'): string {
 	if (!types.length) {
 		return `ForeBalance Labs. This ask did not match a type.
+${currencyPromptNote(currencyIsoCode)}
 Say: Not a ForeBalance ask — see Help.
 Do not invent a grid. Do not invent .psv unless they clearly asked to draft lines.`;
 	}
@@ -322,15 +329,15 @@ Do not invent a grid. Do not invent .psv unless they clearly asked to draft line
 		types.length > 1
 			? 'Stack these templates. Fill the user numbers. If they are draft types, .psv lines only.'
 			: 'Copy this template. Fill the user numbers.';
-	return `ForeBalance Labs specialist.\n${mix}\nNever write a paragraph about the assignment. Never invent a grid.\n\n${body}`;
+	return `ForeBalance Labs specialist.\n${mix}\n${currencyPromptNote(currencyIsoCode)}\nNever write a paragraph about the assignment. Never invent a grid.\n\n${body}`;
 }
 
-export function catalogPrompt(kinds?: QueryKind[]): string {
+export function catalogPrompt(kinds?: QueryKind[], currencyIsoCode = 'USD'): string {
 	const types = kinds ? QUERY_TYPES.filter((type) => kinds.includes(type.kind)) : QUERY_TYPES;
 	const body = types
 		.map((type) => `[${type.id}] ${type.title}\nWhen: ${type.when}\n${type.template}`)
 		.join('\n\n');
-	return `ForeBalance Labs. Answer by copying a type template.\n\n${OUTSIDE_RULES}\n\n${body}`;
+	return `ForeBalance Labs. Answer by copying a type template.\n\n${currencyPromptNote(currencyIsoCode)}\n\n${OUTSIDE_RULES}\n\n${body}`;
 }
 
 export function describeMatches(types: QueryType[]): string {

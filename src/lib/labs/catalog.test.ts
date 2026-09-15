@@ -30,6 +30,12 @@ describe('query catalog', () => {
 		expect(matchQueryTypes('Write me a haiku about the color blue')).toEqual([]);
 	});
 
+	it('tells the model the display currency', () => {
+		expect(routerPrompt('EUR')).toContain('Display currency is EUR');
+		expect(specialistPrompt(typesById(['afford']), 'GBP')).toContain('Display currency is GBP');
+		expect(catalogPrompt(undefined, 'JPY')).toContain('Display currency is JPY');
+	});
+
 	it('keeps the router thin and the specialist specific', () => {
 		const rentPay = typesById(['draft-rent', 'draft-weekdays']);
 		expect(routerPrompt()).not.toContain('D|{YYYY-MM-DD},R|{amt}|Rent');

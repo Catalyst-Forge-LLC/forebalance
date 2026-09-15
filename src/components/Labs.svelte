@@ -3,6 +3,7 @@
   import { buildForecastBrief, buildWhyTight, splitModelReply } from '$lib/labs/context';
   import { localIsoDate } from '$lib/formatters/dates';
   import {
+    currencyPromptNote,
     describeMatches,
     parseRouterReply,
     refineRoutedIds,
@@ -22,6 +23,8 @@
   } from '$lib/labs/detect';
   import { WEBLLM_MODEL_ID, createLabsSession, type LabsSession } from '$lib/labs/session';
   import { entrySetsStore } from '$lib/data/entrySets';
+  import { fmt } from '$lib/formatters/fmt';
+  import { settingsStore } from '$lib/stores/settings';
   import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
 
   export let entries: ParsedEntry[] = [];
@@ -51,6 +54,9 @@
   $: bothEngines =
     (nanoStatus === 'available' || nanoStatus === 'downloadable' || nanoStatus === 'downloading') &&
     webgpu;
+  $: currencyCode = $settingsStore.currencyIsoCode;
+  $: affordPlaceholder = `A ${fmt.curr(240)} tire on Friday / skip eating out this month`;
+  $: draftPlaceholder = `Rent ${fmt.curr(1185)} on the 1st, gig pay around ${fmt.curr(500)} each Friday…`;
 
   onMount(() => {
     void refreshProbe();
@@ -94,7 +100,7 @@
   }
 
   function catalogAsk(ask: string, types: QueryType[], extra = '') {
-    return `${describeMatches(types)}\n\nAsk: ${ask}\nToday: ${localIsoDate()}${extra ? `\n\n${extra}` : ''}`;
+    return `${describeMatches(types)}\n\n${currencyPromptNote(currencyCode)}\n\nAsk: ${ask}\nToday: ${localIsoDate()}${extra ? `\n\n${extra}` : ''}`;
   }
 
   async function runRouted(ask: string, extra = '') {
@@ -107,7 +113,7 @@
     progressText = 'Routing…';
     try {
       const routed = splitModelReply(
-        await session.prompt(routerPrompt(), `Ask: ${ask}`, { maxTokens: 24 }),
+        await session.prompt(routerPrompt(currencyCode), `Ask: ${ask}`, { maxTokens: 24 }),
       );
       let ids = refineRoutedIds(parseRouterReply(routed.answer), ask);
       if (!ids.length) {
@@ -121,7 +127,7 @@
       routedIds = types.map((type) => type.id).join(', ') || 'none';
       progressText = types.length ? `Filling ${routedIds}…` : 'No type matched…';
       const reply = splitModelReply(
-        await session.prompt(specialistPrompt(types), catalogAsk(ask, types, extra)),
+        await session.prompt(specialistPrompt(types, currencyCode), catalogAsk(ask, types, extra)),
       );
       let answer = reply.answer;
       if (types.length && types.every((type) => type.kind === 'draft')) {
@@ -265,7 +271,7 @@
         <textarea
           bind:value={affordAsk}
           rows="2"
-          placeholder="A $240 tire on Friday / skip eating out this month"
+          placeholder={affordPlaceholder}
         ></textarea>
       </label>
       <button
@@ -281,7 +287,7 @@
         <textarea
           bind:value={draftAsk}
           rows="3"
-          placeholder="Rent $1,185 on the 1st, gig pay around $500 each Friday…"
+          placeholder={draftPlaceholder}
         ></textarea>
       </label>
       <button type="button" disabled={!session || running || !draftAsk.trim()} on:click={draftEntries}>

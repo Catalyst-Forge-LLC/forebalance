@@ -2,6 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { draftPsvFromDescription, keepPsvLines, normalizeDraftLines } from './draft';
 
 describe('draftPsvFromDescription', () => {
+	it('reads a euro rent amount the same as a bare number', () => {
+		const lines = draftPsvFromDescription('Rent €1,185 on the 1st', new Date(2026, 8, 10));
+		expect(lines).toEqual(['D|2026-09-01,R|1185|Rent']);
+	});
+
 	it('drafts rent on the 7th and pay on Tue/Thu', () => {
 		const lines = draftPsvFromDescription(
 			'Rent of 1546 on the 7th, and making $120 every tuesday and thursday.',

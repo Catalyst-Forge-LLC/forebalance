@@ -45,8 +45,10 @@ function weekdaysIn(text: string): number[] {
 	return found;
 }
 
+const MONEY_MARK = /[$€£¥]/;
+
 function amountIn(text: string): string | null {
-	const match = text.match(/\$?\s*(\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?/);
+	const match = text.match(new RegExp(`${MONEY_MARK.source}?\\s*(\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.\\d+)?`));
 	return match ? match[1].replace(/,/g, '') : null;
 }
 
@@ -100,7 +102,7 @@ export function draftPsvFromDescription(text: string, now = new Date()): string[
 	};
 
 	const rent = text.match(
-		/\brent(?:al)?\b(?:\s+of)?\s*\$?\s*(\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?(?:\s+on(?:\s+the)?\s+(\d{1,2})(?:st|nd|rd|th)?)?/i,
+		/\brent(?:al)?\b(?:\s+of)?\s*[$€£¥]?\s*(\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?(?:\s+on(?:\s+the)?\s+(\d{1,2})(?:st|nd|rd|th)?)?/i,
 	);
 	if (rent) {
 		const day = rent[2] ? Number(rent[2]) : 1;

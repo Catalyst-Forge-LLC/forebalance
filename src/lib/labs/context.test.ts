@@ -46,6 +46,7 @@ describe('buildForecastBrief', () => {
 			'Close month',
 		);
 		expect(brief).toContain('Scenario: Close month');
+		expect(brief).toContain('Currency: USD');
 		expect(brief).toContain('Lowest:');
 		expect(brief).toContain('Lowest after:');
 		expect(brief).toContain('Top debits:');

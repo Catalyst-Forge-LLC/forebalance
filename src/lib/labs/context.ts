@@ -3,6 +3,8 @@ import { computeForecastSummary } from '$lib/parser/forecastSummary';
 import { localIsoDate } from '$lib/formatters/dates';
 import { fmt } from '$lib/formatters/fmt';
 import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
+import { get } from 'svelte/store';
+import { settingsStore } from '$lib/stores/settings';
 
 /** Full type catalog — the core Labs prompt. */
 export const LABS_SYSTEM = catalogPrompt();
@@ -94,7 +96,10 @@ export function buildForecastBrief(
 	scenarioName: string,
 ): string {
 	const summary = computeForecastSummary(entries, balanceFlags, useMainBalance);
-	const lines: string[] = [`Scenario: ${scenarioName || 'Untitled'}`];
+	const lines: string[] = [
+		`Scenario: ${scenarioName || 'Untitled'}`,
+		`Currency: ${get(settingsStore).currencyIsoCode}`,
+	];
 	lines.push(
 		`Thresholds: uncomfortable ${fmt.curr(balanceFlags.below.uncomfortable)}, low ${fmt.curr(balanceFlags.below.low)}, zero ${fmt.curr(balanceFlags.below.negative)}`,
 	);
