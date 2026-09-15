@@ -4,7 +4,18 @@ See how the cash flows you enter affect your projected balance, and when it cros
 
 You describe cashflow as plain text, one line per credit, debit, or balance reset, in a compact pipe-separated format (`.psv`). ForeBalance expands recurring lines, runs a running balance forward up to 24 months, and marks rows against your goal, uncomfortable, and low thresholds.
 
-Projected balances follow the recurrence, interest, reset, and threshold rules you enter. They are not a promise about real accounts, and this is not personal financial advice.
+## Disclaimer
+
+**ForeBalance is a planning calculator. It is not a bank, advisor, accountant, or credit counselor.**
+
+- This is **not** personal financial, tax, legal, or investment advice.
+- The Forecast table is a **projection** from the lines you typed, the recurrence and interest rules on Help, and your Settings. It does not connect to a bank and does not know about charges you left out.
+- Those numbers can be wrong. A typo, a missing bill, a payday that slips, or a lender that compounds differently than the simple monthly APR model will change the real balance.
+- Threshold marks (goal, uncomfortable, low, negative) are labels you chose. They are not a judgment about what you should do.
+- Starter scenarios and sample amounts are made up. They are not a recommendation.
+- You are responsible for decisions you make after looking at a forecast.
+
+The software is provided **as-is**, without warranty of any kind, as stated in the [MIT License](https://github.com/Catalyst-Forge-LLC/forebalance/blob/main/LICENSE). Catalyst Forge, LLC is not liable for losses or decisions that follow from using it.
 
 ## How to use it
 
@@ -19,11 +30,9 @@ Scenarios, thresholds, and the month count stay in this browser on this device. 
 
 Use **Export** on Entries for the current scenario, or export every scenario from the Reset dialog on Settings. A linked file, when your browser supports it, is also only on your disk.
 
-## Access and terms
+## License
 
-ForeBalance is free to use. There is no paywall and no account.
-
-The source is not public. Copyright © Catalyst Forge, LLC. All rights reserved.
+ForeBalance is free to use. There is no paywall and no account. The source is [MIT licensed](https://github.com/Catalyst-Forge-LLC/forebalance). Forks and local copies are welcome.
 
 ## Multi-account and debt
 

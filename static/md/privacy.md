@@ -34,4 +34,4 @@ Prompts, entries, and forecasts stay in the tab. We do not receive them.
 
 We will not add our own telemetry “just to see how people use it.” We will not add cloud sync, accounts, or a server-side save. If those ever appeared, it would no longer be ForeBalance.
 
-Questions about the project belong on **[About](/#about)**. How to write entries is on **[Help](/#help)**.
+Questions about the project, the MIT license, and the disclaimer belong on **[About](/#about)**. How to write entries is on **[Help](/#help)**.

@@ -2,9 +2,11 @@
 
 See how the cash flows you enter affect your projected balance, and when it crosses your chosen thresholds.
 
-ForeBalance projects a checking balance from a plaintext list of credits, debits, and balance resets. One line per transaction, pipe-separated (`.psv`). Data stays in this browser. There are no accounts, no tracking, and no server-side data. Projected balances follow the lines you type. They are not a promise about real accounts.
+ForeBalance projects a checking balance from a plaintext list of credits, debits, and balance resets. One line per transaction, pipe-separated (`.psv`). Data stays in this browser. There are no accounts, no tracking, and no server-side data.
 
 **Live:** [forebalance.app](https://forebalance.app) · Legacy: [mybalanceforecaster.com](https://mybalanceforecaster.com)
+
+**This is not personal financial, tax, legal, or investment advice.** The table is a projection from the lines you type. It is not a statement about real accounts, and it is not a recommendation to spend, save, borrow, or invest. The software is provided as-is under the [MIT License](LICENSE), without warranty.
 
 ## Quick start
 
@@ -36,11 +38,9 @@ TYPE|WHEN|AMOUNT|DESCRIPTION
 
 See the in-app **Help** tab or `docs/forebalance-spec.md` for the full DSL (recurrence, multi-account, debt).
 
-## Access and terms
+## License
 
-ForeBalance is free to use in your browser. There is no paywall.
-
-The source is not public. Copyright © Catalyst Forge, LLC. All rights reserved.
+[MIT](LICENSE). Copyright © 2020–2026 Catalyst Forge, LLC. Fork it, run it locally, or ship your own build — that is the point. See [CONTRIBUTING.md](CONTRIBUTING.md) if you want to send a change.
 
 ## Stack
 

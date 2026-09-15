@@ -1,6 +1,6 @@
 <footer>
   <p>&copy;2020-{new Date().getFullYear()} Catalyst Forge, LLC</p>
-  <p class="terms">Free to use. Source is not public. All rights reserved.</p>
+  <p class="terms">Free to use. MIT License. Not financial advice.</p>
 </footer>
 
 <style lang="scss">

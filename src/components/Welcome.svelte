@@ -130,7 +130,8 @@
       One line per transaction: <code>B</code> is the bank number, <code>C</code> is money in,
       <code>D</code> is money out, and <code>,R</code> repeats monthly.
       <a href="#help">Help</a> has the full syntax, including same-day items already in that
-      balance. These sample numbers are not personal financial advice.
+      balance. Sample numbers are made up. This is not financial advice
+      (<a href="#about">About</a>).
     </p>
     <pre class="example-src">{exampleRaw.trim()}</pre>
     <div class="walkthrough-actions">

@@ -51,7 +51,8 @@
         <p class="help">
             These apply to whichever scenario you are viewing on Forecast. They do not change your
             entry text. The table uses them to mark projected balances. Those marks are not a
-            promise that a real account will land there.
+            promise that a real account will land there. This is not financial advice.
+            See <a href="#about">About</a> for the full disclaimer.
         </p>
 
         {#each Object.entries(ranges) as [key, range]}
