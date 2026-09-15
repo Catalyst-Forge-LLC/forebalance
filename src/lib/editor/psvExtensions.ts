@@ -89,14 +89,17 @@ export function psvTheme(): import('@codemirror/state').Extension {
 			'.cm-line.cm-activeLine, .cm-line:nth-child(even).cm-activeLine': {
 				backgroundColor: '#dceeff',
 			},
+			'.cm-selectionLayer': {
+				zIndex: 2,
+			},
 			'.cm-selectionBackground': {
-				background: '#8ec0f0',
+				background: 'rgba(0, 140, 0, 0.5)',
 			},
 			'&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground': {
-				background: '#2f7fd0',
+				background: 'rgba(0, 140, 0, 0.5)',
 			},
 			'.cm-content ::selection': {
-				backgroundColor: '#2f7fd0',
+				backgroundColor: 'rgba(0, 140, 0, 0.5)',
 				color: '#111',
 			},
 			'.cm-psv-type': { color: '#006600', fontWeight: 'bold' },

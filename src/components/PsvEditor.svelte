@@ -103,6 +103,20 @@
       overflow: auto;
     }
 
+    /* CM paints the selection layer at z-index: -2, under the active-line fill. */
+    :global(.cm-selectionLayer) {
+      z-index: 2 !important;
+    }
+
+    :global(.cm-selectionBackground) {
+      background: rgba(0, 140, 0, 0.5) !important;
+    }
+
+    :global(.cm-content ::selection) {
+      background-color: rgba(0, 140, 0, 0.5);
+      color: #111;
+    }
+
     &.has-warnings :global(.cm-editor) {
       border-color: #cc8800;
       box-shadow: 0 0 0 2px #cc880033;
