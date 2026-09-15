@@ -13,9 +13,10 @@ describe('githubSlug', () => {
 });
 
 describe('tocFromMarkdown', () => {
-	it('collects h2 headings', () => {
-		const toc = tocFromMarkdown('## TYPE\n\nHello\n\n## WHEN\n');
+	it('starts at the h1, then h2s', () => {
+		const toc = tocFromMarkdown('# How to write entries\n\n## TYPE\n\nHello\n\n## WHEN\n');
 		expect(toc).toEqual([
+			{ id: 'how-to-write-entries', text: 'How to write entries', level: 1 },
 			{ id: 'type', text: 'TYPE', level: 2 },
 			{ id: 'when', text: 'WHEN', level: 2 },
 		]);

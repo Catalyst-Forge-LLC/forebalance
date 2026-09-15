@@ -13,7 +13,7 @@ export function githubSlug(text: string): string {
 		.replace(/\s+/g, '-');
 }
 
-export function tocFromMarkdown(md: string, minLevel = 2, maxLevel = 2): TocItem[] {
+export function tocFromMarkdown(md: string, minLevel = 1, maxLevel = 2): TocItem[] {
 	const items: TocItem[] = [];
 	for (const line of md.split('\n')) {
 		const match = /^(#{1,6})\s+(.+?)\s*$/.exec(line);

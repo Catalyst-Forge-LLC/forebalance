@@ -43,8 +43,8 @@
 
 <article class="help-page">
 	{#if toc.length}
-		<nav class="help-nav" aria-label="On this page">
-			<p class="nav-label">On this page</p>
+		<nav class="help-nav" aria-label="Help contents">
+			<p class="nav-label">Contents</p>
 			<ul>
 				{#each toc as item}
 					<li>
@@ -53,7 +53,7 @@
 							class:active={activeId === item.id}
 							on:click={(event) => jump(event, item.id)}
 						>
-							{item.text}
+							{item.level === 1 ? 'Start' : item.text}
 						</a>
 					</li>
 				{/each}

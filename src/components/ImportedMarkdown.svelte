@@ -47,6 +47,7 @@
             font-size: 1.45rem;
             margin: 0 0 0.6rem;
             color: #006600;
+            scroll-margin-top: 0.75rem;
         }
 
         :global(h2) {
