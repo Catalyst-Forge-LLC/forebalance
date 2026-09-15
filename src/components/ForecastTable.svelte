@@ -161,11 +161,8 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
 
 <div class="table-wrap">
   <p class="edit-hint">
-    Click a row to change date or amount. Recurring rows can update this occurrence
-    (<code>#5=</code>) or the whole series. Rows marked <em>in balance</em> are the same day
-    as a <code>B</code> line and already counted in it. If one has not posted yet, open the
-    row and check <em>Not yet posted</em>. These balances are a projection from the lines
-    you entered, not a promise about real accounts.
+    Click a row to edit. Same-day items already in the <code>B</code> line stay marked
+    <em>in balance</em>. <a href="#help">Help</a> has the rest.
   </p>
   <ThresholdLegend compact />
   <table>

@@ -37,21 +37,21 @@ export function parseOverrideValue(raw: string): OccurrenceOverride | null {
 		trimmed = trimmed.replace(PENDING_SUFFIX, '');
 	}
 	const dated = DATE_THEN_AMOUNT.exec(trimmed);
+	let value: OccurrenceOverride | null = null;
 	if (dated) {
 		const amountPart = dated[2];
 		if (amountPart !== undefined && amountPart !== '') {
 			if (!AMOUNT_ONLY.test(amountPart)) return null;
-			return pending
-				? { date: dated[1], amount: +amountPart, pending: true }
-				: { date: dated[1], amount: +amountPart };
+			value = { date: dated[1], amount: +amountPart };
+		} else {
+			value = { date: dated[1] };
 		}
-		return pending ? { date: dated[1], pending: true } : { date: dated[1] };
+	} else if (AMOUNT_ONLY.test(trimmed)) {
+		value = { amount: +trimmed.replace(/^:/, '') };
 	}
-	if (AMOUNT_ONLY.test(trimmed)) {
-		const amount = +trimmed.replace(/^:/, '');
-		return pending ? { amount, pending: true } : { amount };
-	}
-	return null;
+	if (!value) return null;
+	if (pending) value.pending = true;
+	return value;
 }
 
 export function formatOverrideField(n: number, value: OccurrenceOverride): string {

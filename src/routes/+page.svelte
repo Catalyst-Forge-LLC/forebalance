@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { appStateStore, settingsStore, rawEntriesStore } from '$lib/stores/settings';
-	import { entrySetsStore } from '$lib/data/entrySets';
 	import { Tabs, TabList, TabPanel, Tab } from './../components/tabs';
 	import { parseEntries } from '$lib/parser/parseEntries';
 	import { accountDisplayName, formatAccountOption } from '$lib/parser/accountLabel';
@@ -69,8 +68,6 @@
   $: selectedIsMain = selectedAccount?.isMain ?? true;
   $: forecastReady = !!(accountEntries && selectedAccountId && accountEntries[selectedAccountId]);
   $: forecastReason = forecastReady ? '' : forecastBlockReason($rawEntriesStore);
-  $: activeScenarioName =
-    $entrySetsStore.sets.find((set) => set.id === $entrySetsStore.activeId)?.name ?? 'this scenario';
 
   function selectedAccountHelp(account: typeof selectedAccount): string {
     if (!account) return '';
@@ -153,15 +150,6 @@
             </div>
           </SetSwitcher>
           {#if forecastReady}
-            <p class="forecast-context">
-              Scenario <strong>{activeScenarioName}</strong>. Looking
-              {$settingsStore.monthsToForecast} months ahead. Goal
-              {fmt.curr($settingsStore.thresholdGoalBalance)}, uncomfortable
-              {fmt.curr($settingsStore.thresholdUncomfortableBalance)}, low
-              {fmt.curr($settingsStore.thresholdLowBalance)}. Projected from the lines in this
-              scenario, not a promise about real accounts. Saved in this browser. Export on Entries
-              for a copy you keep.
-            </p>
             <div class="forecast-glance">
               <ForecastSummary
                 entries={selectedEntries}
@@ -303,15 +291,6 @@
     align-items: center;
     gap: 0.4rem;
     margin-left: auto;
-  }
-
-  .forecast-context {
-    margin: 0 0 0.45rem;
-    padding: 0;
-    font-size: 0.8rem;
-    line-height: 1.45;
-    color: #5c635c;
-    text-align: left;
   }
 
   .account-select select {

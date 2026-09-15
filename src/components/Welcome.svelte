@@ -2,11 +2,8 @@
   import { get } from 'svelte/store';
   import ImportedMarkdown from './ImportedMarkdown.svelte';
   import ForecastSparkline from './ForecastSparkline.svelte';
-  import ThresholdLegend from './ThresholdLegend.svelte';
   import { computeForecastSummary } from '$lib/parser/forecastSummary';
-  import { parseEntries } from '$lib/parser/parseEntries';
   import { fmt } from '$lib/formatters/fmt';
-  import { flagIndicator, flagLabel } from '$lib/formatters/thresholdMarks';
   import {
     addNamedSet,
     addSetFromTemplate,
@@ -23,7 +20,7 @@
   } from '$lib/data/simpleExample';
   import { getTemplate } from '$lib/data/entryTemplates';
   import { activateEntrySet } from '$lib/data/entriesPersistence';
-  import { rawEntriesStore, settingsStore } from '$lib/stores/settings';
+  import { rawEntriesStore } from '$lib/stores/settings';
   import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
 
   export let entries: ParsedEntry[] = [];
@@ -44,15 +41,6 @@
   $: summary = forecastReady ? computeForecastSummary(entries, balanceFlags, useMainBalance) : null;
 
   $: exampleRaw = buildSimpleExample();
-  $: exampleParsed = parseEntries(exampleRaw, 3, balanceFlags, {
-    useFederalHolidays: $settingsStore.useFederalHolidays,
-    balanceIncludesSameDay: $settingsStore.balanceIncludesSameDay,
-  });
-  $: exampleMain = exampleParsed[1]
-    ? Object.values(exampleParsed[1]).find((account) => account.isMain)
-    : undefined;
-  $: exampleRows =
-    exampleParsed[0] && exampleMain ? exampleParsed[0][exampleMain.id].slice(0, 6) : [];
 
   function openForecast() {
     location.hash = '#forecast';
@@ -139,57 +127,12 @@
   <section class="walkthrough" aria-label="How a line becomes a forecast">
     <h2>How a line becomes a forecast</h2>
     <p>
-      One credit and one debit, in the same pipe-separated syntax the editor uses.
-      <code>C</code> is money in, <code>D</code> is money out, and <code>,R</code> repeats the line
-      monthly. The starting <code>B</code> line sets checking to $420.
+      One line per transaction: <code>B</code> is the bank number, <code>C</code> is money in,
+      <code>D</code> is money out, and <code>,R</code> repeats monthly.
+      <a href="#help">Help</a> has the full syntax, including same-day items already in that
+      balance. These sample numbers are not personal financial advice.
     </p>
     <pre class="example-src">{exampleRaw.trim()}</pre>
-    <p>
-      A <code>B</code> line is the end-of-day number by default, so rent on the 1st is already in
-      the $420 and does not deduct again. The paycheck on the 15th still raises the running total.
-      If a same-day charge has not posted yet, mark that row <em>Not yet posted</em> on Forecast.
-      These are made-up amounts used to show the format. They are not personal financial advice.
-    </p>
-    {#if exampleRows.length}
-      <div class="example-table-wrap">
-        <table>
-          <caption>First forecast rows from those three lines</caption>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Description</th>
-              <th class="num">Credit</th>
-              <th class="num">Debit</th>
-              <th class="num">Balance</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each exampleRows as row}
-              <tr class="balance-{row.flag || 'plain'}">
-                <td>{fmt.date(row.date)}</td>
-                <td class="desc"
-                  >{row.desc}{#if row.inBalance}
-                    <span class="in-balance-tag">in balance</span>{/if}</td
-                >
-                <td class="num">{row.type === 'C' ? fmt.curr(row.amount) : ''}</td>
-                <td class="num">{row.type === 'D' ? fmt.curr(row.amount) : ''}</td>
-                <td class="num">
-                  {flagIndicator(row.flag)}{fmt.curr(row.mainBalance ?? row.balance ?? 0)}
-                  {#if flagLabel(row.flag)}
-                    <span class="flag-word">{flagLabel(row.flag)}</span>
-                  {/if}
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    {/if}
-    <ThresholdLegend />
-    <p class="persist-note">
-      Row marks use your current Settings thresholds. Loading this example adds a scenario you can
-      edit on Entries. It stays in this browser until you export it or clear site data.
-    </p>
     <div class="walkthrough-actions">
       <button type="button" class="button-action" on:click={loadSimpleExample}>
         Load this example
@@ -331,7 +274,6 @@
   }
 
   .walkthrough p,
-  .persist-note,
   .starter-note {
     margin: 0 0 0.65rem;
     padding: 0;
@@ -340,8 +282,7 @@
     line-height: 1.45;
   }
 
-  .starter-note,
-  .persist-note {
+  .starter-note {
     font-size: 0.85rem;
     color: $clr-muted;
   }
@@ -355,97 +296,6 @@
     border-radius: 0.35rem;
     color: $clr-text;
     font-size: 0.85rem;
-  }
-
-  .example-table-wrap {
-    margin: 0 0 0.75rem;
-    overflow-x: auto;
-  }
-
-  table {
-    width: 100%;
-    min-width: 28em;
-    border-collapse: collapse;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.8rem;
-  }
-
-  caption {
-    caption-side: top;
-    text-align: left;
-    padding-bottom: 0.35rem;
-    font-family: inherit;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: $clr-accent-ink;
-  }
-
-  th,
-  td {
-    padding: 0.3rem 0.4rem;
-    border-bottom: 1px solid $clr-border;
-  }
-
-  th {
-    background: $clr-accent-soft;
-    color: $clr-accent-ink;
-    font-weight: 700;
-  }
-
-  .desc {
-    text-align: left;
-  }
-
-  .in-balance-tag {
-    display: inline-block;
-    margin-left: 0.35rem;
-    padding: 0 0.35rem;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #555;
-    background: rgba(0, 0, 0, 0.06);
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    border-radius: 0.3rem;
-    vertical-align: middle;
-    white-space: nowrap;
-  }
-
-  .num {
-    text-align: right;
-    white-space: nowrap;
-  }
-
-  .flag-word {
-    display: inline-block;
-    margin-left: 0.25rem;
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-  }
-
-  .balance-plain {
-    background: $clr-surface;
-  }
-  .balance-negative {
-    background: $clr-negative-bg;
-    color: $clr-negative-ink;
-    font-weight: 700;
-  }
-  .balance-low {
-    background: $clr-low-bg;
-    color: $clr-low-ink;
-    font-weight: 700;
-  }
-  .balance-uncomfortable {
-    background: $clr-uncomf-bg;
-    color: $clr-uncomf-ink;
-    font-weight: 700;
-  }
-  .balance-goal {
-    background: $clr-goal-bg;
-    color: $clr-goal-ink;
-    font-weight: 700;
   }
 
   .walkthrough-actions {
