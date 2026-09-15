@@ -102,7 +102,7 @@
 </ConfirmModal>
 
 <style lang="scss">
-  @import '../scss/colors';
+  @use '../scss/colors' as *;
 
   .sets-shell {
     display: flex;

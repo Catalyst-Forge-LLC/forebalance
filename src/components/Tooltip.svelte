@@ -35,6 +35,7 @@
 <div
   bind:this={element}
   class="tooltip-wrapper"
+  role="group"
   on:pointerenter={ensureTippy}
 >
   <slot></slot>

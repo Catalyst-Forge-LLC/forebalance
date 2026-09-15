@@ -8,7 +8,7 @@
 </header>
 
 <style lang="scss">
-  @import '../scss/colors';
+  @use '../scss/colors' as *;
 
   header {
     top: 0;

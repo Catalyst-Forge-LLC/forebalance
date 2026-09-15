@@ -176,7 +176,7 @@
 </article>
 
 <style lang="scss">
-  @import '../scss/colors';
+  @use '../scss/colors' as *;
 
   .welcome-page {
     max-width: 55em;

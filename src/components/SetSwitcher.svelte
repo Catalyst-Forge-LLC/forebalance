@@ -58,7 +58,7 @@
 </div>
 
 <style lang="scss">
-  @import '../scss/colors';
+  @use '../scss/colors' as *;
 
   .bar,
   .inline {

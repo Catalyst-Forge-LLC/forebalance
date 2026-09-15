@@ -29,7 +29,7 @@
 </button>
 
 <style lang="scss">
-	@import '../scss/colors';
+	@use '../scss/colors' as *;
 
 	button {
 		flex: 1;

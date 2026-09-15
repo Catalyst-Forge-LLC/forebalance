@@ -208,7 +208,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
             <td class="desc">
               {descriptionFor(entry)}
               {#if entry.inBalanceEligible}
-                <label class="pending-toggle" on:click|stopPropagation>
+                <label class="pending-toggle">
                   <input type="checkbox" bind:checked={editPending} />
                   Not yet posted
                 </label>
@@ -221,7 +221,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
                 </span>
               {/if}
               {#if entry.recur}
-                <fieldset class="scope" on:click|stopPropagation>
+                <fieldset class="scope">
                   <legend class="sr-only">Apply edit to</legend>
                   <label>
                     <input type="radio" bind:group={editScope} value="occurrence" />
@@ -317,7 +317,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
 </div>
 
 <style lang="scss">
-  @import '../scss/colors';
+  @use '../scss/colors' as *;
 
   .table-wrap {
     width: calc(100% - 2rem);

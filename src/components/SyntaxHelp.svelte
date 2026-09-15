@@ -99,7 +99,7 @@ D|2026-04-01,R&lt;|1645|Rent</pre>
 </div>
 
 <style lang="scss">
-  @import '../scss/colors';
+  @use '../scss/colors' as *;
 
   .syntax-help {
     position: relative;

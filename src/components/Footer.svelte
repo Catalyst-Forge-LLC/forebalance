@@ -4,7 +4,7 @@
 </footer>
 
 <style lang="scss">
-  @import '../scss/colors';
+  @use '../scss/colors' as *;
 
   footer {
     bottom: 0;

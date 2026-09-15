@@ -139,7 +139,7 @@
 />
 
 <style lang="scss">
-    @import '../scss/colors';
+    @use '../scss/colors' as *;
 
     .settings-panel {
         max-width: 55em;

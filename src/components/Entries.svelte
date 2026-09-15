@@ -218,7 +218,7 @@
 </ConfirmModal>
 
 <style lang="scss">
-  @import '../scss/colors';
+  @use '../scss/colors' as *;
 
   .entries-page {
     box-sizing: border-box;

@@ -22,7 +22,7 @@
 </div>
 
 <style lang="scss">
-  @import '../scss/colors';
+  @use '../scss/colors' as *;
 
   .legend {
     margin: 0 0 0.75rem;
