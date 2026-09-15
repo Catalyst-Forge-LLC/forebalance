@@ -1,10 +1,14 @@
 <script lang="ts">
+    import { listedCurrencies } from '$lib/data/currencies';
+    import { ensureCurrencyHeader } from '$lib/data/currencyHeader';
     import { defaultSettings } from '$lib/data/defaultSettings';
-    import { resetAllData } from '$lib/data/entriesPersistence';
-    import { settingsStore } from '$lib/stores/settings';
+    import { resetAllData, setRawEntries } from '$lib/data/entriesPersistence';
+    import { persistSettings, rawEntriesStore, settingsStore } from '$lib/stores/settings';
     import type { Settings } from '$lib/parser/types';
     import ConfirmResetModal from './ConfirmResetModal.svelte';
     import Icon from './Icon.svelte';
+
+    const currencies = listedCurrencies();
 
     const ranges: Record<
         keyof Pick<
@@ -25,8 +29,11 @@
     let draftSettings = { ...$settingsStore };
     let resetOpen = false;
 
+    $: draftSettings.currencyIsoCode = $settingsStore.currencyIsoCode;
+
     function commitSettings() {
-        $settingsStore = {
+        const currencyChanged = draftSettings.currencyIsoCode !== $settingsStore.currencyIsoCode;
+        persistSettings({
             ...$settingsStore,
             monthsToForecast: draftSettings.monthsToForecast,
             thresholdGoalBalance: draftSettings.thresholdGoalBalance,
@@ -34,8 +41,12 @@
             thresholdLowBalance: draftSettings.thresholdLowBalance,
             useFederalHolidays: draftSettings.useFederalHolidays,
             balanceIncludesSameDay: draftSettings.balanceIncludesSameDay,
-        };
-        localStorage.setItem('settings', JSON.stringify($settingsStore));
+            currencyIsoCode: draftSettings.currencyIsoCode,
+        });
+        if (currencyChanged) {
+            const stamped = ensureCurrencyHeader($rawEntriesStore, draftSettings.currencyIsoCode);
+            if (stamped !== $rawEntriesStore) setRawEntries(stamped);
+        }
     }
 
     function confirmReset() {
@@ -46,6 +57,23 @@
 </script>
 
 <div class="settings-panel">
+    <section class="panel">
+        <h2>Display currency</h2>
+        <p class="help">
+            How amounts look on Forecast, Welcome, Labs, and copied summaries. It does
+            <strong>not</strong> convert numbers in your entries. Exports include this code.
+            An import without one will ask before using it.
+        </p>
+        <label class="select-label">
+            Currency
+            <select bind:value={draftSettings.currencyIsoCode} on:change={commitSettings}>
+                {#each currencies as option}
+                    <option value={option.code}>{option.label}</option>
+                {/each}
+            </select>
+        </label>
+    </section>
+
     <section class="panel">
         <h2>Forecast thresholds</h2>
         <p class="help">
@@ -177,6 +205,24 @@
         color: #444;
         line-height: 1.4;
         padding: 0;
+    }
+
+    .select-label {
+        display: block;
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: $clr-accent-ink;
+
+        select {
+            display: block;
+            width: min(22em, 100%);
+            margin-top: 0.35rem;
+            padding: 0.35rem 0.5rem;
+            font-size: 1rem;
+            border: 1px solid $clr-border-strong;
+            border-radius: 0.35rem;
+            background: $clr-surface;
+        }
     }
 
     .range-label {

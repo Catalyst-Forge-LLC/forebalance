@@ -106,7 +106,7 @@
 		gap: 0.75rem;
 		padding: 0.7rem 0.9rem;
 		background: linear-gradient(180deg, #ffffff 0%, #f3f8f2 100%);
-		border-bottom: 2px solid $clr-accent;
+		border-bottom: 2px solid $clr-gold;
 	}
 
 	h2 {

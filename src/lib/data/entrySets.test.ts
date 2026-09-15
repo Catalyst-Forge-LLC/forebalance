@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import {
 	addNamedSet,
 	addSetFromTemplate,
+	allSetsBackupPayload,
 	cloneEntrySet,
 	deleteEntrySet,
 	entrySetsStore,
@@ -113,6 +114,28 @@ describe('resolveStarterClick', () => {
 			index === 0 ? { ...set, name: 'April bills' } : set,
 		);
 		expect(resolveStarterClick(renamed, 'close-month')).toEqual({ action: 'add' });
+	});
+});
+
+describe('allSetsBackupPayload', () => {
+	it('stamps currency on the backup and each scenario', () => {
+		const payload = allSetsBackupPayload(
+			{
+				activeId: 'a',
+				sets: [
+					{ id: 'a', name: 'Mine', raw: 'B-CHCK-main|2026-01-01|10|Bal' },
+					{ id: 'b', name: 'Euro', raw: '--- currency EUR\nC|2026-01-01|1|X' },
+				],
+			},
+			'USD',
+			'en-US',
+			new Date('2026-09-15T12:00:00.000Z'),
+		);
+		expect(payload.app).toBe('forebalance');
+		expect(payload.version).toBe(2);
+		expect(payload.currencyIsoCode).toBe('USD');
+		expect(payload.sets[0].raw.startsWith('--- currency USD\n')).toBe(true);
+		expect(payload.sets[1].raw.startsWith('--- currency EUR\n')).toBe(true);
 	});
 });
 

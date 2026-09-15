@@ -156,6 +156,7 @@ On **Entries** you can keep more than one forecast (a tight month, a what-if, an
 - **Forecast** has the same scenario picker, and always uses the one you selected
 - The Forecast **menu** (⋮) exports this table as CSV, copies CSV, copies the glance summary, and can export every account when more than one is in the file
 - **Settings → Reset** can export every scenario as one JSON copy first
+- Exports stamp a comment like `--- currency USD` (whatever you picked under Settings). That line is a comment only. Import asks which currency to use if the file has no stamp.
 
 ## Roll recurring starts
 

@@ -9,8 +9,9 @@
     listTemplates,
     updateActiveRaw,
   } from '$lib/data/entrySets';
+  import { ensureCurrencyHeader } from '$lib/data/currencyHeader';
   import { activateEntrySet } from '$lib/data/entriesPersistence';
-  import { rawEntriesStore } from '$lib/stores/settings';
+  import { rawEntriesStore, settingsStore } from '$lib/stores/settings';
   import { fmt } from '$lib/formatters/fmt';
   import ConfirmModal from './ConfirmModal.svelte';
   import SetSwitcher from './SetSwitcher.svelte';
@@ -47,7 +48,10 @@
 
   function downloadCurrentSet() {
     const slug = activeName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    downloadTextFile(`forebalance-${fmt.date3()}-${slug}.psv`, $rawEntriesStore);
+    downloadTextFile(
+      `forebalance-${fmt.date3()}-${slug}.psv`,
+      ensureCurrencyHeader($rawEntriesStore, $settingsStore.currencyIsoCode),
+    );
   }
 </script>
 

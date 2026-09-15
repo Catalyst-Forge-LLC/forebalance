@@ -196,6 +196,13 @@
       "decision": "Roll recurring starts one period before the earliest B date (or today)",
       "rationale": "2020-era ,R lines still expand every occurrence before Forecast slices at B; rewriting the text keeps the DSL honest and the walk short. Counted series left alone. Overrides remapped by date.",
       "alternatives_considered": ["Silent parser skip only", "Anchor to today even when B is earlier"]
+    },
+    {
+      "date": "2026-09-15",
+      "phase": "4-feature-iteration",
+      "decision": "Display currency is a label only; files carry --- currency USD; import without a stamp asks",
+      "rationale": "Amounts in the PSV stay bare numbers. Switching EUR does not convert. Export must include the code so a later import does not silently assume USD.",
+      "alternatives_considered": ["Per-scenario setting outside the text", "FX conversion", "Locale picker in the same control"]
     }
   ],
   "gotchas": [

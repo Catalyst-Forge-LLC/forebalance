@@ -48,7 +48,7 @@
 		gap: 0.3rem;
 		&.selected {
 			color: $clr-accent-ink;
-			border-bottom: 3px solid $clr-accent;
+			border-bottom: 3px solid $clr-gold;
 			background-color: $clr-accent-soft;
 			font-weight: 700;
 		}

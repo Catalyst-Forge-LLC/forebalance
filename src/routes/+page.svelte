@@ -63,7 +63,12 @@
     parsedOnce = true;
   }
 
-  $: if ($settingsStore.monthsToForecast && balanceFlags) {
+  $: if (
+    $settingsStore.monthsToForecast &&
+    $settingsStore.currencyIsoCode &&
+    $settingsStore.locale &&
+    balanceFlags
+  ) {
     applyParsed($rawEntriesStore || null);
   }
 

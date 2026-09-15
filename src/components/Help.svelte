@@ -127,7 +127,7 @@
 	a.active {
 		background: $clr-accent-soft;
 		font-weight: 700;
-		box-shadow: inset 2px 0 0 $clr-accent;
+		box-shadow: inset 2px 0 0 $clr-gold;
 	}
 
 	@media (max-width: 40em) {

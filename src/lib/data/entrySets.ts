@@ -1,5 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { pruneEntryHistory } from '$lib/data/entryHistory';
+import { ensureCurrencyHeader, extractCurrency } from '$lib/data/currencyHeader';
 import { getRandomId } from '$lib/parser/recurrence';
 import {
 	buildDefaultEntries,
@@ -235,22 +236,46 @@ export function downloadTextFile(filename: string, content: string, mime = 'text
 	document.body.removeChild(element);
 }
 
+export function allSetsBackupPayload(
+	state: EntrySetsState,
+	currencyIsoCode: string,
+	locale: string,
+	exportedAt = new Date(),
+): {
+	app: 'forebalance';
+	version: 2;
+	currencyIsoCode: string;
+	locale: string;
+	exportedAt: string;
+	sets: { name: string; raw: string }[];
+} {
+	return {
+		app: 'forebalance',
+		version: 2,
+		currencyIsoCode,
+		locale,
+		exportedAt: exportedAt.toISOString(),
+		sets: state.sets.map((set) => ({
+			name: set.name,
+			raw: ensureCurrencyHeader(set.raw, extractCurrency(set.raw) ?? currencyIsoCode),
+		})),
+	};
+}
+
 /** One JSON backup of every set. */
-export function exportAllSetsBackup(currentRaw?: string): void {
+export function exportAllSetsBackup(
+	currentRaw?: string,
+	currencyIsoCode = 'USD',
+	locale = 'en-US',
+): void {
 	if (currentRaw !== undefined) {
 		updateActiveRaw(currentRaw);
 	}
 	const state = get(entrySetsStore);
 	const day = new Date().toISOString().slice(0, 10);
-	const payload = {
-		app: 'forebalance',
-		version: 1,
-		exportedAt: new Date().toISOString(),
-		sets: state.sets.map((set) => ({ name: set.name, raw: set.raw })),
-	};
 	downloadTextFile(
 		`forebalance-all-sets-${day}.json`,
-		JSON.stringify(payload, null, 2),
+		JSON.stringify(allSetsBackupPayload(state, currencyIsoCode, locale), null, 2),
 		'application/json',
 	);
 }

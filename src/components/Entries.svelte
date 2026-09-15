@@ -8,9 +8,11 @@
     type EntryVersion,
     entryHistoryStore,
   } from '$lib/data/entryHistory';
+  import { listedCurrencies } from '$lib/data/currencies';
+  import { ensureCurrencyHeader, extractCurrency } from '$lib/data/currencyHeader';
   import { entrySetsStore } from '$lib/data/entrySets';
   import { setRawEntries } from '$lib/data/entriesPersistence';
-  import { rawEntriesStore } from '$lib/stores/settings';
+  import { applyDisplayCurrency, rawEntriesStore, settingsStore } from '$lib/stores/settings';
   import {
     getLinkedFileName,
     isFileSystemAccessSupported,
@@ -32,6 +34,7 @@
 
   const persistTip =
     'This scenario stays in this browser on this device. Clearing site data deletes it. Export a .psv for a copy you keep. Browser storage is not a durable backup. Previous versions (last 20 edits) are kept here too.';
+  const currencies = listedCurrencies();
 
   let lastInputEntries = '';
   let draftEntries = '';
@@ -45,6 +48,8 @@
   let pendingContent = '';
   let importOpen = false;
   let unusualOpen = false;
+  let currencyOpen = false;
+  let pendingCurrency = '';
   let linkOpen = false;
   let rollOpen = false;
   let restoreOpen = false;
@@ -57,6 +62,7 @@
   $: validationWarnings = validateRawEntries(draftEntries || $rawEntriesStore);
   $: rollPreview = rollRecurringStarts(draftEntries || $rawEntriesStore);
   $: versions = listEntryVersions($entrySetsStore.activeId, $entryHistoryStore);
+  $: pendingFileCurrency = pendingContent ? extractCurrency(pendingContent) : null;
 
   onMount(() => {
     fsSupported = isFileSystemAccessSupported();
@@ -103,15 +109,46 @@
       unusualOpen = true;
       return;
     }
-    applyPending();
+    askCurrencyIfNeeded();
   }
 
   function applyPending() {
-    applyRawEntries(pendingContent);
-    pendingName = '';
-    pendingContent = '';
     unusualOpen = false;
     importOpen = false;
+    askCurrencyIfNeeded();
+  }
+
+  function askCurrencyIfNeeded() {
+    const marked = extractCurrency(pendingContent);
+    if (marked) {
+      finishImport(marked);
+      return;
+    }
+    pendingCurrency = $settingsStore.currencyIsoCode;
+    currencyOpen = true;
+  }
+
+  function finishImport(code: string) {
+    const raw = ensureCurrencyHeader(pendingContent, code);
+    applyRawEntries(raw);
+    applyDisplayCurrency(code);
+    pendingName = '';
+    pendingContent = '';
+    pendingCurrency = '';
+    unusualOpen = false;
+    importOpen = false;
+    currencyOpen = false;
+    linkOpen = false;
+  }
+
+  function cancelPendingImport() {
+    importOpen = false;
+    unusualOpen = false;
+    currencyOpen = false;
+    linkOpen = false;
+    pendingName = '';
+    pendingContent = '';
+    pendingCurrency = '';
   }
 
   function clickImport() {
@@ -136,8 +173,8 @@
   }
 
   function confirmLink() {
-    applyRawEntries(pendingContent);
     linkOpen = false;
+    askCurrencyIfNeeded();
   }
 
   async function clickUnlink() {
@@ -251,6 +288,9 @@
   onConfirm={confirmImport}
 >
   <p>Replace the current scenario with <strong>{pendingName}</strong>?</p>
+  {#if pendingFileCurrency}
+    <p>This file is marked {pendingFileCurrency}. Forecast will show that currency.</p>
+  {/if}
 </ConfirmModal>
 
 <ConfirmModal
@@ -264,6 +304,27 @@
 </ConfirmModal>
 
 <ConfirmModal
+  open={currencyOpen}
+  title="Which currency?"
+  confirmLabel="Use this currency"
+  onCancel={cancelPendingImport}
+  onConfirm={() => finishImport(pendingCurrency)}
+>
+  <p>
+    <strong>{pendingName}</strong> does not say which currency the amounts are in.
+    ForeBalance will not convert the numbers — it only changes how they look.
+  </p>
+  <label class="currency-pick">
+    Use
+    <select bind:value={pendingCurrency}>
+      {#each currencies as option}
+        <option value={option.code}>{option.label}</option>
+      {/each}
+    </select>
+  </label>
+</ConfirmModal>
+
+<ConfirmModal
   open={linkOpen}
   title="Load the linked file?"
   confirmLabel="Load entries"
@@ -271,6 +332,9 @@
   onConfirm={confirmLink}
 >
   <p>Link to <strong>{pendingName}</strong> and load its entries into this scenario?</p>
+  {#if pendingFileCurrency}
+    <p>This file is marked {pendingFileCurrency}. Forecast will show that currency.</p>
+  {/if}
 </ConfirmModal>
 
 <ConfirmModal
@@ -421,5 +485,20 @@
   .dropzone-wrap p {
     margin: 0;
     padding: 0;
+  }
+
+  .currency-pick {
+    display: block;
+    margin: 0.75rem 0 0;
+    font-weight: 700;
+
+    select {
+      display: block;
+      width: 100%;
+      margin-top: 0.35rem;
+      padding: 0.35rem 0.5rem;
+      font-size: 1rem;
+      font-weight: 400;
+    }
   }
 </style>

@@ -102,6 +102,7 @@ describe('forecastSummaryText', () => {
 		});
 		expect(text).toContain(`As of ${formatSummaryStamp(at)}`);
 		expect(text).toContain('Close month');
+		expect(text).toContain('Currency USD');
 	});
 });
 

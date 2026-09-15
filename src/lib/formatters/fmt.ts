@@ -34,5 +34,16 @@ export function createFormatter(settings: Settings = getSettings()) {
 	};
 }
 
-/** Module-level formatter using current settings store snapshot. */
+/** Live formatter. Methods update when Settings currency or locale changes. */
 export const fmt = createFormatter();
+
+settingsStore.subscribe((settings) => {
+	const next = createFormatter(settings);
+	fmt.date = next.date;
+	fmt.date2 = next.date2;
+	fmt.date3 = next.date3;
+	fmt.upper = next.upper;
+	fmt.lower = next.lower;
+	fmt.curr = next.curr;
+	fmt.pct = next.pct;
+});

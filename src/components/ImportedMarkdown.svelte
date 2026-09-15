@@ -100,6 +100,7 @@
             background: #143314;
             color: #e8ffe8;
             border-radius: 0.4rem;
+            border-left: 3px solid #c4a35a;
         }
 
         :global(pre code) {

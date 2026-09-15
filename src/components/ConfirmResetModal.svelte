@@ -1,6 +1,6 @@
 <script lang="ts">
   import { exportAllSetsBackup } from '$lib/data/entrySets';
-  import { rawEntriesStore } from '$lib/stores/settings';
+  import { rawEntriesStore, settingsStore } from '$lib/stores/settings';
   import Icon from './Icon.svelte';
 
   export let open = false;
@@ -19,7 +19,11 @@
   $: canConfirm = typed.trim().toUpperCase() === REQUIRED;
 
   function exportFirst() {
-    exportAllSetsBackup($rawEntriesStore);
+    exportAllSetsBackup(
+      $rawEntriesStore,
+      $settingsStore.currencyIsoCode,
+      $settingsStore.locale,
+    );
     exported = true;
   }
 

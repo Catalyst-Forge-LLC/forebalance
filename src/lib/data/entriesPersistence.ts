@@ -11,7 +11,8 @@ import {
 } from '$lib/data/entrySets';
 import { clearEntryHistory, loadEntryHistory, recordEntryVersion } from '$lib/data/entryHistory';
 import { restoreLinkedFile, writeLinkedPsvFile } from '$lib/persistence/psvPersistence';
-import { rawEntriesStore, settingsStore } from '$lib/stores/settings';
+import { extractCurrency } from '$lib/data/currencyHeader';
+import { applyDisplayCurrency, persistSettings, rawEntriesStore } from '$lib/stores/settings';
 
 const USER_ENTRIES_KEY = 'userEntries';
 const PERSIST_DELAY_MS = 800;
@@ -47,11 +48,17 @@ export function setRawEntries(rawEntries: string): void {
 	void persistRawEntries(rawEntries);
 }
 
+function syncCurrencyFromRaw(rawEntries: string): void {
+	const marked = extractCurrency(rawEntries);
+	if (marked) applyDisplayCurrency(marked);
+}
+
 /** Switch sets without writing the linked file (avoids overwriting a disk file on browse). */
 export function activateEntrySet(rawEntries: string): void {
 	rawEntriesStore.set(rawEntries);
 	localStorage.setItem('rawEntries', rawEntries);
 	localStorage.setItem(USER_ENTRIES_KEY, rawEntries);
+	syncCurrencyFromRaw(rawEntries);
 }
 
 export async function initializeData(): Promise<void> {
@@ -59,8 +66,7 @@ export async function initializeData(): Promise<void> {
 	const parsedSettings = lsSettings ? JSON.parse(lsSettings) : {};
 	const settings = { ...defaultSettings, ...parsedSettings };
 	delete (settings as { useDemoEntries?: boolean }).useDemoEntries;
-	settingsStore.set(settings);
-	localStorage.setItem('settings', JSON.stringify(settings));
+	persistSettings(settings);
 
 	const linked = await restoreLinkedFile();
 	const storedSets = loadEntrySets();
@@ -82,6 +88,7 @@ export async function initializeData(): Promise<void> {
 	rawEntriesStore.set(active.raw);
 	localStorage.setItem('rawEntries', active.raw);
 	localStorage.setItem(USER_ENTRIES_KEY, active.raw);
+	syncCurrencyFromRaw(active.raw);
 }
 
 export function getRawEntries(): string {
@@ -99,10 +106,8 @@ export function resetAllData(): void {
 	localStorage.removeItem('forebalance_entrySets');
 	clearEntryHistory();
 	const sets = resetToStarterSets();
-	const settings = { ...defaultSettings };
-	settingsStore.set(settings);
+	persistSettings({ ...defaultSettings });
 	rawEntriesStore.set(getActiveSet(sets).raw);
-	localStorage.setItem('settings', JSON.stringify(settings));
 	localStorage.setItem('rawEntries', getActiveSet(sets).raw);
 	localStorage.setItem(USER_ENTRIES_KEY, getActiveSet(sets).raw);
 }

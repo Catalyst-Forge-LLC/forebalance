@@ -4,6 +4,9 @@
 	--fb-accent: #009900;
 	--fb-accent-ink: #0d5c14;
 	--fb-accent-soft: #e8f2e8;
+	--fb-gold: #c4a35a;
+	--fb-gold-ink: #6b5420;
+	--fb-gold-soft: #f7f1df;
 	--fb-bg: #f5f5f2;
 	--fb-surface: #ffffff;
 	--fb-text: #1c211c;
@@ -16,6 +19,7 @@
 	--fb-shadow-card: 0 0.12rem 0.45rem rgba(28, 33, 28, 0.05);
 	--fb-wash:
 		radial-gradient(ellipse 90% 48% at 50% -12%, rgba(0, 153, 0, 0.1), transparent 55%),
+		radial-gradient(ellipse 55% 36% at 100% 0%, rgba(196, 163, 90, 0.14), transparent 52%),
 		linear-gradient(180deg, #eef2ea 0%, #f5f5f2 42%, #f2f0ea 100%);
 }
 
@@ -133,7 +137,7 @@ fieldset {
 		border-radius: 0.3rem;
 		padding: 0.2rem 0.7rem;
 		background-color: $clr-accent-soft;
-		border: 1px solid $clr-border-strong;
+		border: 1px solid $clr-gold;
 		color: $clr-accent-ink;
 	}
 }

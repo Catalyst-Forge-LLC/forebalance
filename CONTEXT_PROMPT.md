@@ -14,7 +14,7 @@ SvelteKit 2 + Svelte 5 + TypeScript + Vitest + `adapter-static` → Cloudflare P
 
 1. Entries: edit `.psv` (CodeMirror). Toolbar is scenario + name + info + Syntax + ⋮ kebab (import, drop-on-demand, roll starts, last 20 versions per scenario). Site ☰ holds About/Privacy (modal), GitHub, Catalyst Forge, and a flyout to ForgeTrail, LocalSlip, and LocalHelm.
 2. Forecast: table + summary + sparkline from the earliest `B` line forward (`monthsToForecast`). Toolbar kebab exports / copies CSV and the glance summary.
-3. Settings: months, thresholds, holiday shift, same-day `B` meaning.
+3. Settings: months, thresholds, display currency (labels only — does not convert entry numbers), holiday shift, same-day `B` meaning. Scenario export stamps `--- currency USD`; import without a stamp asks.
 
 ## DSL (short)
 

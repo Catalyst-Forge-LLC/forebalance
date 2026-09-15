@@ -110,6 +110,7 @@ export function forecastSummaryText(
 	const lines = [
 		`ForeBalance forecast — ${opts.scenarioName}`,
 		opts.accountLabel,
+		`Currency ${get(settingsStore).currencyIsoCode}`,
 		`As of ${formatSummaryStamp(opts.at ?? new Date())}`,
 		formatSummaryPoint('Lowest', summary.lowest),
 		formatSummaryPoint('Uncomfortable', summary.firstUncomfortable),
