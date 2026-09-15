@@ -2,6 +2,7 @@
 	import { appStateStore, settingsStore, rawEntriesStore } from '$lib/stores/settings';
 	import { Tabs, TabList, TabPanel, Tab } from './../components/tabs';
 	import { parseEntries } from '$lib/parser/parseEntries';
+	import { currencyLabel } from '$lib/data/currencies';
 	import { accountDisplayName, formatAccountOption } from '$lib/parser/accountLabel';
 	import { fmt } from '$lib/formatters/fmt';
 
@@ -166,6 +167,14 @@
         <div class="forecast-column">
           <SetSwitcher editable={false}>
             <div slot="extra" class="account-slot">
+              <a
+                href="#settings"
+                class="currency-mark"
+                title="{currencyLabel($settingsStore.currencyIsoCode)}. Change in Settings."
+              >
+                <span class="sr-only">Display currency</span>
+                {$settingsStore.currencyIsoCode}
+              </a>
               {#if forecastReady && accountList.length > 1}
                 {#if accountList.length > 4}
                   <label class="account-select">
@@ -353,6 +362,25 @@
     align-items: center;
     gap: 0.4rem;
     margin-left: auto;
+  }
+
+  .currency-mark {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18rem 0.45rem;
+    border: 1px solid var(--fb-gold);
+    border-radius: 0.3rem;
+    background: var(--fb-gold-soft);
+    color: var(--fb-gold-ink);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    line-height: 1.2;
+  }
+
+  .currency-mark:hover {
+    background: #efe6c8;
   }
 
   .account-select select {
