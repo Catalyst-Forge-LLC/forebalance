@@ -1,3 +1,5 @@
+import { parseOverrideField } from '$lib/parser/occurrenceEdit';
+
 export interface EntryValidation {
 	line: number;
 	message: string;
@@ -41,7 +43,7 @@ export function validateRawEntries(raw: string): EntryValidation[] {
 		}
 
 		for (const field of parts.slice(4)) {
-			if (/^#\d+/.test(field) && !/^#\d+=(\d{4}-\d{1,2}-\d{1,2}(?::\S+)?|:?-?\d+(?:\.\d+)?)$/.test(field)) {
+			if (/^#\d+/.test(field) && !parseOverrideField(field)) {
 				warnings.push({
 					line: index + 1,
 					message: `Invalid occurrence override "${field}"`,
