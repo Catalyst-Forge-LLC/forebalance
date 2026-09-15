@@ -18,6 +18,7 @@
   import EntrySetsPanel from './EntrySetsPanel.svelte';
   import Icon from './Icon.svelte';
   import PsvEditor from './PsvEditor.svelte';
+  import SyntaxHelp from './SyntaxHelp.svelte';
 
   let lastInputEntries = '';
   let draftEntries = '';
@@ -135,10 +136,13 @@
       on:change={onImportSelected}
     />
 
-    <p class="persist-note">
-      This scenario stays in this browser on this device. Clearing site data deletes it. Export a
-      <code>.psv</code> for a copy you keep. Browser storage is not a durable backup.
-    </p>
+    <div class="editor-head">
+      <p class="persist-note">
+        This scenario stays in this browser on this device. Clearing site data deletes it. Export a
+        <code>.psv</code> for a copy you keep. Browser storage is not a durable backup.
+      </p>
+      <SyntaxHelp />
+    </div>
     <PsvEditor
       value={$rawEntriesStore}
       hasWarnings={validationWarnings.length > 0}
@@ -220,8 +224,16 @@
     padding: 0.5rem 1rem 1rem;
   }
 
-  .persist-note {
+  .editor-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
     margin: 0.35rem 0 0;
+  }
+
+  .persist-note {
+    margin: 0;
     padding: 0;
     font-size: 0.8rem;
     line-height: 1.4;
