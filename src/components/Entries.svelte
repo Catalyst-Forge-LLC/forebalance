@@ -131,7 +131,7 @@
   function finishImport(code: string) {
     const raw = ensureCurrencyHeader(pendingContent, code);
     applyRawEntries(raw);
-    applyDisplayCurrency(code);
+    applyDisplayCurrency(code, { scaleThresholds: true });
     pendingName = '';
     pendingContent = '';
     pendingCurrency = '';

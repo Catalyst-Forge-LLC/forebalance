@@ -2,38 +2,36 @@
     import { listedCurrencies } from '$lib/data/currencies';
     import { ensureCurrencyHeader } from '$lib/data/currencyHeader';
     import { defaultSettings } from '$lib/data/defaultSettings';
+    import { scaleThresholdSettings, thresholdSliderRange } from '$lib/data/thresholdScale';
     import { resetAllData, setRawEntries } from '$lib/data/entriesPersistence';
     import { persistSettings, rawEntriesStore, settingsStore } from '$lib/stores/settings';
-    import type { Settings } from '$lib/parser/types';
     import ConfirmResetModal from './ConfirmResetModal.svelte';
     import Icon from './Icon.svelte';
 
     const currencies = listedCurrencies();
 
-    const ranges: Record<
-        keyof Pick<
-            Settings,
-            | 'monthsToForecast'
-            | 'thresholdGoalBalance'
-            | 'thresholdUncomfortableBalance'
-            | 'thresholdLowBalance'
-        >,
-        { label: string; min: number; max: number; step: number }
-    > = {
+    $: goalRange = thresholdSliderRange('thresholdGoalBalance', $settingsStore.currencyIsoCode);
+    $: uncomfRange = thresholdSliderRange(
+        'thresholdUncomfortableBalance',
+        $settingsStore.currencyIsoCode,
+    );
+    $: lowRange = thresholdSliderRange('thresholdLowBalance', $settingsStore.currencyIsoCode);
+    $: ranges = {
         monthsToForecast: { label: 'Months to forecast', min: 3, max: 24, step: 1 },
-        thresholdGoalBalance: { label: 'Goal balance', min: 500, max: 20000, step: 100 },
-        thresholdUncomfortableBalance: { label: 'Uncomfortable balance', min: 50, max: 10000, step: 50 },
-        thresholdLowBalance: { label: 'Low balance', min: 50, max: 10000, step: 50 },
+        thresholdGoalBalance: { label: 'Goal balance', ...goalRange },
+        thresholdUncomfortableBalance: { label: 'Uncomfortable balance', ...uncomfRange },
+        thresholdLowBalance: { label: 'Low balance', ...lowRange },
     };
 
     let draftSettings = { ...$settingsStore };
     let resetOpen = false;
 
-    $: draftSettings.currencyIsoCode = $settingsStore.currencyIsoCode;
+    $: draftSettings.thresholdGoalBalance = $settingsStore.thresholdGoalBalance;
+    $: draftSettings.thresholdUncomfortableBalance = $settingsStore.thresholdUncomfortableBalance;
+    $: draftSettings.thresholdLowBalance = $settingsStore.thresholdLowBalance;
 
-    function commitSettings() {
-        const currencyChanged = draftSettings.currencyIsoCode !== $settingsStore.currencyIsoCode;
-        persistSettings({
+    function draftWithoutCurrency() {
+        return {
             ...$settingsStore,
             monthsToForecast: draftSettings.monthsToForecast,
             thresholdGoalBalance: draftSettings.thresholdGoalBalance,
@@ -41,12 +39,23 @@
             thresholdLowBalance: draftSettings.thresholdLowBalance,
             useFederalHolidays: draftSettings.useFederalHolidays,
             balanceIncludesSameDay: draftSettings.balanceIncludesSameDay,
-            currencyIsoCode: draftSettings.currencyIsoCode,
+        };
+    }
+
+    function changeCurrency(toCode: string) {
+        const fromCode = $settingsStore.currencyIsoCode;
+        if (fromCode === toCode) return;
+        const next = scaleThresholdSettings(draftWithoutCurrency(), fromCode, toCode);
+        persistSettings({ ...next, currencyIsoCode: toCode });
+        const stamped = ensureCurrencyHeader($rawEntriesStore, toCode);
+        if (stamped !== $rawEntriesStore) setRawEntries(stamped);
+    }
+
+    function commitSettings() {
+        persistSettings({
+            ...draftWithoutCurrency(),
+            currencyIsoCode: $settingsStore.currencyIsoCode,
         });
-        if (currencyChanged) {
-            const stamped = ensureCurrencyHeader($rawEntriesStore, draftSettings.currencyIsoCode);
-            if (stamped !== $rawEntriesStore) setRawEntries(stamped);
-        }
     }
 
     function confirmReset() {
@@ -61,12 +70,16 @@
         <h2>Display currency</h2>
         <p class="help">
             How amounts look on Forecast, Welcome, Labs, and copied summaries. It does
-            <strong>not</strong> convert numbers in your entries. Exports include this code.
-            An import without one will ask before using it.
+            <strong>not</strong> convert numbers in your entries. Threshold marks are rescaled
+            to a similar household size (rounded, not a live exchange rate). Exports include
+            this code. An import without one will ask before using it.
         </p>
         <label class="select-label">
             Currency
-            <select bind:value={draftSettings.currencyIsoCode} on:change={commitSettings}>
+            <select
+                value={$settingsStore.currencyIsoCode}
+                on:change={(event) => changeCurrency(event.currentTarget.value)}
+            >
                 {#each currencies as option}
                     <option value={option.code}>{option.label}</option>
                 {/each}
@@ -78,9 +91,10 @@
         <h2>Forecast thresholds</h2>
         <p class="help">
             These apply to whichever scenario you are viewing on Forecast. They do not change your
-            entry text. The table uses them to mark projected balances. Those marks are not a
-            promise that a real account will land there. This is not financial advice.
-            See <a href="#about">About</a> for the full disclaimer.
+            entry text. The table uses them to mark projected balances. Changing currency
+            rescales them to a rounded household-sized mark — not an exact conversion. Those
+            marks are not a promise that a real account will land there. This is not financial
+            advice. See <a href="#about">About</a> for the full disclaimer.
         </p>
 
         {#each Object.entries(ranges) as [key, range]}
