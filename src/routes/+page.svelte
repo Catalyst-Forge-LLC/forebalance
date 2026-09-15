@@ -12,7 +12,6 @@
 	import Settings from '../components/Settings.svelte';
 	import Help from '../components/Help.svelte';
 	import Welcome from '../components/Welcome.svelte';
-	import Labs from '../components/Labs.svelte';
 	import About from '../components/About.svelte';
 	import Privacy from '../components/Privacy.svelte';
 
@@ -180,12 +179,16 @@
         <Settings></Settings>
       </TabPanel>
       <TabPanel>
-        <Labs
-          entries={selectedEntries}
-          {balanceFlags}
-          useMainBalance={selectedIsMain}
-          forecastReady={forecastReady}
-        />
+        {#await import('../components/Labs.svelte')}
+          <p class="labs-boot">Opening Labs…</p>
+        {:then { default: Labs }}
+          <Labs
+            entries={selectedEntries}
+            {balanceFlags}
+            useMainBalance={selectedIsMain}
+            forecastReady={forecastReady}
+          />
+        {/await}
       </TabPanel>
       <TabPanel>
         <Help></Help>
@@ -242,6 +245,14 @@
     display: flex;
     flex-direction: column;
     padding-bottom: 0.75rem;
+  }
+
+  .labs-boot {
+    margin: 1.5rem auto;
+    max-width: 36em;
+    padding: 0 1rem;
+    text-align: left;
+    color: #5c635c;
   }
 
   .forecast-empty {
