@@ -145,9 +145,10 @@ export const QUERY_TYPES: QueryType[] = [
 		id: 'same-day',
 		kind: 'syntax',
 		title: 'Same-day order',
-		when: 'same day, which posts first',
-		match: /\b(same[- ]day|order of (B|C|D)|which (posts|hits) first)\b/i,
-		template: 'Same day: B, then C, then D, then original line order.',
+		when: 'same day, which posts first, already in balance',
+		match: /\b(same[- ]day|order of (B|C|D)|which (posts|hits) first|already in (the )?balance|posted today)\b/i,
+		template:
+			'Same day as B: lines above B are already in that bank number. Lines below B still post (C then D).',
 	},
 	{
 		id: 'draft-rent',

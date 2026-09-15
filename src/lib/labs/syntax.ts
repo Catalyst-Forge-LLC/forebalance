@@ -28,7 +28,7 @@ Debt on first use: TYPE-ACCOUNT|WHEN|AMOUNT|DESCRIPTION|ACCOUNT|STARTING_BAL|APR
 One occurrence of a recurring line: append |#N=YYYY-MM-DD:AMT or |#N=AMT or |#N=YYYY-MM-DD
 Example: D|2026-04-03,RW|80|Groceries|#5=2026-05-08:65
 # at the start of a line still disables the whole line. |#5= is an override, not a disable.
-Same-day order: B, then C, then D.`;
+Same-day order: on a B date, lines listed above that B are already in the bank number (they do not add or deduct). Lines below B still post: C, then D.`;
 
 const UNIT: Record<string, [string, string]> = {
 	D: ['day', 'days'],
@@ -95,8 +95,11 @@ export function answerSyntaxQuestion(question: string): string | null {
 		return explainRecurrenceToken(token);
 	}
 
+	if (/\bsame[- ]day|already in (the )?(bank |today'?s )?balance|posted today\b/i.test(spoken)) {
+		return 'On the date of a `B` line, same-day lines listed **above** that balance are already in the bank number and do not add or deduct again. Same-day lines **below** `B` still post (credits, then debits). Move a cleared rent or paycheck above `B` when you paste today\'s balance; later repeats of a recurring line still forecast.';
+	}
 	if (/\bwhat (is|does)\s+B\b|\btype b\b|\bbalance reset\b/i.test(spoken)) {
-		return '`B` is a balance as of a date. It resets the running balance. Example: `B-CHCK1775-main|2026-04-01|1840|Balance Checking 1775`.';
+		return '`B` is a balance as of a date. It resets the running balance. Same-day lines listed above it are already in that number. Example: `B-CHCK1775-main|2026-04-01|1840|Balance Checking 1775`.';
 	}
 	if (/\bwhat (is|does)\s+C\b|\btype c\b|\bcredit\b/i.test(spoken) && /\b(type|mean|credit|what)\b/i.test(spoken)) {
 		return '`C` is a credit (money in). Example: `C|2026-04-01,R2W|1684|Paycheck`.';

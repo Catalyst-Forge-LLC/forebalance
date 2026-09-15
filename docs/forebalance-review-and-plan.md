@@ -126,7 +126,7 @@ Code in `parseEntries.js` already implements more than the product spec document
 
 | Issue | Code evidence |
 |---|---|
-| Same-day sort order | `sortEntries()` — date, then type string (`C` before `D`), not entry order |
+| Same-day sort order | `sortEntries()` — date, then file position relative to `B` on that date, then type (`B`, `C`, `D`), then entry order |
 | Malformed lines | Silently dropped — should surface in editor |
 | `B` mid-forecast | Resets balance; prior-entry semantics undocumented |
 | Month-end recurrence | `dayjs.add(n, 'month')` drifts on 29/30/31 |

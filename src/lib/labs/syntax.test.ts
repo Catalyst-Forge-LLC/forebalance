@@ -18,6 +18,12 @@ describe('answerSyntaxQuestion', () => {
 		expect(answerSyntaxQuestion('What does #5= mean?')).toContain('|#5=');
 	});
 
+	it('explains same-day lines already in the balance', () => {
+		expect(answerSyntaxQuestion('What if rent is already in the balance?')).toContain(
+			'above',
+		);
+	});
+
 	it('leaves unknown asks for the model', () => {
 		expect(answerSyntaxQuestion('Write me a haiku about rent')).toBeNull();
 	});

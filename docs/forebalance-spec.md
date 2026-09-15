@@ -198,8 +198,8 @@ Parser support for multi-account and debt tracking already exists but is undocum
 | 4 | Docs | Help examples are dated 2021; refresh to current-year dates so they don't read as stale |
 | 5 | Copy | Welcome tab calls it both a "fun little tool" and an "amazing tool" — pick one register. Given the DSL, lean toward plain and confident: *ForeBalance projects your account balance forward from a plaintext list of credits and debits.* |
 | 6 | Behavior | Undefined/undocumented: what happens to a malformed line? Silently skipped, or error surfaced? Should be surfaced. |
-| 7 | Behavior | Undefined: does a `B` entry mid-forecast override the running balance, and what happens to entries dated before it? |
-| 8 | Behavior | Same-day ordering appears non-deterministic (9/1 shows Paycheck, Gas, Weekly Food, Rent, Misc, Netflix — not entry order, not amount order). Define a stable sort: date, then credits before debits, then entry order. |
+| 7 | Behavior | `B` resets the running balance. Entries dated before it are dropped. Same-day lines listed **above** that `B` in the file are treated as already in the bank number; lines below it still post. |
+| 8 | Behavior | Same-day sort is stable: date, then (on a `B` date) file position relative to `B`, then type (`B`, `C`, `D`), then entry order. |
 | 9 | Accessibility | Threshold row coloring is the only signal for low/uncomfortable balances. Add a non-color indicator (icon or bold) for color-blind users. |
 | 10 | Accessibility | Slider-only settings with no numeric input; add typed entry for precise threshold values. |
 | 11 | Responsive | Layout appears desktop-first; verify the forecast table and editor are usable on mobile |

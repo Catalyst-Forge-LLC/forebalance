@@ -156,8 +156,9 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
 <div class="table-wrap">
   <p class="edit-hint">
     Click a row to change date or amount. Recurring rows can update this occurrence
-    (<code>#5=</code>) or the whole series. These balances are a projection from the
-    lines you entered, not a promise about real accounts.
+    (<code>#5=</code>) or the whole series. On the balance date, lines listed above
+    the <code>B</code> line in Entries are already in that number. These balances are
+    a projection from the lines you entered, not a promise about real accounts.
   </p>
   <ThresholdLegend compact />
   <table>

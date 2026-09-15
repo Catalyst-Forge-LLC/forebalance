@@ -80,6 +80,12 @@ D|2026-04-01,R&lt;|1645|Rent</pre>
         </tbody>
       </table>
 
+      <h4>Already in today's balance</h4>
+      <p>
+        On the <code>B</code> date, lines listed <strong>above</strong> that balance are already in
+        the bank number. Lines below it still post (credits, then debits).
+      </p>
+
       <h4>One occurrence</h4>
       <p><code>|#5=2026-05-08:65</code> — fifth only. Or <code>#5=65</code> / <code>#5=2026-05-08</code>.</p>
 

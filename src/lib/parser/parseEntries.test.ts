@@ -110,6 +110,33 @@ D|2026-01-01,R|1000|Rent`;
 		const rentRows = accountEntries![mainId].filter((e) => e.desc?.includes('Rent'));
 		expect(rentRows.length).toBe(3);
 	});
+
+	it('skips same-day lines listed above B as already in that balance', () => {
+		const raw = `D|2026-09-15,R|500|Rent
+B-CHCK-main|2026-09-15|2000|Balance
+C|2026-09-15|100|Pending deposit`;
+
+		const [accountEntries] = parseEntries(raw, 2, balanceFlags);
+		const mainId = Object.keys(accountEntries!)[0];
+		const rows = accountEntries![mainId];
+		expect(rows.map((e) => e.desc)).toEqual(['Balance', 'Pending deposit', 'Rent  (#2)']);
+		expect(rows[0]?.mainBalance).toBe(2000);
+		expect(rows[1]?.mainBalance).toBe(2100);
+		expect(rows.at(-1)?.date?.getMonth()).toBe(9);
+	});
+
+	it('still applies same-day lines listed below B', () => {
+		const raw = `B-CHCK-main|2026-09-15|2000|Balance
+D|2026-09-15|500|Rent`;
+
+		const [accountEntries] = parseEntries(raw, 1, balanceFlags);
+		const mainId = Object.keys(accountEntries!)[0];
+		const rows = accountEntries![mainId];
+		expect(rows.map((e) => `${e.desc}:${e.mainBalance}`)).toEqual([
+			'Balance:2000',
+			'Rent:1500',
+		]);
+	});
 });
 
 describe('starter templates', () => {
