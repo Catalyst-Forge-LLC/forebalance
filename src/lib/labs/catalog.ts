@@ -232,7 +232,7 @@ export const QUERY_TYPES: QueryType[] = [
 		title: 'Privacy',
 		when: 'does this leave the device, are you uploading',
 		match: /\b(privacy|leave the (device|browser)|upload|sent to)\b/i,
-		template: 'Entries and prompts stay in this tab. Labs models run on-device. See the Privacy tab.',
+		template: 'Entries and prompts stay in this tab. Labs models run on-device. See Privacy in the site menu.',
 	},
 ];
 

@@ -73,7 +73,7 @@
     title="Scenario actions"
     on:click={toggle}
   >
-    <Icon name="menu" />
+    <Icon name="kebab" />
   </button>
 
   {#if open}

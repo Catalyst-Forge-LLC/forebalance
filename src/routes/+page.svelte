@@ -98,8 +98,8 @@
       <Tab id="settings"><Icon name="settings" /> <span class="tab-label">Settings</span></Tab>
       <Tab id="labs"><Icon name="labs" /> <span class="tab-label">Labs</span></Tab>
       <Tab id="help"><Icon name="help" /> <span class="tab-label">Help</span></Tab>
-      <Tab id="about"><Icon name="about" /> <span class="tab-label">About</span></Tab>
-      <Tab id="privacy"><Icon name="privacy" /> <span class="tab-label">Privacy</span></Tab>
+      <Tab id="about" hidden><Icon name="about" /> About</Tab>
+      <Tab id="privacy" hidden><Icon name="privacy" /> Privacy</Tab>
     </TabList>
     <div class="tab-panel">
       <div class="loader" class:loaded={!$appStateStore.showLoader}>Calculating your forecast...</div>

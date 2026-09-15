@@ -48,7 +48,7 @@ The plaintext entry format is the core of the product, not an implementation det
 | Settings | Reset (type RESET; optional export of every scenario first) |
 | Persistence | localStorage per scenario; optional Chromium file link; Download stays |
 | Labs | Local syntax answers; optional on-demand Chrome Nano / WebLLM (not loaded until asked) |
-| Help / About | Full DSL, privacy, MIT disclaimer |
+| Help / About | Help is a tab. About, Privacy, and the copyright live in the site menu |
 | Publish | App is `private: true` in git. npm `forebalance@0.0.1` is a name hold only. |
 
 ---

@@ -12,7 +12,7 @@ SvelteKit 2 + Svelte 5 + TypeScript + Vitest + `adapter-static` → Cloudflare P
 
 ## Hero flow
 
-1. Entries: edit `.psv` (CodeMirror). Toolbar is scenario + name + info + Syntax + ☰ menu (import, drop-on-demand, roll starts, last 20 versions per scenario).
+1. Entries: edit `.psv` (CodeMirror). Toolbar is scenario + name + info + Syntax + ⋮ kebab (import, drop-on-demand, roll starts, last 20 versions per scenario). Site ☰ in the header holds About, Privacy, and the copyright.
 2. Forecast: table + summary + sparkline from the earliest `B` line forward (`monthsToForecast`).
 3. Settings: months, thresholds, holiday shift, same-day `B` meaning.
 
