@@ -40,6 +40,12 @@ TYPE|WHEN|AMOUNT|DESCRIPTION
 
 See the in-app **Help** tab or `docs/forebalance-spec.md` for the full DSL (recurrence, multi-account, debt).
 
+<!-- xfacts-label -->
+
+## xFacts label
+
+- **AppFacts:** [viewer](https://appfacts.dev/v#af1.eNptkk1v2zAMhv-KwdMKKA161WldgG7FWqBAul2GYaAlxlYtS4JIJzOC_PdBtvNx2E0iH5IvX-kIe9APCgL2BBqeYqYv6DEYAgUyphI8UF1hStWn7dvjHShgQRkYNKARty-gd4YCF_b1-X0mTAf6CB5DM2BTMu9joq3JLgkoyEMQN02sczwwZVCwy9jTIeYONGz35IW-O5majd6FpkSRGRSQdRIzaNhES68u55gnLOZ5ko8G_Xa5Kmgjy1y_8XGwO4-ZqjdsqPSqB-ctaPjphOCkwFJi0L-OEEDDZ55kfPC6m5SkW2WTJdyS93BSMz_jC_jj-RK_9kGLSSivioXOLOR8qehvilkuRSZa6s_LFUwyBi6Wx1AtFpxZi-MHL5hFoapHaS_ZHnNHdkm7sCrCW_KpwmArrONwHcqzw7Oq0RPD6bcC3puLJ__xMF93OHtdqhZrj5DQdNjQnx4DNlToFFJf_hexgIa9mw4KjAMNX518G-rqcVqUy5u0sac0P20rkliv17uYqZ7_6T2mVERQilxMGW-wxkk71Pcm9usNCvqRZfUUc0Orl5fNbRM4_QOCAQLO) · [raw](https://github.com/Catalyst-Forge-LLC/forebalance/blob/main/APP_FACTS.md)
+
 ## License
 
 [MIT](LICENSE). Copyright © 2020–2026 Catalyst Forge, LLC. Fork it, run it locally, or ship your own build — that is the point. See [CONTRIBUTING.md](CONTRIBUTING.md) if you want to send a change.
