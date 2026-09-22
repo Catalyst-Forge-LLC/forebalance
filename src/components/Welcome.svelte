@@ -129,11 +129,17 @@
     <p>
       One line per transaction: <code>B</code> is the bank number, <code>C</code> is money in,
       <code>D</code> is money out, and <code>,R</code> repeats monthly.
-      <a href="#help">Help</a> has the full syntax, including same-day items already in that
-      balance. Sample numbers are made up. This is not financial advice
-      (<a href="#about">About</a>).
+      <a href="#help">Help</a> has the full syntax. Sample numbers are made up. This is not
+      financial advice (<a href="#about">About</a>).
     </p>
     <pre class="example-src">{exampleRaw.trim()}</pre>
+    <p>
+      The <code>B</code> line is checking on the 1st after rent clears: $420. A balance line is
+      the end-of-day number by default, so the $1,500 rent dated the same day is already in it and
+      does not come out again. That $420 sits below the $500 uncomfortable mark until the $1,800
+      paycheck on the 15th brings it to $2,220. On a day with no balance line, credits apply
+      before debits.
+    </p>
     <div class="walkthrough-actions">
       <button type="button" class="button-action" on:click={loadSimpleExample}>
         Load this example

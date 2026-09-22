@@ -38,6 +38,16 @@ Open the URL Vite prints (typically `http://127.0.0.1:46000`).
 TYPE|WHEN|AMOUNT|DESCRIPTION
 ```
 
+`B` is a balance you read from the bank, `C` is money in, `D` is money out, and `,R` repeats monthly. The Welcome page loads this example:
+
+```
+B-CHCK1000-main|2026-09-01|420|Starting checking
+C|2026-09-15,R|1800|Paycheck
+D|2026-09-01,R|1500|Rent
+```
+
+The `B` line is checking on the 1st after rent clears: $420. A balance line is the end-of-day number by default, so same-day credits and debits are already in it and do not change the balance again (turn this off in Settings if you enter the balance before the day's activity posts). The paycheck on the 15th brings checking to $2,220. On a day with no balance line, credits apply before debits, and entries of the same type keep their file order.
+
 See the in-app **Help** tab or `docs/forebalance-spec.md` for the full DSL (recurrence, multi-account, debt).
 
 <!-- xfacts-label -->
@@ -48,7 +58,7 @@ See the in-app **Help** tab or `docs/forebalance-spec.md` for the full DSL (recu
 
 ## License
 
-[MIT](LICENSE). Copyright © 2020–2026 Catalyst Forge, LLC. Fork it, run it locally, or ship your own build — that is the point. See [CONTRIBUTING.md](CONTRIBUTING.md) if you want to send a change.
+[MIT](LICENSE). Copyright © 2020–2026 Catalyst Forge, LLC. Fork it, run it locally, or ship your own build. That is the point. See [CONTRIBUTING.md](CONTRIBUTING.md) if you want to send a change.
 
 ## Stack
 
