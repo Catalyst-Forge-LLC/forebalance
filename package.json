@@ -46,7 +46,7 @@
     "@mlc-ai/web-llm": "^0.2.85",
     "codemirror": "^6.0.2",
     "dayjs": "^1.11.13",
-    "marked": "^15.0.0",
+    "marked": "^18.0.12",
     "sass": "^1.87.0",
     "svelte-file-dropzone": "^2.0.9",
     "tippy.js": "^6.3.7"
