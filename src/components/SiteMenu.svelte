@@ -181,6 +181,9 @@
         <a href="https://www.catalystforge.com/" target="_blank" rel="noreferrer">Catalyst Forge, LLC</a>
       </p>
       <p class="legal">
+        <a href="https://catalystforge.com/tools/" target="_blank" rel="noreferrer">See the rest of the Catalyst Forge shelf.</a>
+      </p>
+      <p class="legal">
         Free to use.
         <a href="https://github.com/Catalyst-Forge-LLC/forebalance/blob/main/LICENSE">MIT License</a>.
         Not financial advice.

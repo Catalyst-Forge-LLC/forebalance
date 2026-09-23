@@ -66,3 +66,5 @@ See the in-app **Help** tab or `docs/forebalance-spec.md` for the full DSL (recu
 - TypeScript
 - `adapter-static` → Cloudflare Pages (`wrangler.jsonc`)
 - LocalSlip for dev port · LocalHelm for fleet · ForgeTrail for lifecycle
+
+[See the rest of the Catalyst Forge shelf.](https://catalystforge.com/tools/)
