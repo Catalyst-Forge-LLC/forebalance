@@ -47,7 +47,7 @@
     "codemirror": "^6.0.2",
     "dayjs": "^1.11.13",
     "marked": "^15.0.0",
-    "sass": "^1.87.0",
+    "sass": "^1.104.1",
     "svelte-file-dropzone": "^2.0.9",
     "tippy.js": "^6.3.7"
   },
