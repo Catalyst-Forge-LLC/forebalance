@@ -700,7 +700,14 @@
   .editor label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.85rem; }
   .editor input, .editor select, .editor textarea { font: inherit; padding: 0.35rem 0.45rem; width: 100%; box-sizing: border-box; }
   .editor textarea { resize: vertical; min-height: 3.2rem; }
-  .check { flex-direction: row; align-items: center; }
+  .editor label.check {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.4rem;
+
+    input { width: auto; padding: 0; }
+  }
   .error { color: #8a1f1f; margin: 0; }
   .confirm { gap: 0.6rem; padding: 0.9rem 1rem; overflow: auto; }
 </style>
