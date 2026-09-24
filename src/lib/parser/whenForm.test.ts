@@ -19,5 +19,7 @@ describe('whenForm', () => {
 		expect(writeWhenForm(readWhenForm('2026-03-15,R3M3'))).toBe('2026-03-15,R3M3');
 		expect(readWhenForm('2026-04-25,R3')).toMatchObject({ repeat: 'M', every: 1, times: '3' });
 		expect(readWhenForm('2026-03-15,R3M3')).toMatchObject({ repeat: 'M', every: 3, times: '3' });
+		expect(writeWhenForm(readWhenForm('2026-04-01,R,+3%Y'))).toBe('2026-04-01,R,+3%Y');
+		expect(readWhenForm('2026-04-01,R,+3%Y')).toMatchObject({ repeat: 'M', raise: '3', raiseEvery: 'Y' });
 	});
 });

@@ -91,6 +91,7 @@ Recurring: `YYYY-MM-DD,R[m][f][c]` or with an end date `YYYY-MM-DD,R[m][f],YYYY-
 | `2026-03-15,R3M` | Every third month from Mar 15 |
 | `2026-03-15,R3M3` | Every third month, three times |
 | `2026-02-01,RW3` | Weekly, three times |
+| `2026-04-01,R,+3%Y` | Monthly, and the amount grows 3% each year |
 | `2026-01-01,RY` | Yearly on Jan 1 |
 | `2026-02-01,R2W` | Every two weeks from Feb 1 |
 | `2026-02-01,RW5` | Weekly, five times |

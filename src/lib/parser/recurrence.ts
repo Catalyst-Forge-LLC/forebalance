@@ -87,13 +87,20 @@ export function parseDate(rawDate: string | undefined): ParsedWhen | undefined {
 		return undefined;
 	}
 	const normalized = rawDate.replace(/-R/g, ',R');
-	const [startRaw, recurPart = '', endPart = ''] = normalized.split(',');
+	const segments = normalized.split(',');
+	const startRaw = segments[0] ?? '';
+	const recurPart = segments[1] ?? '';
+	const raiseMatch = segments.slice(2).map((part) => /^(\d+(?:\.\d+)?)%([DWMY])$/i.exec(part.replace(/^\+/, ''))).find(Boolean);
+	const endPart = segments.slice(2).find((part) => !/^\+?\d+(?:\.\d+)?%[DWMY]$/i.test(part)) ?? '';
 	const { text: recurText, shift: recurShift } = stripBusinessDayShift(recurPart);
 	const { text: endText, shift: endShift } = stripBusinessDayShift(endPart);
 	const businessDayShift = recurShift ?? endShift;
 	const startDate = getDate(startRaw);
 	const endDate = endText ? getDate(endText) : null;
 	const recur = parseRecur(recurText);
+	if (recur && raiseMatch) {
+		recur.raise = { percent: +raiseMatch[1], every: raiseMatch[2].toUpperCase() as Recur['freq'] };
+	}
 	return {
 		startDate,
 		recur,
@@ -101,6 +108,29 @@ export function parseDate(rawDate: string | undefined): ParsedWhen | undefined {
 		endDate,
 		businessDayShift,
 	};
+}
+
+/** Whole periods from the series start to this occurrence. The start date itself is period 0. */
+export function raisedAmount(base: number, origin: Date, at: Date, recur: Recur): number {
+	const raise = recur.raise;
+	if (!raise || raise.percent === 0) return base;
+	let steps = 0;
+	if (raise.every === 'Y') {
+		steps = at.getFullYear() - origin.getFullYear();
+		const beforeAnniversary =
+			at.getMonth() < origin.getMonth() ||
+			(at.getMonth() === origin.getMonth() && at.getDate() < origin.getDate());
+		if (beforeAnniversary) steps -= 1;
+	} else if (raise.every === 'M') {
+		steps = (at.getFullYear() - origin.getFullYear()) * 12 + (at.getMonth() - origin.getMonth());
+		if (at.getDate() < origin.getDate()) steps -= 1;
+	} else if (raise.every === 'W') {
+		steps = Math.floor((at.getTime() - origin.getTime()) / (86400000 * 7));
+	} else {
+		steps = Math.floor((at.getTime() - origin.getTime()) / 86400000);
+	}
+	if (steps <= 0) return base;
+	return Math.round(base * (1 + raise.percent / 100) ** steps * 100) / 100;
 }
 
 export function updateDescRecur(desc: string, recur: Recur, rIndex: number): string {

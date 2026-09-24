@@ -11,6 +11,7 @@ import {
 	getRandomId,
 	parseDate,
 	sortEntries,
+	raisedAmount,
 	updateDateRecur,
 	updateDescRecur,
 } from '$lib/parser/recurrence';
@@ -152,6 +153,7 @@ function parseRawEntries(
 				parsedEntry.businessDayShift = when.businessDayShift;
 				shiftEntryDate(parsedEntry, useFederalHolidays);
 				parsedEntry.seriesDate = parsedEntry.date;
+				parsedEntry.seriesOrigin = parsedEntry.date;
 				const recur = parsedEntry.recur;
 				if (
 					recur &&
@@ -171,6 +173,14 @@ function parseRawEntries(
 				}
 			}
 			parsedEntry.baseAmount = +parsedEntry.amount;
+			if (parsedEntry.recur?.raise && parsedEntry.date && parsedEntry.seriesOrigin) {
+				parsedEntry.amount = raisedAmount(
+					parsedEntry.baseAmount,
+					parsedEntry.seriesOrigin,
+					parsedEntry.date,
+					parsedEntry.recur,
+				);
+			}
 			applyOverrideToEntry(parsedEntry, overrides[parsedEntry.occurrenceIndex ?? 1]);
 			if (!recurringEntries[parsedEntry.id]) {
 				recurringEntries[parsedEntry.id] = parsedEntry.occurrenceIndex ?? 1;
@@ -264,7 +274,10 @@ export function parseEntries(
 			newEntry.date = updateDateRecur(entry.seriesDate, newEntry.recur);
 			shiftEntryDate(newEntry, useFederalHolidays);
 			newEntry.seriesDate = newEntry.date;
-			newEntry.amount = newEntry.baseAmount ?? +entry.amount;
+			newEntry.amount =
+				newEntry.recur?.raise && newEntry.date && newEntry.seriesOrigin
+					? raisedAmount(newEntry.baseAmount ?? +entry.amount, newEntry.seriesOrigin, newEntry.date, newEntry.recur)
+					: (newEntry.baseAmount ?? +entry.amount);
 			applyOverrideToEntry(newEntry, newEntry.overrides?.[newEntry.occurrenceIndex]);
 			if (newEntry.desc) {
 				newEntry.desc = updateDescRecur(newEntry.desc, newEntry.recur, recurringEntries[newEntry.id]);

@@ -157,6 +157,19 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     return '';
   }
 
+  function turnOff(entry: ParsedEntry) {
+    const lines = $rawEntriesStore.split('\n');
+    const idx =
+      entry.entryOrder !== undefined && lines[entry.entryOrder] === entry.rawEntry
+        ? entry.entryOrder
+        : lines.findIndex((line) => line === entry.rawEntry);
+    if (idx < 0) return;
+    const line = lines[idx] ?? '';
+    if (!line || line.startsWith('!') || line.startsWith('#')) return;
+    lines[idx] = `!${line}`;
+    setRawEntries(lines.join('\n'));
+  }
+
   function descriptionFor(entry) {
     const extra =
       mainAccount && entry.accountId && mainAccount.id !== entry.accountId
@@ -171,7 +184,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
 
 <div class="table-wrap">
   <p class="edit-hint">
-    Click a row to edit. Same-day items already in the <code>B</code> line stay marked
+    Click a row to edit. Uncheck a row to turn that line off. Same-day items already in the <code>B</code> line stay marked
     <em>in balance</em>. <a href="#help">Help</a> has the rest.
   </p>
   <ThresholdLegend compact />
@@ -180,9 +193,10 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
       {#each tableEntries as entry, i}
         {#if showMonthHeader(i)}
           <tr>
-            <td class="new-month" colspan="5">{fmt.date2(entry.date)}</td>
+            <td class="new-month" colspan="6">{fmt.date2(entry.date)}</td>
           </tr>
           <tr class="headings">
+            <td></td>
             <td>Date</td>
             <td>Description</td>
             <td class="num-col">Credit</td>
@@ -207,6 +221,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
           on:click={() => beginEdit(entry, i)}
         >
           {#if editIndex === i}
+            <td></td>
             <td>
               <input
                 type="date"
@@ -286,6 +301,17 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
               </button>
             </td>
           {:else}
+            <td class="on-col">
+              {#if entry.type !== 'B'}
+                <input
+                  type="checkbox"
+                  checked
+                  aria-label="Line is on. Uncheck to turn {descriptionFor(entry)} off."
+                  title="Uncheck to turn this line off"
+                  on:click|stopPropagation={() => turnOff(entry)}
+                />
+              {/if}
+            </td>
             <td>{fmt.date(entry.date)}{#if entry.overridden}<abbr title="This occurrence was adjusted">*</abbr>{/if}</td>
             <td class="desc"
               ><Tooltip content={getAccountSummary(entry)}>{descriptionFor(entry)}</Tooltip
@@ -310,14 +336,14 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
         {#if showMonthFooter(i)}
           {@const { debtBalance, debtInterest, debtDetails } = runningBalanceMonthlySummary(i)}
           <tr class="month-summary">
-            <td colspan="2">Summary</td>
+            <td colspan="3">Summary</td>
             {#each monthSummary(i) as summary, si}
               <td class:num-col={si < 2}>{summary}</td>
             {/each}
           </tr>
           {#if debtBalance > 0 || debtInterest > 0}
             <tr class="debt-summary">
-              <td colspan="5"
+              <td colspan="6"
                 ><Tooltip content={debtDetails}
                   >Debt remaining: {fmt.curr(debtBalance)}, interest this month: {fmt.curr(
                     debtInterest,
@@ -335,6 +361,8 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
 <style lang="scss">
   @use '../scss/colors' as *;
 
+  .on-col { width: 1.6rem; }
+  .on-col input { margin: 0; }
   .table-wrap {
     box-sizing: border-box;
     width: calc(100% - 2rem);

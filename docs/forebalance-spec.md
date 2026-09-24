@@ -164,7 +164,8 @@ Rolling the text is the product fix. The parser could also skip expanding occurr
 3. **Done** — public MIT, npm name hold, CI + Dependabot, repo card.
 4. **This pass** — spec/tracking catch-up; roll recurring starts.
 5. **Done in the editor pack** — cards, debts, forks, Ask chips, extra payment (`extra=`), occurrence edit from payment history, keyboard for the card menu and Alt+1–6 tabs, non-color threshold marks, phone dialog width, skip of old non-debt occurrences, amount arithmetic, print stylesheet, client-side share link.
-6. Still open: yearly inflation tokens such as `R,+3%Y`. Forecast checkboxes that disable a line. Merging forks.
+6. **Done** — `,+3%Y` raises a recurring amount each year. A forecast checkbox writes `!` and turns that line off.
+7. Still open: merging forks. Forecast checkboxes do not re-enable a line; Entries → Enable does.
 
 ---
 

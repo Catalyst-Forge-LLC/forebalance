@@ -585,6 +585,9 @@
             <label>End
               <input type="date" bind:value={whenForm.end} on:change={onWhenChange} />
             </label>
+            <label>Raise % / year
+              <input type="number" min="0" step="0.1" placeholder="0" bind:value={whenForm.raise} on:change={() => { whenForm.raiseEvery = 'Y'; onWhenChange(); }} />
+            </label>
             <label>Weekend
               <select bind:value={whenForm.shift} on:change={onWhenChange}>
                 <option value="">Keep date</option>
@@ -966,7 +969,7 @@
   }
   .when-row {
     display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 0.45rem 0.55rem;
     align-items: end;
 

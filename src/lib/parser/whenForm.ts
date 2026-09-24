@@ -11,6 +11,8 @@ export interface WhenForm {
 	times: string;
 	end: string;
 	shift: '' | '<' | '>';
+	raise: string;
+	raiseEvery: 'D' | 'W' | 'M' | 'Y';
 }
 
 const EMPTY: WhenForm = {
@@ -22,6 +24,8 @@ const EMPTY: WhenForm = {
 	times: '',
 	end: '',
 	shift: '',
+	raise: '',
+	raiseEvery: 'Y',
 };
 
 function pad(value: string): string {
@@ -37,8 +41,11 @@ function takeShift(token: string): { text: string; shift: '' | '<' | '>' } {
 export function readWhenForm(when: string): WhenForm {
 	const normalized = when.trim().replace(/-R/g, ',R');
 	const parts = normalized.split(',');
-	if (parts.length > 3) return { ...EMPTY };
-	const [startRaw = '', recurPart = '', endPart = ''] = parts;
+	const raisePart = parts.find((part) => /^\+?\d+(?:\.\d+)?%[DWMY]$/i.test(part.trim())) ?? '';
+	const rest = raisePart ? parts.filter((part) => part !== raisePart) : parts;
+	if (rest.length > 3) return { ...EMPTY };
+	const [startRaw = '', recurPart = '', endPart = ''] = rest;
+	const raiseMatch = /^\+?(\d+(?:\.\d+)?)%([DWMY])$/i.exec(raisePart.trim());
 	const dateMatch = /^(\d{4})-(\d{1,2})-(\d{1,2}|L)$/i.exec(startRaw);
 	if (!dateMatch) return { ...EMPTY };
 	const lastOnDate = dateMatch[3].toUpperCase() === 'L';
@@ -56,6 +63,8 @@ export function readWhenForm(when: string): WhenForm {
 		times: parsed?.count ? String(parsed.count) : '',
 		end: endShift.text,
 		shift: recurShift.shift || endShift.shift,
+		raise: raiseMatch ? raiseMatch[1] : '',
+		raiseEvery: (raiseMatch?.[2].toUpperCase() as WhenForm['raiseEvery']) || 'Y',
 	};
 }
 
@@ -74,7 +83,10 @@ export function writeWhenForm(form: WhenForm): string {
 		token = `R${multiple}${freq}${times}`;
 	}
 	if (form.shift) token += form.shift;
-	return form.end ? `${start},${token},${form.end}` : `${start},${token}`;
+	let written = form.end ? `${start},${token},${form.end}` : `${start},${token}`;
+	const raise = form.raise.trim();
+	if (raise && Number(raise) > 0) written += `,+${raise}%${form.raiseEvery || 'Y'}`;
+	return written;
 }
 
 export function everyUnit(form: WhenForm): string {

@@ -15,6 +15,8 @@ export interface Recur {
 	count: number | null;
 	recurRaw: string | null;
 	lastDayOfMonth?: boolean;
+	/** Compound raise, e.g. `+3%Y` grows the line amount 3% each year. */
+	raise?: { percent: number; every: 'D' | 'W' | 'M' | 'Y' };
 }
 
 export interface Account {
@@ -71,6 +73,8 @@ export interface ParsedEntry {
 	businessDayShift?: BusinessDayShift;
 	occurrenceIndex?: number;
 	seriesDate?: Date | null;
+	/** First occurrence, before a fast-forward jump. Raise is measured from here. */
+	seriesOrigin?: Date | null;
 	baseAmount?: number;
 	overrides?: Record<number, OccurrenceOverride>;
 	overridden?: boolean;

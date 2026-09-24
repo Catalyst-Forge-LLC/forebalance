@@ -246,6 +246,16 @@ D|2020-09-01,R|15|Spotify`;
 		expect(rows.some((row) => row.date && row.date.getFullYear() < 2026)).toBe(false);
 	});
 
+	it('raises a recurring amount by the yearly percent', () => {
+		const raw = `B-CHCK-main|2026-01-01|5000|Checking
+D|2024-01-15,R,+10%Y|100|Rent`;
+		const [entries] = parseEntries(raw, 2, balanceFlags);
+		const rent = Object.values(entries ?? {})
+			.flat()
+			.find((row) => row.desc?.includes('Rent') && row.date?.getMonth() === 0 && row.date?.getFullYear() === 2026);
+		expect(rent?.amount).toBe(121);
+	});
+
 	it('parses all built-in starter profiles', async () => {
 		const { entryTemplates } = await import('../data/entryTemplates');
 		for (const template of entryTemplates) {
