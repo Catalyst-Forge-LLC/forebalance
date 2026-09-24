@@ -172,7 +172,8 @@
 
   <ul class="list">
     {#each visible as line}
-      <li class:disabled={line.disabled}>
+      <li class="type-{line.type.toLowerCase()}" class:disabled={line.disabled}>
+        <span class="sheen" aria-hidden="true"></span>
         <button type="button" class="body" on:click={() => open(line)}>
           <span class="chip">{line.type}</span>
           <span class="desc">{line.desc || 'Untitled'}</span>
@@ -289,13 +290,63 @@
   .segments button.selected { background: $clr-accent-soft; font-weight: 700; }
   .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
   li {
+    position: relative;
     display: flex;
     gap: 0.35rem;
     align-items: stretch;
     border: 1px solid $clr-border;
     border-radius: 0.4rem;
     background: #fff;
+    transition: background-color 0.25s ease, border-color 0.3s ease, box-shadow 0.45s ease;
+
+    &.type-b { background: #e8eef6; }
+    &.type-c { background: #e7f5e8; }
+    &.type-d { background: #f8efe8; }
     &.disabled { opacity: 0.55; }
+
+    &:hover,
+    &:focus-within {
+      border-color: $clr-gold;
+      box-shadow:
+        0 0 0 1px rgba(196, 163, 90, 0.4),
+        0 0 14px rgba(196, 163, 90, 0.28);
+
+      &.type-b { background: #d5e1f0; }
+      &.type-c { background: #d2ead4; }
+      &.type-d { background: #f0e0d4; }
+
+      .sheen::before {
+        animation: card-sheen 0.9s ease;
+      }
+    }
+  }
+  .sheen {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 0;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: -20% -40%;
+      background: linear-gradient(
+        105deg,
+        transparent 40%,
+        rgba(255, 255, 255, 0.2) 48%,
+        rgba(255, 255, 255, 0.55) 50%,
+        rgba(255, 255, 255, 0.2) 54%,
+        transparent 62%
+      );
+      transform: translateX(-80%);
+    }
+  }
+  .body,
+  .kebab {
+    position: relative;
+    z-index: 1;
   }
   .body {
     flex: 1;
@@ -308,9 +359,26 @@
     padding: 0.55rem 0.7rem;
     cursor: pointer;
   }
+
+  @keyframes card-sheen {
+    from { transform: translateX(-80%); }
+    to { transform: translateX(80%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    li,
+    .body {
+      transition: none;
+    }
+
+    .sheen::before {
+      display: none;
+    }
+  }
   .chip { font-weight: 700; color: $clr-accent-ink; }
   .amount { font-variant-numeric: tabular-nums; }
   .when, .cat, .hint { grid-column: 2; color: $clr-muted; font-size: 0.82rem; }
+  .kebab { background: transparent; }
   .kebab summary {
     list-style: none;
     cursor: pointer;
