@@ -240,6 +240,7 @@
       <h3>Edit entry</h3>
       <button type="button" on:click={close} aria-label="Close and save">×</button>
     </header>
+    <div class="editor-body">
     {#if error}<p class="error">{error}</p>{/if}
     <label>Type
       <select bind:value={draft.type}>
@@ -300,31 +301,35 @@
         {/if}
       </fieldset>
     {/if}
-    <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
-    <label>Description <input bind:value={draft.desc} /></label>
-    <label>Category
-      <select
-        value={draft.extras.categoryId ?? ''}
-        on:change={(event) => {
-          if (draft) draft.extras.categoryId = event.currentTarget.value || undefined;
-        }}
-      >
-        <option value="">Unfiled</option>
-        {#each categories.filter((category) => category.id !== UNFILED_ID) as category}
-          <option value={category.id}>{category.name}</option>
-        {/each}
-      </select>
-    </label>
-    {#if draft.accountSuffix || draft.extras.accountSlot}
-      <label>Payment style
-        <select bind:value={draft.extras.strategy}>
-          <option value={undefined}>Scheduled amount</option>
-          <option value="fixed">Fixed amount</option>
-          <option value="min">Minimum rate</option>
-          <option value="pct">Percent of balance</option>
+    <div class="pair">
+      <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
+      <label>Category
+        <select
+          value={draft.extras.categoryId ?? ''}
+          on:change={(event) => {
+            if (draft) draft.extras.categoryId = event.currentTarget.value || undefined;
+          }}
+        >
+          <option value="">Unfiled</option>
+          {#each categories.filter((category) => category.id !== UNFILED_ID) as category}
+            <option value={category.id}>{category.name}</option>
+          {/each}
         </select>
       </label>
-      <label>Minimum rate <input bind:value={draft.extras.minRate} placeholder="0.10 = 10%" /></label>
+    </div>
+    <label>Description <input bind:value={draft.desc} /></label>
+    {#if draft.accountSuffix || draft.extras.accountSlot}
+      <div class="pair">
+        <label>Payment style
+          <select bind:value={draft.extras.strategy}>
+            <option value={undefined}>Scheduled amount</option>
+            <option value="fixed">Fixed amount</option>
+            <option value="min">Minimum rate</option>
+            <option value="pct">Percent of balance</option>
+          </select>
+        </label>
+        <label>Minimum rate <input bind:value={draft.extras.minRate} placeholder="0.10 = 10%" /></label>
+      </div>
       <label>Pay link <input bind:value={draft.extras.payUrl} placeholder="https://" /></label>
       {#if draft.extras.apr !== undefined}
         <p class="hint-line">APR {draft.extras.apr}%</p>
@@ -334,7 +339,7 @@
           Next APR {draft.extras.apr2 ?? '—'}%{#if draft.extras.apr2Date} from {draft.extras.apr2Date}{/if}
         </p>
       {/if}
-      <label>Notes <input bind:value={draft.extras.notes} /></label>
+      <label>Notes <textarea rows="2" bind:value={draft.extras.notes}></textarea></label>
       <label class="check">
         <input
           type="checkbox"
@@ -344,7 +349,10 @@
         Autopay
       </label>
     {/if}
-    <button type="submit" class="button-action">Save and close</button>
+    </div>
+    <footer class="editor-foot">
+      <button type="submit" class="button-action">Save and close</button>
+    </footer>
   </form>
 {/if}
 
@@ -360,13 +368,20 @@
 <style lang="scss">
   @use '../scss/colors' as *;
 
-  .cards { text-align: left; }
+  .cards {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    text-align: left;
+  }
   .command {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
     align-items: end;
     margin-bottom: 0.75rem;
+    flex: none;
   }
   .segments { display: flex; gap: 0.25rem; }
   .segments button, .kebab button, .editor button {
@@ -377,7 +392,17 @@
     cursor: pointer;
   }
   .segments button.selected { background: $clr-accent-soft; font-weight: 700; }
-  .list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+  .list {
+    list-style: none;
+    margin: 0;
+    padding: 0 0.15rem 0.35rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
   li {
     position: relative;
     display: flex;
@@ -582,20 +607,41 @@
     transform: translateX(-50%);
     width: min(38rem, calc(100% - 1.5rem));
     max-height: 84vh;
-    overflow: auto;
+    overflow: hidden;
     background: #fff;
     border-radius: 0.5rem;
-    padding: 0.9rem 1rem 1rem;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.55rem;
     text-align: left;
   }
-  .editor header { display: flex; justify-content: space-between; align-items: center; }
+  .editor header,
+  .editor-foot {
+    flex: none;
+    display: flex;
+    align-items: center;
+    padding: 0.7rem 1rem;
+    background: #fff;
+  }
+  .editor header { justify-content: space-between; border-bottom: 1px solid $clr-border; }
+  .editor-foot { justify-content: center; border-top: 1px solid $clr-border; }
+  .editor-body {
+    overflow: auto;
+    padding: 0.7rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+  .pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.5rem 0.7rem;
+  }
   .editor h3 { margin: 0; }
   .editor label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.85rem; }
-  .editor input, .editor select { font: inherit; padding: 0.35rem 0.45rem; }
+  .editor input, .editor select, .editor textarea { font: inherit; padding: 0.35rem 0.45rem; width: 100%; box-sizing: border-box; }
+  .editor textarea { resize: vertical; min-height: 3.2rem; }
   .check { flex-direction: row; align-items: center; }
   .error { color: #8a1f1f; margin: 0; }
-  .confirm { gap: 0.6rem; }
+  .confirm { gap: 0.6rem; padding: 0.9rem 1rem; overflow: auto; }
 </style>
