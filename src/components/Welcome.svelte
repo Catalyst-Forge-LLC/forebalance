@@ -95,7 +95,11 @@
 </script>
 
 <article class="welcome-page">
-  <ImportedMarkdown filePath="/md/welcome.md" />
+  <div class="welcome-intro">
+    <h1>Welcome to ForeBalance</h1>
+    <img class="welcome-mark" src="/logo.png" width="150" height="150" alt="" />
+    <ImportedMarkdown filePath="/md/welcome.md" />
+  </div>
 
   {#if forecastReady && summary?.lowest}
     <a
@@ -196,6 +200,24 @@
     :global(.file-content) {
       padding-bottom: 0.35rem;
     }
+  }
+
+  .welcome-intro {
+    display: flow-root;
+  }
+
+  .welcome-intro h1 {
+    margin: 0 0 0.6rem;
+    font-size: 1.45rem;
+    font-weight: 600;
+    color: $clr-accent-ink;
+  }
+
+  .welcome-mark {
+    float: right;
+    width: min(150px, 50%);
+    height: auto;
+    margin: 0.15rem 0 0.65rem 1rem;
   }
 
   .sliver {
