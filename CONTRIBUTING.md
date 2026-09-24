@@ -16,7 +16,7 @@ pnpm dev
 
 - Parser or forecast behavior needs a Vitest case next to the code (`src/lib/parser/`).
 - Keep data in the browser. Do not add accounts, cloud sync, or telemetry.
-- Copy that describes balances should stay a projection, not a promise about real accounts. This is not financial advice.
+- Copy that describes balances should stay a projection. The amounts can be from real accounts. The forecast is still not a statement from the bank. This is not financial advice.
 
 ## Pull requests
 

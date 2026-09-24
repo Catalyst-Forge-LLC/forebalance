@@ -172,4 +172,4 @@ The table is a **projection** from the amounts you enter, how many months you ch
 
 Debt interest uses the simple monthly model above. Lenders may use a different method. Projected balances are only as accurate as what you enter.
 
-**This is not personal financial, tax, legal, or investment advice**, and it is not a promise about real accounts. You are responsible for decisions you make with it. The full disclaimer is on **[About](/#about)**.
+**This is not personal financial, tax, legal, or investment advice.** The amounts can be from real accounts. The forecast is still not a statement from the bank. You are responsible for decisions you make with it. The full disclaimer is on **[About](/#about)**.

@@ -4,7 +4,9 @@
     import { marked } from 'marked';
     import { githubSlug, tocFromMarkdown } from '$lib/md/toc';
 
-    export let filePath;
+    export let filePath = '';
+    /** Bundled markdown. When set, the text is in the first paint instead of a later fetch. */
+    export let source = '';
     export let toc = [];
 
     let fileContent = '';
@@ -21,10 +23,12 @@
         },
     });
 
+    $: if (source) fileContent = source;
     $: html = fileContent ? marked.parse(fileContent, { async: false }) : '';
     $: toc = tocFromMarkdown(fileContent);
 
     onMount(async () => {
+        if (source || fileContent) return;
         if (filePath) {
             const loadPath = dev ? filePath : filePath.replace('./../../static/', '/');
             const response = await fetch(loadPath);

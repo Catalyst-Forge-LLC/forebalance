@@ -8,7 +8,7 @@ ForeBalance projects a checking balance from the paychecks, bills, and bank bala
 
 The npm name `forebalance` is a hold (`0.0.1`). It does not install this app. Clone the repo or use the site.
 
-**This is not personal financial, tax, legal, or investment advice.** The table is a projection from the amounts you enter. It is not a statement about real accounts, and it is not a recommendation to spend, save, borrow, or invest. The software is provided as-is under the [MIT License](LICENSE), without warranty.
+**This is not personal financial, tax, legal, or investment advice.** The table is a projection from the amounts you enter. Those amounts can be from real accounts. The forecast is still not a statement from the bank, and it is not a recommendation to spend, save, borrow, or invest. The software is provided as-is under the [MIT License](LICENSE), without warranty.
 
 ## Quick start
 

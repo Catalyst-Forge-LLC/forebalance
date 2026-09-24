@@ -1,6 +1,7 @@
 <script lang="ts">
   import { get } from 'svelte/store';
   import ImportedMarkdown from './ImportedMarkdown.svelte';
+  import welcomeMd from '../../static/md/welcome.md?raw';
   import ForecastSparkline from './ForecastSparkline.svelte';
   import { computeForecastSummary } from '$lib/parser/forecastSummary';
   import { fmt } from '$lib/formatters/fmt';
@@ -98,7 +99,7 @@
   <div class="welcome-intro">
     <h1>Welcome to ForeBalance</h1>
     <img class="welcome-mark" src="/logo.png" width="150" height="150" alt="" />
-    <ImportedMarkdown filePath="/md/welcome.md" />
+    <ImportedMarkdown source={welcomeMd} />
   </div>
 
   {#if forecastReady && summary?.lowest}
@@ -296,6 +297,7 @@
 
   .walkthrough,
   .starters {
+    clear: both;
     margin: 0 0 1.5rem;
   }
 
