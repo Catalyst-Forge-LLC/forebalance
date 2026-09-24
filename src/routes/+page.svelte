@@ -158,6 +158,7 @@
           {balanceFlags}
           useMainBalance={selectedIsMain}
           forecastReady={forecastReady}
+          scenarioPending={!parsedOnce}
         />
       </TabPanel>
       <TabPanel>

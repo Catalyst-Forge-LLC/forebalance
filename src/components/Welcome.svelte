@@ -28,6 +28,8 @@
   export let balanceFlags: BalanceFlags;
   export let useMainBalance = true;
   export let forecastReady = false;
+  /** True until stored entries have been read. The scenario card cannot render before that. */
+  export let scenarioPending = false;
 
   let copied = false;
   let copyTimer: ReturnType<typeof setTimeout> | undefined;
@@ -127,6 +129,11 @@
       </div>
       <ForecastSparkline {entries} {balanceFlags} {useMainBalance} />
     </a>
+  {:else if scenarioPending}
+    <div class="sliver sliver-pending" role="status" aria-live="polite" aria-busy="true">
+      <span class="sliver-kicker">This scenario</span>
+      <span class="sliver-pending-label">Loading…</span>
+    </div>
   {/if}
 
   <section class="walkthrough" aria-label="How an entry becomes a forecast">
@@ -241,6 +248,54 @@
       background: $clr-accent-soft;
       outline: 2px solid $clr-accent;
       outline-offset: 2px;
+    }
+  }
+
+  .sliver-pending {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.55rem;
+    min-height: 8.5rem;
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: $clr-accent-soft;
+      animation: sliver-breathe 1.8s ease-in-out infinite;
+      pointer-events: none;
+    }
+  }
+
+  .sliver-pending-label {
+    position: relative;
+    z-index: 1;
+    color: $clr-muted;
+    font-size: 0.95rem;
+  }
+
+  .sliver-pending .sliver-kicker {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sliver-pending::after {
+      animation: none;
+      opacity: 0.45;
+    }
+  }
+
+  @keyframes sliver-breathe {
+    0%,
+    100% {
+      opacity: 0.2;
+    }
+    50% {
+      opacity: 0.85;
     }
   }
 
