@@ -253,42 +253,50 @@
     {:else}
       <fieldset class="when">
         <legend>When</legend>
-        <label>Date
-          <input type="date" bind:value={whenForm.date} on:change={onWhenChange} />
-        </label>
+        <div class="when-row">
+          <label>Date
+            <input type="date" bind:value={whenForm.date} on:change={onWhenChange} />
+          </label>
+          <label>Repeats
+            <select bind:value={whenForm.repeat} on:change={onWhenChange}>
+              <option value="once">Once</option>
+              <option value="D">Daily</option>
+              <option value="W">Weekly</option>
+              <option value="M">Monthly</option>
+              <option value="Y">Yearly</option>
+            </select>
+          </label>
+          {#if whenForm.repeat !== 'once'}
+            <label>Every
+              <span class="every">
+                <input type="number" min="1" bind:value={whenForm.every} on:change={onWhenChange} />
+                {everyUnit(whenForm)}
+              </span>
+            </label>
+          {/if}
+        </div>
         {#if whenForm.repeat === 'once' || whenForm.repeat === 'M'}
           <label class="check">
             <input type="checkbox" bind:checked={whenForm.lastDay} on:change={onWhenChange} />
             Last day of the month
           </label>
         {/if}
-        <label>Repeats
-          <select bind:value={whenForm.repeat} on:change={onWhenChange}>
-            <option value="once">Once</option>
-            <option value="D">Daily</option>
-            <option value="W">Weekly</option>
-            <option value="M">Monthly</option>
-            <option value="Y">Yearly</option>
-          </select>
-        </label>
         {#if whenForm.repeat !== 'once'}
-          <label class="inline">Every
-            <input type="number" min="1" bind:value={whenForm.every} on:change={onWhenChange} />
-            {everyUnit(whenForm)}
-          </label>
-          <label>How many times
-            <input type="number" min="1" placeholder="Until the forecast ends" bind:value={whenForm.times} on:change={onWhenChange} />
-          </label>
-          <label>End date
-            <input type="date" bind:value={whenForm.end} on:change={onWhenChange} />
-          </label>
-          <label>Weekends and holidays
-            <select bind:value={whenForm.shift} on:change={onWhenChange}>
-              <option value="">Leave the date</option>
-              <option value="<">Previous business day</option>
-              <option value=">">Next business day</option>
-            </select>
-          </label>
+          <div class="when-row">
+            <label>Times
+              <input type="number" min="1" placeholder="No limit" bind:value={whenForm.times} on:change={onWhenChange} />
+            </label>
+            <label>End
+              <input type="date" bind:value={whenForm.end} on:change={onWhenChange} />
+            </label>
+            <label>Weekend
+              <select bind:value={whenForm.shift} on:change={onWhenChange}>
+                <option value="">Keep date</option>
+                <option value="<">Previous weekday</option>
+                <option value=">">Next weekday</option>
+              </select>
+            </label>
+          </div>
         {/if}
       </fieldset>
     {/if}
@@ -534,21 +542,29 @@
   }
   .when {
     margin: 0;
-    padding: 0.55rem 0.7rem 0.7rem;
+    padding: 0.35rem 0.6rem 0.5rem;
     border: 1px solid $clr-border;
     border-radius: 0.4rem;
     display: flex;
     flex-direction: column;
-    gap: 0.55rem;
+    gap: 0.4rem;
 
     legend { padding: 0 0.25rem; font-size: 0.85rem; }
   }
-  .inline {
-    flex-direction: row;
-    align-items: center;
-    gap: 0.4rem;
+  .when-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.45rem 0.55rem;
+    align-items: end;
 
-    input { width: 4.5rem; }
+    input, select { width: 100%; min-width: 0; box-sizing: border-box; }
+  }
+  .every {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    input { width: 3.4rem; }
   }
   .danger { color: #8a1f1f; }
   .empty { padding: 0.8rem; color: $clr-muted; }
@@ -564,7 +580,7 @@
     left: 50%;
     top: 8vh;
     transform: translateX(-50%);
-    width: min(32rem, calc(100% - 1.5rem));
+    width: min(38rem, calc(100% - 1.5rem));
     max-height: 84vh;
     overflow: auto;
     background: #fff;
