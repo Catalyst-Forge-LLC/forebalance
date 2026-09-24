@@ -44,4 +44,4 @@ Interest is the APR divided by 12, times the remaining balance, added on each pa
 
 ForeBalance is maintained by [Catalyst Forge, LLC](https://github.com/Catalyst-Forge-LLC) as a free-to-use tool.
 
-See **[Privacy](/#privacy)** for the local-only guarantee.
+See **[Privacy](/#privacy)** for what stays in this browser and what the host measures.

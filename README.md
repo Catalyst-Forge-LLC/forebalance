@@ -2,7 +2,7 @@
 
 See how the cash flows you enter affect your projected balance, and when it crosses your chosen thresholds.
 
-ForeBalance projects a checking balance from the paychecks, bills, and bank balances you enter. Each item is one short entry in a saved file (`.psv`). Data stays in this browser. There are no accounts, no tracking, and no server-side data.
+ForeBalance projects a checking balance from the paychecks, bills, and bank balances you enter. Each item is one short entry. The working scenario stays in this browser and is not stored in a ForeBalance account. Export a `.psv` file when you want a copy you control. A linked file, when your browser supports it, stays on your disk. Clearing browser storage can remove the working copy. The hosted site uses the performance measurement described in [Privacy](https://forebalance.app/#privacy).
 
 **Live:** [forebalance.app](https://forebalance.app)
 

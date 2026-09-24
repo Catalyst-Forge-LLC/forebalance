@@ -183,7 +183,7 @@ A line like `D|2020-12-01,R|15|Spotify` still expands every month from 2020, eve
 
 **Entries → menu → Roll recurring starts** (with a confirm) rewrites unbounded series so they begin **one period before** the earliest balance date — or today, if there is no `B` line. Spotify becomes `D|2026-08-01,R|15|Spotify`. Cadence, amounts, end dates, and `R<` / `R>` stay put. Counted series (`RW5`) are left alone. Occurrence overrides that still fall in the new series are remapped; older ones are dropped.
 
-Nothing is sent to a server. See **[Privacy](/#privacy)**. Data lives in this browser until you clear site data. Browser storage is not a durable backup.
+Entries stay in this browser. See **[Privacy](/#privacy)** for the hosting measurement. Data lives in this browser until you clear site data. Browser storage is not a durable backup.
 
 ## What the forecast assumes
 

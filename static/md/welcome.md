@@ -2,4 +2,4 @@ See how the cash flows you enter affect your projected balance, and when it cros
 
 This is a projection from the paychecks, bills, and balances you enter. Those amounts can be from real accounts. The forecast is still not a statement from the bank, and it is **not financial advice**. The full disclaimer is on **[About](/#about)**.
 
-Add your own amounts on **[Entries](/#entries)**. **[Help](/#help)** shows how to write an entry. **[Privacy](/#privacy)** is the local-only promise.
+Add your own amounts on **[Entries](/#entries)**. **[Help](/#help)** shows how to write an entry. **[Privacy](/#privacy)** covers what stays in this browser and what the host measures.
