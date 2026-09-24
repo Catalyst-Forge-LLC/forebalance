@@ -33,6 +33,8 @@
   let accounts;
   let selectedAccountId = '';
   let parsedOnce = false;
+  /** False until initializeData has read stored scenarios. The empty first parse must not count. */
+  let entriesReady = false;
 
   $: balanceFlags = {
     below: {
@@ -136,7 +138,9 @@
   }
 
   onMount(() => {
-    void initializeData();
+    void initializeData().finally(() => {
+      entriesReady = true;
+    });
   });
 </script>
 
@@ -158,7 +162,7 @@
           {balanceFlags}
           useMainBalance={selectedIsMain}
           forecastReady={forecastReady}
-          scenarioPending={!parsedOnce}
+          scenarioPending={!entriesReady}
         />
       </TabPanel>
       <TabPanel>
