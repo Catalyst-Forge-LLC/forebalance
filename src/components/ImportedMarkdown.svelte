@@ -94,6 +94,8 @@
         }
 
         :global(pre) {
+            box-sizing: border-box;
+            max-width: 100%;
             margin: 0 0 0.9rem;
             padding: 0.65rem 0.75rem;
             overflow-x: auto;

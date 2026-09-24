@@ -28,6 +28,7 @@ body {
 	background-color: $clr-bg;
 	background-image: var(--fb-wash);
 	color: $clr-text;
+	overflow-x: clip;
 }
 
 #svelte {

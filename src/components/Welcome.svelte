@@ -185,7 +185,10 @@
   @use '../scss/colors' as *;
 
   .welcome-page {
+    box-sizing: border-box;
+    width: 100%;
     max-width: 55em;
+    min-width: 0;
     margin: 0 auto;
     padding: 0.75rem 1rem 2rem;
     text-align: left;
@@ -296,6 +299,8 @@
   }
 
   .example-src {
+    box-sizing: border-box;
+    max-width: 100%;
     margin: 0 0 0.75rem;
     padding: 0.65rem 0.75rem;
     overflow-x: auto;

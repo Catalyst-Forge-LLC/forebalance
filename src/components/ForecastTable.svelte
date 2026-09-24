@@ -320,7 +320,10 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
   @use '../scss/colors' as *;
 
   .table-wrap {
+    box-sizing: border-box;
     width: calc(100% - 2rem);
+    max-width: 100%;
+    min-width: 0;
     margin: 0 auto 2rem;
     overflow-x: auto;
   }

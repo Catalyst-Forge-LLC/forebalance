@@ -5,7 +5,7 @@
 <header>
   <div class="bar">
     <a class="brand" href="/">
-      <img src="/logo.svg" width="36" height="36" alt="" />
+      <img src="/logo.png" width="36" height="36" alt="" />
       <span class="titles">
         <h1 class="name">ForeBalance</h1>
         <span class="tagline">Cashflow, in plain text.</span>
@@ -59,7 +59,7 @@
     width: 2rem;
     height: 2rem;
     flex-shrink: 0;
-    border-radius: 0.35rem;
+    border-radius: 22%;
   }
 
   .titles {

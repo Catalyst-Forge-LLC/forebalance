@@ -8,8 +8,10 @@
 	main {
 		flex-grow: 1;
 		min-height: 0;
+		box-sizing: border-box;
 		max-width: var(--fb-body-max);
 		width: 100%;
+		min-width: 0;
 		padding: 0;
 		margin: 0 auto;
 		overflow: hidden;

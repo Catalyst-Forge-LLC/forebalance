@@ -83,7 +83,8 @@
 
 <style lang="scss">
 	.tabs {
-		width: 100vw;
+		width: 100%;
+		min-width: 0;
 		height: 100%;
 		max-width: 56em;
 		flex: 1;

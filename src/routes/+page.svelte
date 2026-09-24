@@ -271,6 +271,7 @@
     align-items: stretch;
     flex-direction: column;
     flex: 1;
+    min-width: 0;
     min-height: 0;
     height: 100%;
   }
@@ -298,8 +299,10 @@
 
   .tab-panel {
     flex: 1;
+    min-width: 0;
     min-height: 0;
-    overflow: auto;
+    overflow-x: clip;
+    overflow-y: auto;
     position: relative;
     display: flex;
     flex-direction: column;
