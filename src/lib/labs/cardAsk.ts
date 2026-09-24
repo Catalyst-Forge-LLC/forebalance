@@ -3,6 +3,7 @@ import { localIsoDate } from '$lib/formatters/dates';
 import { debtOutlook, type DebtOutlook } from '$lib/parser/debtOutlook';
 import { parseEntries } from '$lib/parser/parseEntries';
 import { replaceSourceLine, writeSourceLine, type SourceLine } from '$lib/parser/sourceLines';
+import { ensureDebtAccount } from '$lib/parser/debtAccount';
 import type { Account, BalanceFlags, ParsedEntry, Settings } from '$lib/parser/types';
 import { evaluateMathJson, humanizeMathJson, MathJsonError } from './mathjson';
 
@@ -96,7 +97,7 @@ export function answerCardQuestion(
 	const fromModel = answerModelJson(trimmed);
 	if (fromModel) return fromModel;
 
-	const parsed = parseForecast(raw, settings);
+	const parsed = parseForecast(previewLine(raw, line), settings);
 	if (!parsed) return refuse('This file does not forecast yet, so there is no number to check.');
 
 	const extra = extraAmount(trimmed);
@@ -121,7 +122,7 @@ export function answerCardQuestion(
 
 /** Context sent with a model prompt. Other scenarios are not included. */
 export function cardContextPayload(raw: string, line: SourceLine, settings: Settings, asOf = new Date()) {
-	const parsed = parseForecast(raw, settings);
+	const parsed = parseForecast(previewLine(raw, line), settings);
 	const accountId = accountKey(line);
 	const account = accountId ? parsed?.accounts[accountId] : undefined;
 	const outlook = outlookFor(line, parsed, asOf);
@@ -411,6 +412,23 @@ interface Forecast {
 	entries: Record<string, ParsedEntry[]>;
 	accounts: Record<string, Account>;
 	mainId: string;
+}
+
+function previewLine(raw: string, line: SourceLine): string {
+	ensureDebtAccount(line);
+	const extras = {
+		...line.extras,
+		startingBal: finite(line.extras.startingBal),
+		apr: finite(line.extras.apr),
+		minRate: finite(line.extras.minRate),
+	};
+	return replaceSourceLine(raw, line.index, writeSourceLine({ ...line, extras }));
+}
+
+function finite(value: number | string | undefined): number | undefined {
+	if (value === undefined || (value as unknown) === '') return undefined;
+	const number = +value;
+	return Number.isFinite(number) ? number : undefined;
 }
 
 function parseForecast(raw: string, settings: Settings): Forecast | null {

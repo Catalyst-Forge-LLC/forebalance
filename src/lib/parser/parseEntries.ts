@@ -295,6 +295,7 @@ export function parseEntries(
 
 	const sortedTableEntries = sortEntries(tableEntries);
 	const accountEntries: AccountEntries = {};
+	accountEntries[mainAccount.id] = [];
 
 	for (const entry of sortedTableEntries) {
 		const account: Account =

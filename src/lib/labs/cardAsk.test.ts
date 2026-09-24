@@ -16,6 +16,16 @@ function line(index: number) {
 }
 
 describe('answerCardQuestion', () => {
+	it('forecasts a monthly loan that has a balance and APR but no account id', () => {
+		const loan = `B-CHCK-main|2026-09-01|5000|Checking
+D|2025-04-25,R3M|500|John Deere Finance||1200|15`;
+		const entry = readSourceLine(loan.split('\n')[1], 1);
+		const answer = answerCardQuestion(loan, entry, settings, PAYOFF_CHIP, asOf);
+		expect(answer.prose).not.toMatch(/no payments/);
+		expect(answer.source).toBe('forecast');
+		expect(answer.headline).not.toBeNull();
+	});
+
 	it('answers payoff from the forecast without a model', () => {
 		const answer = answerCardQuestion(raw, line(1), settings, PAYOFF_CHIP, asOf);
 		expect(answer.source).toBe('forecast');

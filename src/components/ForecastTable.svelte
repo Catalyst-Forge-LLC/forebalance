@@ -10,6 +10,7 @@
   import type { ParsedEntry } from '$lib/parser/types';
   import Tooltip from './Tooltip.svelte';
   import ThresholdLegend from './ThresholdLegend.svelte';
+  import Icon from './Icon.svelte';
 
   export let tableEntries: ParsedEntry[] = [];
   export let accounts = {};
@@ -230,8 +231,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
                 </span>
               {/if}
               {#if entry.recur}
-                <fieldset class="scope">
-                  <legend class="sr-only">Apply edit to</legend>
+                <div class="scope" role="group" aria-label="Apply edit to">
                   <label>
                     <input type="radio" bind:group={editScope} value="occurrence" />
                     This one
@@ -240,14 +240,14 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
                     <input type="radio" bind:group={editScope} value="series" />
                     Whole series
                   </label>
-                </fieldset>
-                <span class="occ">
-                  {#if editScope === 'series'}
-                    Rewrites the line. Drops #N exceptions.
-                  {:else}
-                    Occurrence #{entry.occurrenceIndex ?? 1} only
-                  {/if}
-                </span>
+                  <span class="occ">
+                    {#if editScope === 'series'}
+                      Rewrites the line. Drops #N exceptions.
+                    {:else}
+                      Occurrence #{entry.occurrenceIndex ?? 1} only
+                    {/if}
+                  </span>
+                </div>
               {/if}
             </td>
             <td class="num-col" colspan={entry.type === 'B' ? 2 : 1} align="right">
@@ -275,9 +275,15 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
               </td>
             {/if}
             <td class="edit-actions" align="right">
-              <button type="button" on:click={(e) => openEntry(e, entry)}>Edit entry</button>
-              <button type="button" on:click={cancelEdit}>Cancel</button>
-              <button type="button" class="save" on:click={(e) => saveEdit(e, entry)}>Save</button>
+              <button type="button" class="icon-btn" aria-label="Edit entry" title="Edit entry" on:click={(e) => openEntry(e, entry)}>
+                <Icon name="edit" size={16} />
+              </button>
+              <button type="button" class="icon-btn" aria-label="Cancel" title="Cancel" on:click={cancelEdit}>
+                <Icon name="x" size={16} />
+              </button>
+              <button type="button" class="icon-btn save" aria-label="Save" title="Save" on:click={(e) => saveEdit(e, entry)}>
+                <Icon name="check" size={16} />
+              </button>
             </td>
           {:else}
             <td>{fmt.date(entry.date)}{#if entry.overridden}<abbr title="This occurrence was adjusted">*</abbr>{/if}</td>
@@ -496,11 +502,9 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
   .scope {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.15rem 0.65rem;
-    margin: 0.25rem 0 0;
-    padding: 0;
-    border: 0;
-    font-family: inherit;
+    align-items: center;
+    gap: 0.2rem 0.65rem;
+    margin: 0.2rem 0 0;
     font-size: 0.75rem;
     color: $clr-accent-ink;
   }
@@ -514,7 +518,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
   }
 
   .occ {
-    display: block;
+    display: inline;
     font-size: 0.75rem;
     color: $clr-muted;
     font-family: inherit;
@@ -539,15 +543,22 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     font: inherit;
   }
 
+  .edit-actions {
+    white-space: nowrap;
+  }
+
   .edit-actions button {
-    margin-left: 0.25rem;
-    padding: 0.15rem 0.4rem;
+    margin-left: 0.2rem;
+    padding: 0.2rem;
+    width: 1.7rem;
+    height: 1.7rem;
     font-size: 0.75rem;
     border: 1px solid $clr-accent;
     border-radius: 0.3rem;
     background: $clr-surface;
     color: $clr-accent-ink;
     cursor: pointer;
+    vertical-align: middle;
   }
 
   .edit-actions .save {

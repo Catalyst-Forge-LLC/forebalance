@@ -12,6 +12,7 @@
   import { settingsStore } from '$lib/stores/settings';
   import { parseEntries } from '$lib/parser/parseEntries';
   import { debtOutlook, type DebtOutlook } from '$lib/parser/debtOutlook';
+  import { ensureDebtAccount } from '$lib/parser/debtAccount';
   import type { BalanceFlags, EntryType } from '$lib/parser/types';
   import CardAsk from './CardAsk.svelte';
   import { fmt } from '$lib/formatters/fmt';
@@ -48,7 +49,7 @@
   }
 
   function lookAhead(line: SourceLine): DebtOutlook | null {
-    const key = (line.accountSuffix || line.extras.accountSlot || '').toUpperCase();
+    const key = ensureDebtAccount(line);
     if (!key) return null;
     const extras = {
       ...line.extras,
