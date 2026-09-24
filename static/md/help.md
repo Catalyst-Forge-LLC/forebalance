@@ -165,6 +165,7 @@ On **Entries** you can keep more than one forecast (a tight month, a what-if, an
 - **Fork what-if…** copies this scenario under a new name and remembers which one it came from. The original is left as it is. A note under the name shows the parent and an optional description.
 - **Previous versions** keeps the last 20 edits of *this* scenario (full text, in this browser)
 - **Forecast** has the same scenario picker, and always uses the one you selected
+- An expanded card has **Ask** chips. Payoff, interest, and “add $50” use the forecast math on this device. They do not load a model and they do not use `eval`. A free-form question that is not one of those chips waits until you open **Labs**.
 - The Forecast **menu** (⋮) exports this table as CSV, copies CSV, copies the glance summary, can export every account when more than one is in the file, and **Compare with…** puts month-ending balances, the lowest point, and debt payoff beside another scenario. That view is read-only. **Open this scenario** switches to the one you compared.
 - **Settings → Reset** can export every scenario as one JSON copy first
 - Exports stamp a comment like `--- currency USD` (whatever you picked under Settings). That line is a comment only. Import asks which currency to use if the file has no stamp.

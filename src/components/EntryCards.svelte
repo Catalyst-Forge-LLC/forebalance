@@ -13,6 +13,7 @@
   import { parseEntries } from '$lib/parser/parseEntries';
   import { debtOutlook, type DebtOutlook } from '$lib/parser/debtOutlook';
   import type { BalanceFlags, EntryType } from '$lib/parser/types';
+  import CardAsk from './CardAsk.svelte';
   import { fmt } from '$lib/formatters/fmt';
   import { everyUnit, readWhenForm, writeWhenForm, type RepeatKind, type WhenForm } from '$lib/parser/whenForm';
 
@@ -533,6 +534,7 @@
       </label>
       </fieldset>
     {/if}
+    <CardAsk raw={raw} line={draft} settings={$settingsStore} />
     </div>
     <footer class="editor-foot">
       <button type="submit" class="button-action">Save and close</button>
