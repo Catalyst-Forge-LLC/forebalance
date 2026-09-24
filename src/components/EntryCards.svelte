@@ -58,8 +58,38 @@
 
   function onWhenChange() {
     if (!draft || whenForm.raw) return;
-    if (whenForm.repeat !== 'once' && whenForm.repeat !== 'M') whenForm.lastDay = false;
+    if (draft.type === 'B') {
+      whenForm.repeat = 'once';
+      whenForm.lastDay = false;
+      whenForm.shift = '';
+      whenForm.times = '';
+      whenForm.end = '';
+    } else if (whenForm.repeat !== 'once' && whenForm.repeat !== 'M') {
+      whenForm.lastDay = false;
+    }
     draft.when = writeWhenForm(whenForm);
+  }
+
+  function onTypeChange() {
+    if (!draft) return;
+    if (draft.type !== 'D') {
+      draft.extras.strategy = undefined;
+      draft.extras.minRate = undefined;
+      draft.extras.payUrl = undefined;
+      draft.extras.autopay = undefined;
+    }
+    onWhenChange();
+  }
+
+  function showsDebtFields(line: SourceLine | null): boolean {
+    if (!line || line.type !== 'D') return false;
+    return Boolean(
+      (line.accountSuffix && !line.isMain) ||
+        line.extras.accountSlot ||
+        line.extras.startingBal !== undefined ||
+        line.extras.apr !== undefined ||
+        line.extras.strategy,
+    );
   }
 
   function close() {
@@ -243,7 +273,7 @@
     <div class="editor-body">
     {#if error}<p class="error">{error}</p>{/if}
     <label>Type
-      <select bind:value={draft.type}>
+      <select bind:value={draft.type} on:change={onTypeChange}>
         <option value="B">Balance</option>
         <option value="C">Money in</option>
         <option value="D">Money out</option>
@@ -251,6 +281,10 @@
     </label>
     {#if whenForm.raw}
       <label>When <input bind:value={draft.when} /></label>
+    {:else if draft.type === 'B'}
+      <label>Date
+        <input type="date" bind:value={whenForm.date} on:change={onWhenChange} />
+      </label>
     {:else}
       <fieldset class="when">
         <legend>When</legend>
@@ -318,7 +352,8 @@
       </label>
     </div>
     <label>Description <input bind:value={draft.desc} /></label>
-    {#if draft.accountSuffix || draft.extras.accountSlot}
+    <label>Notes <textarea rows="2" bind:value={draft.extras.notes}></textarea></label>
+    {#if showsDebtFields(draft)}
       <div class="pair">
         <label>Payment style
           <select bind:value={draft.extras.strategy}>
@@ -328,7 +363,9 @@
             <option value="pct">Percent of balance</option>
           </select>
         </label>
-        <label>Minimum rate <input bind:value={draft.extras.minRate} placeholder="0.10 = 10%" /></label>
+        {#if draft.extras.strategy === 'min'}
+          <label>Minimum rate <input bind:value={draft.extras.minRate} placeholder="0.10 = 10%" /></label>
+        {/if}
       </div>
       <label>Pay link <input bind:value={draft.extras.payUrl} placeholder="https://" /></label>
       {#if draft.extras.apr !== undefined}
@@ -339,7 +376,6 @@
           Next APR {draft.extras.apr2 ?? '—'}%{#if draft.extras.apr2Date} from {draft.extras.apr2Date}{/if}
         </p>
       {/if}
-      <label>Notes <textarea rows="2" bind:value={draft.extras.notes}></textarea></label>
       <label class="check">
         <input
           type="checkbox"
