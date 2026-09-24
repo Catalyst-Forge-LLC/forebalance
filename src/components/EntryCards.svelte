@@ -10,7 +10,8 @@
     type SourceLine,
   } from '$lib/parser/sourceLines';
   import { fmt } from '$lib/formatters/fmt';
-  import { everyUnit, readWhenForm, writeWhenForm, type WhenForm } from '$lib/parser/whenForm';
+  import { everyUnit, readWhenForm, writeWhenForm, type RepeatKind, type WhenForm } from '$lib/parser/whenForm';
+  import type { EntryType } from '$lib/parser/types';
 
   export let raw = '';
   export let categories: Category[] = [];
@@ -57,6 +58,18 @@
     whenForm = readWhenForm(line.when);
     menuFor = null;
     error = '';
+  }
+
+  function pickType(next: EntryType) {
+    if (!draft || draft.type === next) return;
+    draft.type = next;
+    onTypeChange();
+  }
+
+  function pickRepeat(next: RepeatKind) {
+    if (whenForm.repeat === next) return;
+    whenForm.repeat = next;
+    onWhenChange();
   }
 
   function onWhenChange() {
@@ -283,13 +296,24 @@
     {#if error}<p class="error">{error}</p>{/if}
     <fieldset class="group">
       <div class="pair">
-        <label>Type
-          <select bind:value={draft.type} on:change={onTypeChange}>
-            <option value="B">Balance</option>
-            <option value="C">Money in</option>
-            <option value="D">Money out</option>
-          </select>
-        </label>
+        <div>
+          <span class="field-label" id="entry-type-label">Type</span>
+          <div class="choice" role="radiogroup" aria-labelledby="entry-type-label">
+            {#each [
+              ['B', 'Balance'],
+              ['C', 'Money in'],
+              ['D', 'Money out'],
+            ] as [id, label]}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={draft.type === id}
+                class:selected={draft.type === id}
+                on:click={() => pickType(id as EntryType)}
+              >{label}</button>
+            {/each}
+          </div>
+        </div>
         {#if whenForm.raw}
           <label>When <input bind:value={draft.when} /></label>
         {:else}
@@ -324,25 +348,36 @@
     {#if !whenForm.raw && draft.type !== 'B'}
       <fieldset class="group">
         <p class="group-title">When</p>
-        <div class="when-row">
-          <label>Repeats
-            <select bind:value={whenForm.repeat} on:change={onWhenChange}>
-              <option value="once">Once</option>
-              <option value="D">Daily</option>
-              <option value="W">Weekly</option>
-              <option value="M">Monthly</option>
-              <option value="Y">Yearly</option>
-            </select>
-          </label>
-          {#if whenForm.repeat !== 'once'}
+        <div>
+          <span class="field-label" id="entry-repeat-label">Repeats</span>
+          <div class="choice" role="radiogroup" aria-labelledby="entry-repeat-label">
+            {#each [
+              ['once', 'Once'],
+              ['D', 'Daily'],
+              ['W', 'Weekly'],
+              ['M', 'Monthly'],
+              ['Y', 'Yearly'],
+            ] as [id, label]}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={whenForm.repeat === id}
+                class:selected={whenForm.repeat === id}
+                on:click={() => pickRepeat(id as RepeatKind)}
+              >{label}</button>
+            {/each}
+          </div>
+        </div>
+        {#if whenForm.repeat !== 'once'}
+          <div class="when-row">
             <label>Every
               <span class="every">
                 <input type="number" min="1" bind:value={whenForm.every} on:change={onWhenChange} />
                 {everyUnit(whenForm)}
               </span>
             </label>
-          {/if}
-        </div>
+          </div>
+        {/if}
         {#if whenForm.repeat === 'once' || whenForm.repeat === 'M'}
           <label class="check">
             <input type="checkbox" bind:checked={whenForm.lastDay} on:change={onWhenChange} />
@@ -714,6 +749,28 @@
     display: flex;
     flex-direction: column;
     gap: 0.45rem;
+  }
+  .choice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+
+    button {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 0.3rem 0.4rem;
+      font-size: 0.82rem;
+    }
+
+    button.selected {
+      background: $clr-accent-soft;
+      font-weight: 700;
+    }
+  }
+  .field-label {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-size: 0.85rem;
   }
   .pair {
     display: grid;
