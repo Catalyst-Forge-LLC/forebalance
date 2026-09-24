@@ -32,10 +32,13 @@
   $: visible = entries.filter((line) => {
     if (typeFilter !== 'all' && line.type !== typeFilter) return false;
     if (groupFilter === 'all') return true;
+    if (line.type === 'B') return false;
     const id = line.extras.categoryId || UNFILED_ID;
     return id === groupFilter;
   });
-  $: unfiledCount = entries.filter((line) => !line.extras.categoryId || line.extras.categoryId === UNFILED_ID).length;
+  $: unfiledCount = entries.filter(
+    (line) => line.type !== 'B' && (!line.extras.categoryId || line.extras.categoryId === UNFILED_ID),
+  ).length;
 
   function commit(next: string) {
     if (next === raw) return;
@@ -78,6 +81,7 @@
       draft.extras.payUrl = undefined;
       draft.extras.autopay = undefined;
     }
+    if (draft.type === 'B') draft.extras.categoryId = undefined;
     onWhenChange();
   }
 
@@ -226,7 +230,9 @@
           <span class="desc">{line.desc || 'Untitled'}</span>
           <span class="meta">
             {whenLabel(line.when)}
-            · {categoryName(line.extras.categoryId, categories)}
+            {#if line.type !== 'B'}
+              · {categoryName(line.extras.categoryId, categories)}
+            {/if}
             {#if line.extras.startingBal !== undefined}
               · starts at {fmt.curr(line.extras.startingBal)}
             {/if}
@@ -272,26 +278,26 @@
     </header>
     <div class="editor-body">
     {#if error}<p class="error">{error}</p>{/if}
-    <label>Type
-      <select bind:value={draft.type} on:change={onTypeChange}>
-        <option value="B">Balance</option>
-        <option value="C">Money in</option>
-        <option value="D">Money out</option>
-      </select>
-    </label>
-    {#if whenForm.raw}
-      <label>When <input bind:value={draft.when} /></label>
-    {:else if draft.type === 'B'}
-      <label>Date
-        <input type="date" bind:value={whenForm.date} on:change={onWhenChange} />
+    <div class="pair">
+      <label>Type
+        <select bind:value={draft.type} on:change={onTypeChange}>
+          <option value="B">Balance</option>
+          <option value="C">Money in</option>
+          <option value="D">Money out</option>
+        </select>
       </label>
-    {:else}
+      {#if whenForm.raw}
+        <label>When <input bind:value={draft.when} /></label>
+      {:else}
+        <label>Date
+          <input type="date" bind:value={whenForm.date} on:change={onWhenChange} />
+        </label>
+      {/if}
+    </div>
+    {#if !whenForm.raw && draft.type !== 'B'}
       <fieldset class="when">
         <legend>When</legend>
         <div class="when-row">
-          <label>Date
-            <input type="date" bind:value={whenForm.date} on:change={onWhenChange} />
-          </label>
           <label>Repeats
             <select bind:value={whenForm.repeat} on:change={onWhenChange}>
               <option value="once">Once</option>
@@ -335,22 +341,26 @@
         {/if}
       </fieldset>
     {/if}
-    <div class="pair">
+    {#if draft.type === 'B'}
       <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
-      <label>Category
-        <select
-          value={draft.extras.categoryId ?? ''}
-          on:change={(event) => {
-            if (draft) draft.extras.categoryId = event.currentTarget.value || undefined;
-          }}
-        >
-          <option value="">Unfiled</option>
-          {#each categories.filter((category) => category.id !== UNFILED_ID) as category}
-            <option value={category.id}>{category.name}</option>
-          {/each}
-        </select>
-      </label>
-    </div>
+    {:else}
+      <div class="pair">
+        <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
+        <label>Category
+          <select
+            value={draft.extras.categoryId ?? ''}
+            on:change={(event) => {
+              if (draft) draft.extras.categoryId = event.currentTarget.value || undefined;
+            }}
+          >
+            <option value="">Unfiled</option>
+            {#each categories.filter((category) => category.id !== UNFILED_ID) as category}
+              <option value={category.id}>{category.name}</option>
+            {/each}
+          </select>
+        </label>
+      </div>
+    {/if}
     <label>Description <input bind:value={draft.desc} /></label>
     <label>Notes <textarea rows="2" bind:value={draft.extras.notes}></textarea></label>
     {#if showsDebtFields(draft)}
