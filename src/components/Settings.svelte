@@ -124,7 +124,7 @@
     </section>
 
     <section class="panel">
-        <h2>Dates and balance lines</h2>
+        <h2>Dates and balances</h2>
         <p class="help">
             These change how the forecast reads your entries. They are not threshold marks.
         </p>
@@ -148,8 +148,8 @@
                 on:change={commitSettings}
             />
             <span>
-                A balance line is the end-of-day number (on by default). Credits and debits dated
-                the same day as a <code>B</code> line are already in it, so they show on Forecast
+                A balance you enter is the end-of-day number (on by default). Money in and money out
+                dated the same day as a <code>B</code> entry are already in it, so they show on Forecast
                 but do not change the balance again. If one has not posted yet, open that Forecast
                 row and check <em>Not yet posted</em>. Turn this off if you enter a balance before
                 the day's activity hits.

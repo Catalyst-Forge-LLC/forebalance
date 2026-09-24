@@ -8,7 +8,7 @@
       <img src="/logo.png" width="36" height="36" alt="" />
       <span class="titles">
         <h1 class="name">ForeBalance</h1>
-        <span class="tagline">Cashflow, in plain text.</span>
+        <span class="tagline">See the balance ahead.</span>
       </span>
     </a>
     <SiteMenu />

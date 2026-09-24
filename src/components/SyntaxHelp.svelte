@@ -41,14 +41,14 @@
     on:click={toggle}
   >
     <Icon name="help" />
-    Syntax
+    Format
   </button>
 
   {#if open}
-    <aside id="syntax-help-panel" class="panel" aria-label="Entry syntax">
+    <aside id="syntax-help-panel" class="panel" aria-label="Entry format">
       <header>
-        <h3>Entry syntax</h3>
-        <button type="button" class="close" on:click={close} aria-label="Close syntax help">×</button>
+        <h3>Entry format</h3>
+        <button type="button" class="close" on:click={close} aria-label="Close format help">×</button>
       </header>
 
       <p class="shape"><code>TYPE|WHEN|AMOUNT|DESCRIPTION</code></p>
@@ -82,7 +82,7 @@ D|2026-04-01,R&lt;|1645|Rent</pre>
 
       <h4>Same day</h4>
       <p>
-        <code>B</code> is the end-of-day number by default. Same-day credits and debits show as
+        <code>B</code> is the end-of-day number by default. Same-day money in and money out show as
         <em>in balance</em>. Check <em>Not yet posted</em> on Forecast if one still has to hit
         (<code>|#1=pending</code>).
       </p>

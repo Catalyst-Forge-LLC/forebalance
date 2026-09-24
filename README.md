@@ -2,13 +2,13 @@
 
 See how the cash flows you enter affect your projected balance, and when it crosses your chosen thresholds.
 
-ForeBalance projects a checking balance from a plaintext list of credits, debits, and balance resets. One line per transaction, pipe-separated (`.psv`). Data stays in this browser. There are no accounts, no tracking, and no server-side data.
+ForeBalance projects a checking balance from the paychecks, bills, and bank balances you enter. Each item is one short entry in a saved file (`.psv`). Data stays in this browser. There are no accounts, no tracking, and no server-side data.
 
 **Live:** [forebalance.app](https://forebalance.app)
 
 The npm name `forebalance` is a hold (`0.0.1`). It does not install this app. Clone the repo or use the site.
 
-**This is not personal financial, tax, legal, or investment advice.** The table is a projection from the lines you type. It is not a statement about real accounts, and it is not a recommendation to spend, save, borrow, or invest. The software is provided as-is under the [MIT License](LICENSE), without warranty.
+**This is not personal financial, tax, legal, or investment advice.** The table is a projection from the amounts you enter. It is not a statement about real accounts, and it is not a recommendation to spend, save, borrow, or invest. The software is provided as-is under the [MIT License](LICENSE), without warranty.
 
 ## Quick start
 
@@ -46,9 +46,9 @@ C|2026-09-15,R|1800|Paycheck
 D|2026-09-01,R|1500|Rent
 ```
 
-The `B` line is checking on the 1st after rent clears: $420. A balance line is the end-of-day number by default, so same-day credits and debits are already in it and do not change the balance again (turn this off in Settings if you enter the balance before the day's activity posts). The paycheck on the 15th brings checking to $2,220. On a day with no balance line, credits apply before debits, and entries of the same type keep their file order.
+The `B` entry is checking on the 1st after rent clears: $420. A balance is the end-of-day number by default, so same-day money in and money out are already in it and do not change the balance again (turn this off in Settings if you enter the balance before the day's activity posts). The paycheck on the 15th brings checking to $2,220. On a day with no balance entered, money in is counted before money out, and items of the same kind keep their file order.
 
-See the in-app **Help** tab or `docs/forebalance-spec.md` for the full DSL (recurrence, multi-account, debt).
+See the in-app **Help** tab or `docs/forebalance-spec.md` for the rest of the format (repeating items, more than one account, debt).
 
 <!-- xfacts-label -->
 

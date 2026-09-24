@@ -249,8 +249,7 @@
         </p>
       {:else}
         <p class="hint">
-          Each ask goes through the model twice: a router picks type ids, then a specialist fills
-          only those templates.
+          Each question is answered in two steps, so the reply stays on your forecast.
         </p>
       {/if}
       <button type="button" disabled={!session || running || !forecastReady} on:click={explainForecast}>
@@ -283,7 +282,7 @@
       </button>
 
       <label>
-        Draft .psv from a description
+        Draft entries from a description
         <textarea
           bind:value={draftAsk}
           rows="3"
@@ -291,11 +290,11 @@
         ></textarea>
       </label>
       <button type="button" disabled={!session || running || !draftAsk.trim()} on:click={draftEntries}>
-        Draft lines
+        Draft entries
       </button>
 
       <label>
-        Syntax or a custom ask
+        A format question, or your own
         <textarea bind:value={freeAsk} rows="2" placeholder="What does R2W mean?"></textarea>
       </label>
       <button type="button" disabled={!session || running || !freeAsk.trim()} on:click={freePrompt}>Ask</button>

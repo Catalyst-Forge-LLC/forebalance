@@ -168,8 +168,8 @@ Nothing is sent to a server. See **[Privacy](/#privacy)**. Data lives in this br
 
 ## What the forecast assumes
 
-The table is a **projection** from your lines, your month count, and your thresholds. Change a date, amount, or recurrence, and the future rows change. The tool does not connect to a bank and does not know about charges you did not enter.
+The table is a **projection** from the amounts you enter, how many months you chose, and your thresholds. Change a date, an amount, or how often something repeats, and the later rows change. The tool does not connect to a bank and does not know about charges you did not enter.
 
-Debt interest uses the simple monthly model above. Lenders may use a different method. Projected balances are only as accurate as the lines you enter.
+Debt interest uses the simple monthly model above. Lenders may use a different method. Projected balances are only as accurate as what you enter.
 
 **This is not personal financial, tax, legal, or investment advice**, and it is not a promise about real accounts. You are responsible for decisions you make with it. The full disclaimer is on **[About](/#about)**.

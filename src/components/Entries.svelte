@@ -33,7 +33,7 @@
   import Tooltip from './Tooltip.svelte';
 
   const persistTip =
-    'This scenario stays in this browser on this device. Clearing site data deletes it. Export a .psv for a copy you keep. Browser storage is not a durable backup. Previous versions (last 20 edits) are kept here too.';
+    'This scenario stays in this browser on this device. Clearing site data deletes it. Export a saved file (.psv) for a copy you keep. Browser storage is not a durable backup. Previous versions (last 20 edits) are kept here too.';
   const currencies = listedCurrencies();
 
   let lastInputEntries = '';
@@ -269,11 +269,11 @@
   {#if showDrop}
     <div class="dropzone-wrap">
       <div class="drop-head">
-        <span>Drop a <code>.psv</code> to replace this scenario</span>
+        <span>Drop a saved file (<code>.psv</code>) to replace this scenario</span>
         <button type="button" class="button-link" on:click={() => (showDrop = false)}>Hide</button>
       </div>
       <Dropzone on:drop={handleFilesSelect}>
-        <p>Drop a <code>.psv</code> here</p>
+        <p>Drop a saved file (<code>.psv</code>) here</p>
       </Dropzone>
     </div>
   {/if}
