@@ -8,6 +8,33 @@ const balanceFlags: BalanceFlags = {
 	above: { goal: 5000 },
 };
 
+describe('debt account id 0', () => {
+	it('tracks a loan whose account id is 0 and whose series starts before the balance', () => {
+		const raw = `B-CHCK-main|2026-09-01|5000|Checking
+D|2026-04-25,R3|500|John Deere Finance|0|1200|15`;
+		const [entries, accounts] = parseEntries(raw, 12, balanceFlags, {
+			useFederalHolidays: false,
+			balanceIncludesSameDay: true,
+		});
+		const debt = entries?.['0'] ?? [];
+		expect(accounts?.['0']?.startingBal).toBe(1200);
+		expect(debt.filter((row) => row.subAccountRunningBal !== undefined).length).toBeGreaterThan(0);
+	});
+
+	it('uses this line’s starting balance when account 0 was already created empty', () => {
+		const raw = `B-CHCK-main|2026-09-01|5000|Checking
+D|2026-01-15,R|10|Other|0
+D|2026-04-25,R3|500|John Deere Finance|0|1200|15`;
+		const [entries, accounts] = parseEntries(raw, 12, balanceFlags, {
+			useFederalHolidays: false,
+			balanceIncludesSameDay: true,
+		});
+		expect(accounts?.['0']?.startingBal).toBe(1200);
+		const debt = entries?.['0'] ?? [];
+		expect(debt.some((row) => row.desc?.includes('John Deere') && row.subAccountRunningBal !== undefined)).toBe(true);
+	});
+});
+
 describe('parseRecur', () => {
 	it('parses monthly default', () => {
 		expect(parseRecur('R')).toEqual({

@@ -26,6 +26,15 @@ D|2025-04-25,R3M|500|John Deere Finance||1200|15`;
 		expect(answer.headline).not.toBeNull();
 	});
 
+	it('answers payoff for an R3 loan whose account id is 0', () => {
+		const loan = `B-CHCK-main|2026-09-01|5000|Checking
+D|2026-04-25,R3|500|John Deere Finance|0|1200|15`;
+		const entry = readSourceLine(loan.split('\n')[1], 1);
+		const answer = answerCardQuestion(loan, entry, { ...settings, monthsToForecast: 12 }, PAYOFF_CHIP, asOf);
+		expect(answer.prose).not.toMatch(/No payment from this schedule/);
+		expect(answer.headline).not.toBeNull();
+	});
+
 	it('answers payoff from the forecast without a model', () => {
 		const answer = answerCardQuestion(raw, line(1), settings, PAYOFF_CHIP, asOf);
 		expect(answer.source).toBe('forecast');

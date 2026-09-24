@@ -113,7 +113,8 @@ function parseRawEntries(
 				applyAccountDisplay(accounts[parsedEntry.accountId], parsedEntry.desc);
 			} else if (parsedEntry.accountId) {
 				parsedEntry.accountId = parsedEntry.accountId.toUpperCase();
-				if (!accounts[parsedEntry.accountId]) {
+				const existing = accounts[parsedEntry.accountId];
+				if (!existing) {
 					accounts[parsedEntry.accountId] = {
 						id: parsedEntry.accountId,
 						isMain: false,
@@ -129,6 +130,10 @@ function parseRawEntries(
 						categoryId: lineExtras.categoryId,
 						autopay: lineExtras.autopay,
 					};
+				} else if (existing.startingBal <= 0 && (lineExtras.startingBal ?? 0) > 0) {
+					existing.startingBal = lineExtras.startingBal ?? 0;
+					existing.runningBal = lineExtras.startingBal ?? 0;
+					if ((lineExtras.apr ?? 0) > 0) existing.interestRate = lineExtras.apr;
 				}
 				applyAccountDisplay(accounts[parsedEntry.accountId], parsedEntry.desc);
 			}
