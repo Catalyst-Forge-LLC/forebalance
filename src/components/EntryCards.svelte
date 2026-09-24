@@ -480,8 +480,7 @@
     &.disabled { opacity: 0.55; }
     &.menu-open { z-index: 4; }
 
-    &:hover,
-    &:focus-within {
+    &:hover {
       border-color: $clr-gold;
       box-shadow: 0 0 12px rgba(196, 163, 90, 0.22);
 
@@ -494,6 +493,11 @@
       .sheen::before {
         animation: card-sheen 0.9s ease;
       }
+    }
+
+    &:focus-within::after {
+      border-color: $clr-text;
+      inset: 0;
     }
 
     &::after {
@@ -533,6 +537,9 @@
   .kebab-btn {
     position: relative;
     z-index: 1;
+
+    &:focus,
+    &:focus-visible { outline: none; }
   }
   .body {
     flex: 1;
