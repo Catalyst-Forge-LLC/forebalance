@@ -449,7 +449,7 @@
   .list {
     list-style: none;
     margin: 0;
-    padding: 0 0.15rem 0.35rem 0;
+    padding: 0.2rem 0.45rem 0.45rem;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
