@@ -11,6 +11,8 @@
   export let onDraft: (value: string) => void = () => {};
   export let hasWarnings = false;
   export let commitDelayMs = 600;
+  /** Zero-based line at the cursor. */
+  export let onCursorLine: (index: number) => void = () => {};
 
   let container: HTMLDivElement;
   let view: EditorView | undefined;
@@ -47,6 +49,10 @@
           psvTheme(),
           psvLinter(),
           EditorView.updateListener.of((update) => {
+            if (update.selectionSet || update.docChanged) {
+              const line = update.state.doc.lineAt(update.state.selection.main.head);
+              onCursorLine(line.number - 1);
+            }
             if (!update.docChanged) return;
             const next = update.state.doc.toString();
             onDraft(next);
@@ -64,6 +70,7 @@
         ],
       }),
     });
+    onCursorLine(0);
   });
 
   onDestroy(() => {

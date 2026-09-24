@@ -161,6 +161,7 @@ Broken lines are skipped and listed as warnings under the editor.
 On **Entries** you can keep more than one forecast (a tight month, a what-if, another household). Each one is a **scenario**.
 
 - Switch and rename on the Entries toolbar
+- **Raw** has **Edit this line** for the cursor. **Forecast** row editing has **Edit entry**. Both open the card dialog.
 - The **menu** (☰) has **Fork what-if…**, delete, import, export, drop a file, link, roll recurring starts, add a starter, and previous versions
 - **Fork what-if…** copies this scenario under a new name and remembers which one it came from. The original is left as it is. A note under the name shows the parent and an optional description.
 - **Previous versions** keeps the last 20 edits of *this* scenario (full text, in this browser)

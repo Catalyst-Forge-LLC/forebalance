@@ -1,5 +1,6 @@
 <script lang="ts">
   import { appStateStore, rawEntriesStore } from '$lib/stores/settings';
+  import { cardEditRequest } from '$lib/stores/cardEdit';
   import { setRawEntries } from '$lib/data/entriesPersistence';
   import { applyForecastEdit, type ForecastEditScope } from '$lib/parser/occurrenceEdit';
   import { onMount } from 'svelte';
@@ -103,6 +104,14 @@
     editAmount = +entry.amount;
     editScope = 'occurrence';
     editPending = !!entry.pending;
+  }
+
+  function openEntry(e: Event, entry: ParsedEntry) {
+    e.stopPropagation();
+    editIndex = null;
+    if (entry.entryOrder === undefined) return;
+    cardEditRequest.set(entry.entryOrder);
+    location.hash = '#entries';
   }
 
   function cancelEdit(e?: Event) {
@@ -266,6 +275,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
               </td>
             {/if}
             <td class="edit-actions" align="right">
+              <button type="button" on:click={(e) => openEntry(e, entry)}>Edit entry</button>
               <button type="button" on:click={cancelEdit}>Cancel</button>
               <button type="button" class="save" on:click={(e) => saveEdit(e, entry)}>Save</button>
             </td>

@@ -20,6 +20,9 @@
   export let raw = '';
   export let categories: Category[] = [];
   export let onCommit: (next: string) => void = () => {};
+  /** Source line to open once. Parent clears it from onOpenLine. */
+  export let openLine: number | null = null;
+  export let onOpenLine: () => void = () => {};
 
   let typeFilter: 'all' | 'C' | 'D' = 'all';
   let groupFilter = 'all';
@@ -31,6 +34,7 @@
   let removeIndex: number | null = null;
   let menuFor: number | null = null;
   let whenForm: WhenForm = readWhenForm('');
+  let consumedOpen: number | null = null;
 
   const quietFlags: BalanceFlags = {
     below: { negative: 0, low: 0, uncomfortable: 0 },
@@ -82,6 +86,14 @@
   $: outlook = outlookKey && draft && showsDebtFields(draft) ? lookAhead(draft) : null;
 
   $: lines = readSourceLines(raw);
+  $: if (openLine === null) {
+    consumedOpen = null;
+  } else if (openLine !== consumedOpen) {
+    consumedOpen = openLine;
+    const requested = lines.find((item) => item.kind === 'entry' && item.index === openLine);
+    if (requested) open(requested);
+    onOpenLine();
+  }
   $: entries = lines.filter((line) => line.kind === 'entry');
   $: visible = entries.filter((line) => {
     if (typeFilter !== 'all' && line.type !== typeFilter) return false;

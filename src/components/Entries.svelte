@@ -25,6 +25,8 @@
   import Dropzone from 'svelte-file-dropzone';
   import type { EntryValidation } from '$lib/parser/validateEntries';
   import { rollRecurringStarts } from '$lib/parser/rollRecurringStarts';
+  import { readSourceLines } from '$lib/parser/sourceLines';
+  import { cardEditRequest } from '$lib/stores/cardEdit';
   import ConfirmModal from './ConfirmModal.svelte';
   import EntriesMenu from './EntriesMenu.svelte';
   import EntrySetsPanel from './EntrySetsPanel.svelte';
@@ -58,6 +60,8 @@
   let pendingRestore: EntryVersion | null = null;
   let viewMode: 'cards' | 'raw' = 'cards';
   let viewFor = '';
+  let cursorLine = 0;
+  let lineHint = '';
 
   const VIEW_KEY = 'forebalance.entriesView.v1';
 
@@ -92,6 +96,9 @@
     viewFor = $entrySetsStore.activeId;
     viewMode = readView(viewFor);
   }
+  $: if ($cardEditRequest !== null && viewMode !== 'cards') {
+    rememberView('cards');
+  }
 
   onMount(() => {
     loadCategories();
@@ -110,6 +117,19 @@
 
   function handleEditorDraft(inputEntries: string) {
     draftEntries = inputEntries;
+  }
+
+  function editCursorLine() {
+    const text = draftEntries || $rawEntriesStore;
+    const line = readSourceLines(text)[cursorLine];
+    if (!line || line.kind !== 'entry') {
+      lineHint = 'Put the cursor on an entry line.';
+      return;
+    }
+    lineHint = '';
+    handleEditorCommit(text, true);
+    cardEditRequest.set(line.index);
+    rememberView('cards');
   }
 
   function handleEditorCommit(inputEntries: string, allowEmpty = false) {
@@ -279,11 +299,17 @@
       <div class="view-toggle" role="group" aria-label="Editor view">
         <button type="button" class:selected={viewMode === 'cards'} on:click={() => rememberView('cards')}>Cards</button>
         <button type="button" class:selected={viewMode === 'raw'} on:click={() => rememberView('raw')}>Raw</button>
+        {#if viewMode === 'raw'}
+          <button type="button" on:click={editCursorLine}>Edit this line</button>
+        {/if}
       </div>
+      {#if lineHint}<p class="line-hint">{lineHint}</p>{/if}
       {#if viewMode === 'cards'}
         <EntryCards
           raw={$rawEntriesStore}
           categories={$categoriesStore}
+          openLine={$cardEditRequest}
+          onOpenLine={() => cardEditRequest.set(null)}
           onCommit={(next) => handleEditorCommit(next, true)}
         />
       {:else}
@@ -292,6 +318,7 @@
           hasWarnings={validationWarnings.length > 0}
           onDraft={handleEditorDraft}
           onChange={handleEditorCommit}
+          onCursorLine={(index) => (cursorLine = index)}
         />
       {/if}
 
@@ -464,6 +491,12 @@
       background: $clr-accent-soft;
       font-weight: 700;
     }
+  }
+
+  .line-hint {
+    margin: 0 0 0.4rem;
+    color: $clr-muted;
+    font-size: 0.85rem;
   }
 
   .icon-btn {
