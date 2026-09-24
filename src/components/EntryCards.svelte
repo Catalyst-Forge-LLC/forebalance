@@ -87,12 +87,15 @@
 
   function showsDebtFields(line: SourceLine | null): boolean {
     if (!line || line.type !== 'D') return false;
+    const sized = line.extras.strategy === 'min' || line.extras.strategy === 'pct';
     return Boolean(
       (line.accountSuffix && !line.isMain) ||
         line.extras.accountSlot ||
         line.extras.startingBal !== undefined ||
         line.extras.apr !== undefined ||
-        line.extras.strategy,
+        line.extras.payUrl ||
+        line.extras.autopay !== undefined ||
+        sized,
     );
   }
 
@@ -278,25 +281,49 @@
     </header>
     <div class="editor-body">
     {#if error}<p class="error">{error}</p>{/if}
-    <div class="pair">
-      <label>Type
-        <select bind:value={draft.type} on:change={onTypeChange}>
-          <option value="B">Balance</option>
-          <option value="C">Money in</option>
-          <option value="D">Money out</option>
-        </select>
-      </label>
-      {#if whenForm.raw}
-        <label>When <input bind:value={draft.when} /></label>
-      {:else}
-        <label>Date
-          <input type="date" bind:value={whenForm.date} on:change={onWhenChange} />
+    <fieldset class="group">
+      <div class="pair">
+        <label>Type
+          <select bind:value={draft.type} on:change={onTypeChange}>
+            <option value="B">Balance</option>
+            <option value="C">Money in</option>
+            <option value="D">Money out</option>
+          </select>
         </label>
+        {#if whenForm.raw}
+          <label>When <input bind:value={draft.when} /></label>
+        {:else}
+          <label>Date
+            <input type="date" bind:value={whenForm.date} on:change={onWhenChange} />
+          </label>
+        {/if}
+      </div>
+      {#if draft.type === 'B'}
+        <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
+      {:else}
+        <div class="pair">
+          <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
+          <label>Category
+            <select
+              value={draft.extras.categoryId ?? ''}
+              on:change={(event) => {
+                if (draft) draft.extras.categoryId = event.currentTarget.value || undefined;
+              }}
+            >
+              <option value="">Unfiled</option>
+              {#each categories.filter((category) => category.id !== UNFILED_ID) as category}
+                <option value={category.id}>{category.name}</option>
+              {/each}
+            </select>
+          </label>
+        </div>
       {/if}
-    </div>
+      <label>Description <input bind:value={draft.desc} /></label>
+      <label>Notes <textarea rows="2" bind:value={draft.extras.notes}></textarea></label>
+    </fieldset>
     {#if !whenForm.raw && draft.type !== 'B'}
-      <fieldset class="when">
-        <legend>When</legend>
+      <fieldset class="group">
+        <p class="group-title">When</p>
         <div class="when-row">
           <label>Repeats
             <select bind:value={whenForm.repeat} on:change={onWhenChange}>
@@ -341,29 +368,9 @@
         {/if}
       </fieldset>
     {/if}
-    {#if draft.type === 'B'}
-      <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
-    {:else}
-      <div class="pair">
-        <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
-        <label>Category
-          <select
-            value={draft.extras.categoryId ?? ''}
-            on:change={(event) => {
-              if (draft) draft.extras.categoryId = event.currentTarget.value || undefined;
-            }}
-          >
-            <option value="">Unfiled</option>
-            {#each categories.filter((category) => category.id !== UNFILED_ID) as category}
-              <option value={category.id}>{category.name}</option>
-            {/each}
-          </select>
-        </label>
-      </div>
-    {/if}
-    <label>Description <input bind:value={draft.desc} /></label>
-    <label>Notes <textarea rows="2" bind:value={draft.extras.notes}></textarea></label>
     {#if showsDebtFields(draft)}
+      <fieldset class="group">
+        <p class="group-title">Payment</p>
       <div class="pair">
         <label>Payment style
           <select bind:value={draft.extras.strategy}>
@@ -394,6 +401,7 @@
         />
         Autopay
       </label>
+      </fieldset>
     {/if}
     </div>
     <footer class="editor-foot">
@@ -611,16 +619,21 @@
       &:hover { background: $clr-accent-soft; }
     }
   }
-  .when {
+  .editor .group {
     margin: 0;
-    padding: 0.35rem 0.6rem 0.5rem;
-    border: 1px solid $clr-border;
-    border-radius: 0.4rem;
+    padding: 0.45rem 0.65rem 0.55rem;
+    box-shadow: none;
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
-
-    legend { padding: 0 0.25rem; font-size: 0.85rem; }
+  }
+  .group-title {
+    margin: 0;
+    padding: 0;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: $clr-accent-ink;
   }
   .when-row {
     display: grid;
