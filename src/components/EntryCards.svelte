@@ -36,6 +36,7 @@
   let menuFor: number | null = null;
   let whenForm: WhenForm = readWhenForm('');
   let consumedOpen: number | null = null;
+  let editorTab: 'entry' | 'when' | 'payment' | 'ask' = 'entry';
 
   const quietFlags: BalanceFlags = {
     below: { negative: 0, low: 0, uncomfortable: 0 },
@@ -84,7 +85,11 @@
         $settingsStore.balanceIncludesSameDay,
       ].join('|')
     : '';
-  $: outlook = outlookKey && draft && showsDebtFields(draft) ? lookAhead(draft) : null;
+  $: showWhen = !!draft && !whenForm.raw && draft.type !== 'B';
+  $: showPayment = showsDebtFields(draft);
+  $: outlook = outlookKey && draft && showPayment ? lookAhead(draft) : null;
+  $: if (editorTab === 'when' && !showWhen) editorTab = 'entry';
+  $: if (editorTab === 'payment' && !showPayment) editorTab = 'entry';
 
   $: lines = readSourceLines(raw);
   $: if (openLine === null) {
@@ -124,6 +129,7 @@
     whenForm = readWhenForm(line.when);
     menuFor = null;
     error = '';
+    editorTab = 'entry';
   }
 
   function pickType(next: EntryType) {
@@ -366,8 +372,19 @@
       <h3>Edit entry</h3>
       <button type="button" on:click={close} aria-label="Close and save">×</button>
     </header>
+    <div class="editor-tabs" role="tablist" aria-label="Entry sections">
+      <button type="button" role="tab" aria-selected={editorTab === 'entry'} class:selected={editorTab === 'entry'} on:click={() => (editorTab = 'entry')}>Entry</button>
+      {#if showWhen}
+        <button type="button" role="tab" aria-selected={editorTab === 'when'} class:selected={editorTab === 'when'} on:click={() => (editorTab = 'when')}>When</button>
+      {/if}
+      {#if showPayment}
+        <button type="button" role="tab" aria-selected={editorTab === 'payment'} class:selected={editorTab === 'payment'} on:click={() => (editorTab = 'payment')}>Payment</button>
+      {/if}
+      <button type="button" role="tab" aria-selected={editorTab === 'ask'} class:selected={editorTab === 'ask'} on:click={() => (editorTab = 'ask')}>Ask</button>
+    </div>
     <div class="editor-body">
     {#if error}<p class="error">{error}</p>{/if}
+    {#if editorTab === 'entry'}
     <fieldset class="group">
       <div class="pair">
         <div>
@@ -419,9 +436,9 @@
       <label>Description <input bind:value={draft.desc} /></label>
       <label>Notes <textarea rows="2" bind:value={draft.extras.notes}></textarea></label>
     </fieldset>
-    {#if !whenForm.raw && draft.type !== 'B'}
+    {/if}
+    {#if showWhen && editorTab === 'when'}
       <fieldset class="group">
-        <p class="group-title">When</p>
         <div>
           <span class="field-label" id="entry-repeat-label">Repeats</span>
           <div class="choice" role="radiogroup" aria-labelledby="entry-repeat-label">
@@ -477,9 +494,8 @@
         {/if}
       </fieldset>
     {/if}
-    {#if showsDebtFields(draft)}
+    {#if showPayment && editorTab === 'payment'}
       <fieldset class="group">
-        <p class="group-title">Payment</p>
       <div class="pair">
         <label>Payment style
           <select bind:value={draft.extras.strategy}>
@@ -547,7 +563,9 @@
       </label>
       </fieldset>
     {/if}
-    <CardAsk raw={raw} line={draft} settings={$settingsStore} />
+    {#if editorTab === 'ask'}
+      <CardAsk raw={raw} line={draft} settings={$settingsStore} />
+    {/if}
     </div>
     <footer class="editor-foot">
       <button type="submit" class="button-action">Save and close</button>
@@ -859,6 +877,30 @@
     background: #fff;
   }
   .editor header { justify-content: space-between; border-bottom: 1px solid $clr-border; }
+  .editor-tabs {
+    flex: none;
+    display: flex;
+    gap: 0.15rem;
+    padding: 0 0.55rem;
+    border-bottom: 1px solid $clr-border;
+    background: #fff;
+
+    button {
+      border: 0;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      background: transparent;
+      padding: 0.45rem 0.75rem;
+      color: $clr-muted;
+      cursor: pointer;
+    }
+
+    button.selected {
+      color: $clr-accent-ink;
+      font-weight: 700;
+      border-bottom-color: $clr-gold;
+    }
+  }
   .editor-foot { justify-content: center; border-top: 1px solid $clr-border; }
   .editor-body {
     overflow: auto;

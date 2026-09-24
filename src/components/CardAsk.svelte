@@ -40,7 +40,6 @@
 </script>
 
 <fieldset class="group ask">
-  <p class="group-title">Ask</p>
   <div class="ask-chips">
     {#each chips as chip}
       <button type="button" on:click={() => ask(chip.label)}>{chip.label}</button>
