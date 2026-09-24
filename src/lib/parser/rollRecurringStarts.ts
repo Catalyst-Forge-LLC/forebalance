@@ -226,9 +226,7 @@ export function rollRecurringStarts(raw: string, anchor?: Date): RecurringStartR
 			return result && 'line' in result ? result.line : line;
 		}
 		changed += 1;
-		if (examples.length < 8) {
-			examples.push({ desc: result.desc, from: result.from, to: result.to });
-		}
+		examples.push({ desc: result.desc, from: result.from, to: result.to });
 		return result.line;
 	});
 	return { raw: lines.join('\n'), changed, examples };

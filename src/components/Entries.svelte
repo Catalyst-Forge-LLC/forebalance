@@ -513,8 +513,15 @@
   }
 
   .roll-examples {
+    max-height: 14rem;
+    overflow: auto;
     margin: 0.35rem 0 0;
     padding-left: 1.2rem;
+
+    li {
+      margin: 0.4rem 0;
+      line-height: 1.7;
+    }
   }
 
   .button-link {
