@@ -426,6 +426,7 @@
     display: flex;
     flex-direction: column;
     flex: 1;
+    min-width: 0;
     min-height: 0;
     text-align: left;
   }
@@ -449,12 +450,15 @@
   .list {
     list-style: none;
     margin: 0;
-    padding: 0.2rem 0.45rem 0.45rem;
+    padding: 0.25rem 0.35rem 0.5rem;
+    scrollbar-gutter: stable;
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
     flex: 1;
+    min-width: 0;
     min-height: 0;
+    overflow-x: hidden;
     overflow-y: auto;
   }
   li {
@@ -462,6 +466,9 @@
     display: flex;
     gap: 0.35rem;
     align-items: stretch;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
     border: 1px solid $clr-border;
     border-radius: 0.4rem;
     background: #fff;
@@ -476,17 +483,27 @@
     &:hover,
     &:focus-within {
       border-color: $clr-gold;
-      box-shadow:
-        0 0 0 1px rgba(196, 163, 90, 0.4),
-        0 0 14px rgba(196, 163, 90, 0.28);
+      box-shadow: 0 0 12px rgba(196, 163, 90, 0.22);
 
       &.type-b { background: #d5e1f0; }
       &.type-c { background: #d2ead4; }
       &.type-d { background: #f0e0d4; }
 
+      &::after { border-color: $clr-gold; }
+
       .sheen::before {
         animation: card-sheen 0.9s ease;
       }
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 1px;
+      border: 1px solid transparent;
+      border-radius: inherit;
+      pointer-events: none;
+      z-index: 2;
     }
   }
   .sheen {
