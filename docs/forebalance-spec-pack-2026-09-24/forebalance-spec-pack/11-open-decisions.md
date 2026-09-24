@@ -1,6 +1,6 @@
-# Open decisions
+# Decisions
 
-Agents must **not** silently pick a permanent product meaning for these. Implement the temporary rule if blocking, and mark a `TODO(spec)` in Help.
+These were open during the pack. Each one is decided as of 2026-09-24.
 
 ## 1. `pct` strategy meaning
 
@@ -12,37 +12,32 @@ Agents must **not** silently pick a permanent product meaning for these. Impleme
 
 ## 3. MathJSON engine
 
-Options:
-
-- A) `@cortex-js/compute-engine` (correct, heavier)
-- B) Minimal allowlisted walker (smaller, enough for this app)
-
-Either is acceptable. Do not use `eval`.
+**Decided 2026-09-24: Option B, a minimal allowlisted walker.** Do not use `eval`. Do not add `@cortex-js/compute-engine`.
 
 ## 4. Autopay serialization
 
-Preferred: explicit token `autopay` / omit. If extras parsing stays positional, document the exact index after named-extra refactor (Slice 0).
+**Decided 2026-09-24: the preferred form.** Write the token `autopay` when it is on. Omit the token when it was never set. Write `noautopay` only after it is turned off.
 
 ## 5. Notes containing `|`
 
-v1 forbidden. Future: escape syntax. Do not add CSV-style quotes yet.
+**Decided 2026-09-24: forbidden for now.** Reject a pipe in the card. No escape syntax yet.
 
 ## 6. Cards as default view
 
-Proposed default Cards for first-time; remember last. Owner can flip to Raw-default later.
+**Decided 2026-09-24: Cards on a first visit, and remember the last view for each scenario.**
 
 ## 7. Delete vs disable from kebab
 
-v1 primary action = disable with `!`. Hard delete is secondary confirm. Revisit if users find disable confusing.
+**Decided 2026-09-24: offer both.** Delete turns the line off with `!` and leaves it in the file. Hard delete removes the line and always asks first.
 
 ## 8. Spreadsheet import
 
-Designed, not in the first five slices. Do not block dual-mode on it.
+**Decided 2026-09-24: skip for now.**
 
 ## 9. Shareable HTML snapshot / OFX import / budget envelopes / pattern detection
 
-Raised as future ideas. **Out of this pack** unless the owner reopens them.
+**Decided 2026-09-24: skip for now.**
 
 ## 10. Second APR field UI
 
-Parser already supports APR2 + date. Show both on expanded debt card if present; no new grammar required.
+**Decided 2026-09-24: agreed.** Show the second APR and its date on the expanded debt card when they are present. No new grammar.

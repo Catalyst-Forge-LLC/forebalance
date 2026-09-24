@@ -194,12 +194,14 @@
         <button type="button" class="body" on:click={() => open(line)}>
           <span class="chip">{line.type}</span>
           <span class="desc">{line.desc || 'Untitled'}</span>
+          <span class="meta">
+            {whenLabel(line.when)}
+            · {categoryName(line.extras.categoryId, categories)}
+            {#if line.extras.startingBal !== undefined}
+              · starts at {fmt.curr(line.extras.startingBal)}
+            {/if}
+          </span>
           <span class="amount">{fmt.curr(+line.amount || 0)}</span>
-          <span class="when">{whenLabel(line.when)}</span>
-          <span class="cat">{categoryName(line.extras.categoryId, categories)}</span>
-          {#if line.extras.startingBal !== undefined}
-            <span class="hint">Starts at {fmt.curr(line.extras.startingBal)}</span>
-          {/if}
         </button>
         <button
           type="button"
@@ -215,8 +217,8 @@
           <div class="menu" role="menu" on:click|stopPropagation>
             <button type="button" role="menuitem" on:click={() => open(line)}>Edit</button>
             <button type="button" role="menuitem" on:click={() => { menuFor = null; clone(line); }}>Clone</button>
-            <button type="button" role="menuitem" on:click={() => { menuFor = null; disable(line); }}>{line.disabled ? 'Enable' : 'Disable'}</button>
-            <button type="button" role="menuitem" class="danger" on:click={() => { menuFor = null; removeIndex = line.index; }}>Remove line</button>
+            <button type="button" role="menuitem" on:click={() => { menuFor = null; disable(line); }}>{line.disabled ? 'Enable' : 'Delete'}</button>
+            <button type="button" role="menuitem" class="danger" on:click={() => { menuFor = null; removeIndex = line.index; }}>Hard delete</button>
           </div>
         {/if}
       </li>
@@ -316,6 +318,14 @@
       </label>
       <label>Minimum rate <input bind:value={draft.extras.minRate} placeholder="0.10 = 10%" /></label>
       <label>Pay link <input bind:value={draft.extras.payUrl} placeholder="https://" /></label>
+      {#if draft.extras.apr !== undefined}
+        <p class="hint-line">APR {draft.extras.apr}%</p>
+      {/if}
+      {#if draft.extras.apr2 !== undefined || draft.extras.apr2Date}
+        <p class="hint-line">
+          Next APR {draft.extras.apr2 ?? '—'}%{#if draft.extras.apr2Date} from {draft.extras.apr2Date}{/if}
+        </p>
+      {/if}
       <label>Notes <input bind:value={draft.extras.notes} /></label>
       <label class="check">
         <input
@@ -333,9 +343,9 @@
 {#if removeIndex !== null}
   <div class="backdrop" role="presentation" on:click={() => (removeIndex = null)}></div>
   <div class="editor confirm" role="dialog" aria-label="Remove line">
-    <p>Remove this line from the scenario? Disable keeps it in the file instead.</p>
+    <p>Hard delete removes this line. Delete keeps it in the file and turns it off.</p>
     <button type="button" on:click={() => (removeIndex = null)}>Cancel</button>
-    <button type="button" class="danger" on:click={confirmRemove}>Remove line</button>
+    <button type="button" class="danger" on:click={confirmRemove}>Hard delete</button>
   </div>
 {/if}
 
@@ -422,15 +432,34 @@
   }
   .body {
     flex: 1;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: 0.15rem 0.6rem;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
     text-align: left;
     border: 0;
     background: transparent;
-    padding: 0.55rem 0.7rem;
+    padding: 0.35rem 0.55rem 0.35rem 0.7rem;
     cursor: pointer;
   }
+  .desc {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 650;
+  }
+  .meta {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: $clr-muted;
+    font-size: 0.82rem;
+  }
+  .hint-line { margin: 0; color: $clr-muted; font-size: 0.85rem; }
 
   @keyframes card-sheen {
     from { transform: translateX(-80%); }
@@ -447,9 +476,8 @@
       display: none;
     }
   }
-  .chip { font-weight: 700; color: $clr-accent-ink; }
-  .amount { font-variant-numeric: tabular-nums; }
-  .when, .cat, .hint { grid-column: 2; color: $clr-muted; font-size: 0.82rem; }
+  .chip { flex: none; font-weight: 700; color: $clr-accent-ink; }
+  .amount { flex: none; margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .kebab-btn {
     align-self: center;
     flex: none;
