@@ -458,7 +458,18 @@ function missingPayments(line: SourceLine, parsed: Forecast): string {
 	if (accountKey(line) === parsed.mainId) {
 		return 'This line is on the checking account, so the forecast does not keep a separate debt balance.';
 	}
-	return 'No payment from this schedule falls between the balance date and the end of the forecast. Check the start date, or lengthen the forecast under Settings.';
+	const roll = seriesStartsBeforeBalance(line, parsed)
+		? ' Entries → Scenario actions → Roll recurring starts moves a long series up to just before the balance date.'
+		: '';
+	return `No payment from this schedule falls between the balance date and the end of the forecast. Check the start date, or lengthen the forecast under Settings.${roll}`;
+}
+
+function seriesStartsBeforeBalance(line: SourceLine, parsed: Forecast): boolean {
+	if (!/,R/i.test(line.when)) return false;
+	const start = /^(\d{4}-\d{2}-\d{2})/.exec(line.when)?.[1];
+	const balance = (parsed.entries[parsed.mainId] ?? []).find((entry) => entry.type === 'B' && entry.date);
+	if (!start || !balance?.date) return false;
+	return start < localIsoDate(balance.date);
 }
 
 function accountKey(line: SourceLine): string {

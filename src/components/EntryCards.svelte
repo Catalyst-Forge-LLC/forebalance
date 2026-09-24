@@ -87,6 +87,13 @@
     : '';
   $: showWhen = !!draft && !whenForm.raw && draft.type !== 'B';
   $: showPayment = showsDebtFields(draft);
+  $: balanceStart = (lines.find((line) => line.kind === 'entry' && line.type === 'B')?.when ?? '').slice(0, 10);
+  $: seriesIsEarly = !!(
+    draft &&
+    /,R/i.test(draft.when) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(balanceStart) &&
+    draft.when.slice(0, 10) < balanceStart
+  );
   $: outlook = outlookKey && draft && showPayment ? lookAhead(draft) : null;
   $: if (editorTab === 'when' && !showWhen) editorTab = 'entry';
   $: if (editorTab === 'payment' && !showPayment) editorTab = 'entry';
@@ -439,6 +446,11 @@
     {/if}
     {#if showWhen && editorTab === 'when'}
       <fieldset class="group">
+        {#if seriesIsEarly}
+          <p class="hint-line">
+            This series starts before the balance date. Scenario actions → Roll recurring starts moves it to just before that date.
+          </p>
+        {/if}
         <div>
           <span class="field-label" id="entry-repeat-label">Repeats</span>
           <div class="choice" role="radiogroup" aria-labelledby="entry-repeat-label">
