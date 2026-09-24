@@ -115,6 +115,16 @@ D-CO|2026-04-15,R|150|Capital One-4321|CO|2800|19.99|min|0.02|https://www.capita
 		});
 	});
 
+	it('pays the larger of the dollar floor and the minimum rate', () => {
+		const raw = `B-CHCK1000-main|2026-04-01|5000|Starting checking
+D-CO|2026-04-15,R|150|Capital One-4321|CO|2800|19.99|min`;
+		const [entries] = parseEntries(raw, 2, flags);
+		const payment = Object.values(entries ?? {})
+			.flat()
+			.find((entry) => entry.accountId === 'CO' && entry.type === 'D');
+		expect(payment?.amount).toBeCloseTo(280, 5);
+	});
+
 	it('still parses a shipping debt line', () => {
 		const raw = `B-CHCK1000-main|2026-04-01|420|Starting checking
 D-CO|2026-04-15,R|150|Capital One-4321|CO|2800|19.99`;

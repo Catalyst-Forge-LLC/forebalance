@@ -5,6 +5,16 @@
     import { scaleThresholdSettings, thresholdSliderRange } from '$lib/data/thresholdScale';
     import { resetAllData, setRawEntries } from '$lib/data/entriesPersistence';
     import { persistSettings, rawEntriesStore, settingsStore } from '$lib/stores/settings';
+    import {
+        categoriesStore,
+        deleteCategory,
+        loadCategories,
+        persistCategories,
+        uniqueCategoryId,
+        UNFILED_ID,
+        type Category,
+    } from '$lib/data/categories';
+    import { onMount } from 'svelte';
     import ConfirmResetModal from './ConfirmResetModal.svelte';
     import Icon from './Icon.svelte';
 
@@ -25,6 +35,39 @@
 
     let draftSettings = { ...$settingsStore };
     let resetOpen = false;
+    let newCategoryName = '';
+
+    onMount(() => loadCategories());
+
+    function renameCategory(category: Category, name: string) {
+        if (category.id === UNFILED_ID) return;
+        persistCategories(
+            $categoriesStore.map((item) => (item.id === category.id ? { ...item, name } : item)),
+        );
+    }
+
+    function moveCategory(index: number, direction: -1 | 1) {
+        const list = $categoriesStore.filter((category) => category.id !== UNFILED_ID);
+        const nextIndex = index + direction;
+        if (nextIndex < 0 || nextIndex >= list.length) return;
+        const swapped = [...list];
+        [swapped[index], swapped[nextIndex]] = [swapped[nextIndex], swapped[index]];
+        persistCategories(swapped);
+    }
+
+    function removeCategory(id: string) {
+        const name = $categoriesStore.find((category) => category.id === id)?.name ?? id;
+        if (!confirm(`Delete “${name}”? Entries in it move to Unfiled.`)) return;
+        deleteCategory(id);
+    }
+
+    function addCategory() {
+        const name = newCategoryName.trim();
+        if (!name) return;
+        const id = uniqueCategoryId(name, $categoriesStore);
+        persistCategories([...$categoriesStore, { id, name, order: $categoriesStore.length }]);
+        newCategoryName = '';
+    }
 
     $: draftSettings.thresholdGoalBalance = $settingsStore.thresholdGoalBalance;
     $: draftSettings.thresholdUncomfortableBalance = $settingsStore.thresholdUncomfortableBalance;
@@ -155,6 +198,32 @@
                 the day's activity hits.
             </span>
         </label>
+    </section>
+
+    <section class="panel">
+        <h2>Categories</h2>
+        <p class="help">
+            Names for the groups on your entries. Deleting a category moves those entries to
+            Unfiled. It does not delete the entries.
+        </p>
+        <ul class="category-list">
+            {#each $categoriesStore.filter((category) => category.id !== UNFILED_ID) as category, index}
+                <li>
+                    <input
+                        value={category.name}
+                        aria-label="Rename {category.name}"
+                        on:change={(event) => renameCategory(category, event.currentTarget.value)}
+                    />
+                    <button type="button" on:click={() => moveCategory(index, -1)} aria-label="Move up">Up</button>
+                    <button type="button" on:click={() => moveCategory(index, 1)} aria-label="Move down">Down</button>
+                    <button type="button" on:click={() => removeCategory(category.id)}>Delete</button>
+                </li>
+            {/each}
+        </ul>
+        <form class="add-category" on:submit|preventDefault={addCategory}>
+            <input bind:value={newCategoryName} placeholder="New category" aria-label="New category" />
+            <button type="submit">Add</button>
+        </form>
     </section>
 
     <section class="panel">
@@ -296,6 +365,28 @@
             font-size: 0.9em;
             white-space: nowrap;
         }
+    }
+
+    .category-list {
+        list-style: none;
+        margin: 0.5rem 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+
+        li {
+            display: flex;
+            gap: 0.35rem;
+            align-items: center;
+        }
+
+        input { flex: 1; }
+    }
+
+    .add-category {
+        display: flex;
+        gap: 0.35rem;
     }
 
     .panel :global(.button-action) {

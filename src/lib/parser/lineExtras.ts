@@ -1,4 +1,4 @@
-import type { PaymentStrategy } from '$lib/parser/types';
+import { DEFAULT_MIN_RATE, type PaymentStrategy } from '$lib/parser/types';
 
 export interface LineExtras {
 	accountSlot?: string;
@@ -88,6 +88,20 @@ export function parseLineExtras(extras: string[]): LineExtras {
 	return result;
 }
 
+/** Dollar payment the forecast should apply for this occurrence. */
+export function resolvePayment(
+	strategy: PaymentStrategy | undefined,
+	amount: number,
+	runningBal: number,
+	minRate?: number,
+): number {
+	if (!strategy || strategy === 'fixed') return amount;
+	if (strategy === 'pct') return Math.max(0, (amount / 100) * runningBal);
+	const floor = amount > 0 ? amount : 0.01;
+	const rate = minRate ?? DEFAULT_MIN_RATE;
+	return Math.max(floor, rate * runningBal);
+}
+
 /** Shortest extra list that parses back to the same fields. */
 export function formatLineExtras(extras: LineExtras): string[] {
 	const head: string[] = [
@@ -103,8 +117,15 @@ export function formatLineExtras(extras: LineExtras): string[] {
 
 	const tail: string[] = ['', '', '', '', ''];
 	let last = -1;
-	if (extras.strategy) {
-		tail[0] = extras.strategy;
+	const needsStrategy =
+		extras.strategy ||
+		extras.minRate !== undefined ||
+		extras.payUrl ||
+		extras.categoryId ||
+		extras.notes ||
+		extras.autopay !== undefined;
+	if (needsStrategy) {
+		tail[0] = extras.strategy ?? 'fixed';
 		last = 0;
 	}
 	if (extras.minRate !== undefined) {

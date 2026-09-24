@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { categoriesStore } from '$lib/data/categories';
   import { exportAllSetsBackup } from '$lib/data/entrySets';
   import { rawEntriesStore, settingsStore } from '$lib/stores/settings';
   import Icon from './Icon.svelte';
@@ -23,6 +24,7 @@
       $rawEntriesStore,
       $settingsStore.currencyIsoCode,
       $settingsStore.locale,
+      $categoriesStore,
     );
     exported = true;
   }

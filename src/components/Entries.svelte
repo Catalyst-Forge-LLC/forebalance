@@ -10,6 +10,7 @@
   } from '$lib/data/entryHistory';
   import { listedCurrencies } from '$lib/data/currencies';
   import { ensureCurrencyHeader, extractCurrency } from '$lib/data/currencyHeader';
+  import { categoriesStore, loadCategories } from '$lib/data/categories';
   import { entrySetsStore } from '$lib/data/entrySets';
   import { setRawEntries } from '$lib/data/entriesPersistence';
   import { applyDisplayCurrency, rawEntriesStore, settingsStore } from '$lib/stores/settings';
@@ -28,6 +29,7 @@
   import EntriesMenu from './EntriesMenu.svelte';
   import EntrySetsPanel from './EntrySetsPanel.svelte';
   import Icon from './Icon.svelte';
+  import EntryCards from './EntryCards.svelte';
   import PsvEditor from './PsvEditor.svelte';
   import SyntaxHelp from './SyntaxHelp.svelte';
   import Tooltip from './Tooltip.svelte';
@@ -54,6 +56,29 @@
   let rollOpen = false;
   let restoreOpen = false;
   let pendingRestore: EntryVersion | null = null;
+  let viewMode: 'cards' | 'raw' = 'cards';
+  let viewFor = '';
+
+  const VIEW_KEY = 'forebalance.entriesView.v1';
+
+  function readView(id: string): 'cards' | 'raw' {
+    if (typeof localStorage === 'undefined') return 'cards';
+    try {
+      const map = JSON.parse(localStorage.getItem(VIEW_KEY) || '{}') as Record<string, string>;
+      return map[id] === 'raw' ? 'raw' : 'cards';
+    } catch {
+      return 'cards';
+    }
+  }
+
+  function rememberView(mode: 'cards' | 'raw') {
+    viewMode = mode;
+    const id = $entrySetsStore.activeId;
+    if (!id || typeof localStorage === 'undefined') return;
+    const map = JSON.parse(localStorage.getItem(VIEW_KEY) || '{}') as Record<string, string>;
+    map[id] = mode;
+    localStorage.setItem(VIEW_KEY, JSON.stringify(map));
+  }
 
   $: if ($rawEntriesStore !== lastInputEntries) {
     lastInputEntries = $rawEntriesStore;
@@ -63,8 +88,13 @@
   $: rollPreview = rollRecurringStarts(draftEntries || $rawEntriesStore);
   $: versions = listEntryVersions($entrySetsStore.activeId, $entryHistoryStore);
   $: pendingFileCurrency = pendingContent ? extractCurrency(pendingContent) : null;
+  $: if ($entrySetsStore.activeId && $entrySetsStore.activeId !== viewFor) {
+    viewFor = $entrySetsStore.activeId;
+    viewMode = readView(viewFor);
+  }
 
   onMount(() => {
+    loadCategories();
     fsSupported = isFileSystemAccessSupported();
     linkedFileName = getLinkedFileName();
     lastInputEntries = $rawEntriesStore;
@@ -82,11 +112,11 @@
     draftEntries = inputEntries;
   }
 
-  function handleEditorCommit(inputEntries: string) {
+  function handleEditorCommit(inputEntries: string, allowEmpty = false) {
     if (lastInputEntries === inputEntries) {
       return;
     }
-    if (inputEntries) {
+    if (inputEntries || allowEmpty) {
       applyRawEntries(inputEntries);
     }
   }
@@ -246,12 +276,24 @@
     />
 
     <div class="editor-pane">
-      <PsvEditor
-        value={$rawEntriesStore}
-        hasWarnings={validationWarnings.length > 0}
-        onDraft={handleEditorDraft}
-        onChange={handleEditorCommit}
-      />
+      <div class="view-toggle" role="group" aria-label="Editor view">
+        <button type="button" class:selected={viewMode === 'cards'} on:click={() => rememberView('cards')}>Cards</button>
+        <button type="button" class:selected={viewMode === 'raw'} on:click={() => rememberView('raw')}>Raw</button>
+      </div>
+      {#if viewMode === 'cards'}
+        <EntryCards
+          raw={$rawEntriesStore}
+          categories={$categoriesStore}
+          onCommit={(next) => handleEditorCommit(next, true)}
+        />
+      {:else}
+        <PsvEditor
+          value={$rawEntriesStore}
+          hasWarnings={validationWarnings.length > 0}
+          onDraft={handleEditorDraft}
+          onChange={handleEditorCommit}
+        />
+      {/if}
 
       {#if validationWarnings.length}
         <div class="validation-warnings" role="alert">
@@ -403,6 +445,25 @@
     flex-direction: column;
     flex: 1;
     min-height: 0;
+  }
+
+  .view-toggle {
+    display: flex;
+    gap: 0.25rem;
+    margin: 0 0 0.5rem;
+
+    button {
+      border: 1px solid $clr-border;
+      background: #fff;
+      border-radius: 0.35rem;
+      padding: 0.35rem 0.7rem;
+      cursor: pointer;
+    }
+
+    button.selected {
+      background: $clr-accent-soft;
+      font-weight: 700;
+    }
   }
 
   .icon-btn {

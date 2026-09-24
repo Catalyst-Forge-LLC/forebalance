@@ -14,6 +14,7 @@
 	import Help from '../components/Help.svelte';
 	import Welcome from '../components/Welcome.svelte';
 
+	import { loadCategories } from '$lib/data/categories';
 	import { initializeData } from '$lib/data/initializeData';
 	import { downloadTextFile, entrySetsStore, getActiveSet } from '$lib/data/entrySets';
 	import {
@@ -138,6 +139,7 @@
   }
 
   onMount(() => {
+    loadCategories();
     void initializeData().finally(() => {
       entriesReady = true;
     });

@@ -241,6 +241,7 @@ export function allSetsBackupPayload(
 	currencyIsoCode: string,
 	locale: string,
 	exportedAt = new Date(),
+	categories?: { id: string; name: string; color?: string; order: number }[],
 ): {
 	app: 'forebalance';
 	version: 2;
@@ -248,6 +249,7 @@ export function allSetsBackupPayload(
 	locale: string;
 	exportedAt: string;
 	sets: { name: string; raw: string }[];
+	categories?: { id: string; name: string; color?: string; order: number }[];
 } {
 	return {
 		app: 'forebalance',
@@ -259,6 +261,7 @@ export function allSetsBackupPayload(
 			name: set.name,
 			raw: ensureCurrencyHeader(set.raw, extractCurrency(set.raw) ?? currencyIsoCode),
 		})),
+		...(categories ? { categories } : {}),
 	};
 }
 
@@ -267,6 +270,7 @@ export function exportAllSetsBackup(
 	currentRaw?: string,
 	currencyIsoCode = 'USD',
 	locale = 'en-US',
+	categories?: { id: string; name: string; color?: string; order: number }[],
 ): void {
 	if (currentRaw !== undefined) {
 		updateActiveRaw(currentRaw);
@@ -275,7 +279,7 @@ export function exportAllSetsBackup(
 	const day = new Date().toISOString().slice(0, 10);
 	downloadTextFile(
 		`forebalance-all-sets-${day}.json`,
-		JSON.stringify(allSetsBackupPayload(state, currencyIsoCode, locale), null, 2),
+		JSON.stringify(allSetsBackupPayload(state, currencyIsoCode, locale, new Date(), categories), null, 2),
 		'application/json',
 	);
 }

@@ -15,7 +15,7 @@ import {
 	updateDescRecur,
 } from '$lib/parser/recurrence';
 import { parseAccountDisplay } from '$lib/parser/accountLabel';
-import { parseLineExtras } from '$lib/parser/lineExtras';
+import { parseLineExtras, resolvePayment } from '$lib/parser/lineExtras';
 import { isEntryLineDisabled } from '$lib/parser/validateEntries';
 import type {
 	Account,
@@ -255,6 +255,14 @@ export function parseEntries(
 			const entryAccount = accounts[entry.accountId];
 			if (entryAccount && entryAccount.startingBal > 0) {
 				if (entryAccount.runningBal > 0) {
+					if (entry.strategy === 'min' || entry.strategy === 'pct') {
+						entry.amount = resolvePayment(
+							entry.strategy,
+							+(entry.baseAmount ?? entry.amount),
+							entryAccount.runningBal,
+							entry.minRate,
+						);
+					}
 					let interestRate = +(entryAccount.interestRate ?? 0);
 					if ((entryAccount.interestRate2 ?? 0) > 0 && entryAccount.interestRate2Date) {
 						const interestRate2Date = new Date(entryAccount.interestRate2Date);
