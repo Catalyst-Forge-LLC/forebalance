@@ -152,7 +152,7 @@
       whenForm.shift = '';
       whenForm.times = '';
       whenForm.end = '';
-    } else if (whenForm.repeat !== 'once' && whenForm.repeat !== 'M') {
+    } else if (whenForm.repeat !== 'M') {
       whenForm.lastDay = false;
     }
     draft.when = writeWhenForm(whenForm);
@@ -469,7 +469,7 @@
             </label>
           </div>
         {/if}
-        {#if whenForm.repeat === 'once' || whenForm.repeat === 'M'}
+        {#if whenForm.repeat === 'M'}
           <label class="check">
             <input type="checkbox" bind:checked={whenForm.lastDay} on:change={onWhenChange} />
             Last day of the month

@@ -222,7 +222,7 @@ function payoffAnswer(
 	settings: Settings,
 ): CardAnswer {
 	const outlook = outlookFor(line, parsed, asOf);
-	if (!outlook) return refuse('This debt has no payments in the forecast.');
+	if (!outlook) return refuse(missingPayments(line, parsed));
 	if (outlook.months === null) {
 		const interest = interestFormula(outlook, asOf, false);
 		return verified(
@@ -247,7 +247,7 @@ function payoffAnswer(
 
 function interestAnswer(line: SourceLine, parsed: Forecast, asOf: Date, settings: Settings): CardAnswer {
 	const outlook = outlookFor(line, parsed, asOf);
-	if (!outlook) return refuse('This debt has no interest rows in the forecast.');
+	if (!outlook) return refuse(missingPayments(line, parsed));
 	const interest = interestFormula(outlook, asOf, true);
 	return verified(
 		interest.value,
@@ -448,6 +448,17 @@ function parseForecast(raw: string, settings: Settings): Forecast | null {
 	const main = Object.values(accounts).find((account) => account.isMain);
 	if (!main) return null;
 	return { entries, accounts, mainId: main.id };
+}
+
+function missingPayments(line: SourceLine, parsed: Forecast): string {
+	const balance = finite(line.extras.startingBal);
+	if (balance === undefined || balance <= 0) {
+		return 'Set a starting balance above zero on Payment. Without that, this stays a normal bill and the forecast does not track what is left.';
+	}
+	if (accountKey(line) === parsed.mainId) {
+		return 'This line is on the checking account, so the forecast does not keep a separate debt balance.';
+	}
+	return 'No payment from this schedule falls between the balance date and the end of the forecast. Check the start date, or lengthen the forecast under Settings.';
 }
 
 function accountKey(line: SourceLine): string {

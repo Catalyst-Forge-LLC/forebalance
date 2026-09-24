@@ -21,7 +21,7 @@ describe('answerCardQuestion', () => {
 D|2025-04-25,R3M|500|John Deere Finance||1200|15`;
 		const entry = readSourceLine(loan.split('\n')[1], 1);
 		const answer = answerCardQuestion(loan, entry, settings, PAYOFF_CHIP, asOf);
-		expect(answer.prose).not.toMatch(/no payments/);
+		expect(answer.prose).not.toMatch(/starting balance/);
 		expect(answer.source).toBe('forecast');
 		expect(answer.headline).not.toBeNull();
 	});
