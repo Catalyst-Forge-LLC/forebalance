@@ -10,6 +10,7 @@
     type SourceLine,
   } from '$lib/parser/sourceLines';
   import { fmt } from '$lib/formatters/fmt';
+  import { everyUnit, readWhenForm, writeWhenForm, type WhenForm } from '$lib/parser/whenForm';
 
   export let raw = '';
   export let categories: Category[] = [];
@@ -23,6 +24,8 @@
   let openedHadAutopay = false;
   let error = '';
   let removeIndex: number | null = null;
+  let menuFor: number | null = null;
+  let whenForm: WhenForm = readWhenForm('');
 
   $: lines = readSourceLines(raw);
   $: entries = lines.filter((line) => line.kind === 'entry');
@@ -48,7 +51,15 @@
     };
     openedSerialized = writeSourceLine(draft);
     openedHadAutopay = line.extras.autopay !== undefined;
+    whenForm = readWhenForm(line.when);
+    menuFor = null;
     error = '';
+  }
+
+  function onWhenChange() {
+    if (!draft || whenForm.raw) return;
+    if (whenForm.repeat !== 'once' && whenForm.repeat !== 'M') whenForm.lastDay = false;
+    draft.when = writeWhenForm(whenForm);
   }
 
   function close() {
@@ -89,7 +100,13 @@
   }
 
   function onKey(event: KeyboardEvent) {
-    if (event.key === 'Escape' && draft) close();
+    if (event.key !== 'Escape') return;
+    if (draft) close();
+    else menuFor = null;
+  }
+
+  function toggleMenu(index: number) {
+    menuFor = menuFor === index ? null : index;
   }
 
   function setAutopay(checked: boolean) {
@@ -142,7 +159,7 @@
   }
 </script>
 
-<svelte:window on:keydown={onKey} />
+<svelte:window on:keydown={onKey} on:click={() => (menuFor = null)} />
 
 <div class="cards">
   <div class="command">
@@ -172,7 +189,7 @@
 
   <ul class="list">
     {#each visible as line}
-      <li class="type-{line.type.toLowerCase()}" class:disabled={line.disabled}>
+      <li class="type-{line.type.toLowerCase()}" class:disabled={line.disabled} class:menu-open={menuFor === line.index}>
         <span class="sheen" aria-hidden="true"></span>
         <button type="button" class="body" on:click={() => open(line)}>
           <span class="chip">{line.type}</span>
@@ -184,13 +201,24 @@
             <span class="hint">Starts at {fmt.curr(line.extras.startingBal)}</span>
           {/if}
         </button>
-        <details class="kebab">
-          <summary aria-label="Entry actions">⋮</summary>
-          <button type="button" on:click={() => open(line)}>Edit</button>
-          <button type="button" on:click={() => clone(line)}>Clone</button>
-          <button type="button" on:click={() => disable(line)}>{line.disabled ? 'Enable' : 'Disable'}</button>
-          <button type="button" class="danger" on:click={() => (removeIndex = line.index)}>Remove line</button>
-        </details>
+        <button
+          type="button"
+          class="kebab-btn"
+          aria-label="Entry actions"
+          aria-expanded={menuFor === line.index}
+          aria-haspopup="menu"
+          on:click|stopPropagation={() => toggleMenu(line.index)}
+        >
+          <span></span><span></span><span></span>
+        </button>
+        {#if menuFor === line.index}
+          <div class="menu" role="menu" on:click|stopPropagation>
+            <button type="button" role="menuitem" on:click={() => open(line)}>Edit</button>
+            <button type="button" role="menuitem" on:click={() => { menuFor = null; clone(line); }}>Clone</button>
+            <button type="button" role="menuitem" on:click={() => { menuFor = null; disable(line); }}>{line.disabled ? 'Enable' : 'Disable'}</button>
+            <button type="button" role="menuitem" class="danger" on:click={() => { menuFor = null; removeIndex = line.index; }}>Remove line</button>
+          </div>
+        {/if}
       </li>
     {:else}
       <li class="empty">No entries in this filter.</li>
@@ -218,7 +246,50 @@
         <option value="D">Money out</option>
       </select>
     </label>
-    <label>When <input bind:value={draft.when} /></label>
+    {#if whenForm.raw}
+      <label>When <input bind:value={draft.when} /></label>
+    {:else}
+      <fieldset class="when">
+        <legend>When</legend>
+        <label>Date
+          <input type="date" bind:value={whenForm.date} on:change={onWhenChange} />
+        </label>
+        {#if whenForm.repeat === 'once' || whenForm.repeat === 'M'}
+          <label class="check">
+            <input type="checkbox" bind:checked={whenForm.lastDay} on:change={onWhenChange} />
+            Last day of the month
+          </label>
+        {/if}
+        <label>Repeats
+          <select bind:value={whenForm.repeat} on:change={onWhenChange}>
+            <option value="once">Once</option>
+            <option value="D">Daily</option>
+            <option value="W">Weekly</option>
+            <option value="M">Monthly</option>
+            <option value="Y">Yearly</option>
+          </select>
+        </label>
+        {#if whenForm.repeat !== 'once'}
+          <label class="inline">Every
+            <input type="number" min="1" bind:value={whenForm.every} on:change={onWhenChange} />
+            {everyUnit(whenForm)}
+          </label>
+          <label>How many times
+            <input type="number" min="1" placeholder="Until the forecast ends" bind:value={whenForm.times} on:change={onWhenChange} />
+          </label>
+          <label>End date
+            <input type="date" bind:value={whenForm.end} on:change={onWhenChange} />
+          </label>
+          <label>Weekends and holidays
+            <select bind:value={whenForm.shift} on:change={onWhenChange}>
+              <option value="">Leave the date</option>
+              <option value="<">Previous business day</option>
+              <option value=">">Next business day</option>
+            </select>
+          </label>
+        {/if}
+      </fieldset>
+    {/if}
     <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
     <label>Description <input bind:value={draft.desc} /></label>
     <label>Category
@@ -303,6 +374,7 @@
     &.type-c { background: #e7f5e8; }
     &.type-d { background: #f8efe8; }
     &.disabled { opacity: 0.55; }
+    &.menu-open { z-index: 4; }
 
     &:hover,
     &:focus-within {
@@ -344,7 +416,7 @@
     }
   }
   .body,
-  .kebab {
+  .kebab-btn {
     position: relative;
     z-index: 1;
   }
@@ -378,16 +450,78 @@
   .chip { font-weight: 700; color: $clr-accent-ink; }
   .amount { font-variant-numeric: tabular-nums; }
   .when, .cat, .hint { grid-column: 2; color: $clr-muted; font-size: 0.82rem; }
-  .kebab { background: transparent; }
-  .kebab summary {
-    list-style: none;
+  .kebab-btn {
+    align-self: center;
+    flex: none;
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-right: 0.35rem;
+    border: 0;
+    border-radius: 0.35rem;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
     cursor: pointer;
-    min-width: 44px;
-    min-height: 44px;
-    display: grid;
-    place-items: center;
+
+    span {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: $clr-text;
+    }
+
+    &:hover,
+    &[aria-expanded='true'] {
+      background: rgba(28, 33, 28, 0.08);
+    }
   }
-  .kebab button { display: block; width: 100%; text-align: left; }
+  .menu {
+    position: absolute;
+    z-index: 5;
+    top: 2.5rem;
+    right: 0.35rem;
+    min-width: 9.5rem;
+    padding: 0.3rem;
+    background: #fff;
+    border: 1px solid $clr-border;
+    border-radius: 0.4rem;
+    box-shadow: 0 8px 22px rgba(28, 33, 28, 0.16);
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    button {
+      border: 0;
+      background: transparent;
+      border-radius: 0.3rem;
+      padding: 0.45rem 0.6rem;
+      text-align: left;
+      cursor: pointer;
+
+      &:hover { background: $clr-accent-soft; }
+    }
+  }
+  .when {
+    margin: 0;
+    padding: 0.55rem 0.7rem 0.7rem;
+    border: 1px solid $clr-border;
+    border-radius: 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+
+    legend { padding: 0 0.25rem; font-size: 0.85rem; }
+  }
+  .inline {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.4rem;
+
+    input { width: 4.5rem; }
+  }
   .danger { color: #8a1f1f; }
   .empty { padding: 0.8rem; color: $clr-muted; }
   .backdrop {
