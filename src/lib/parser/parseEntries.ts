@@ -15,6 +15,7 @@ import {
 	updateDescRecur,
 } from '$lib/parser/recurrence';
 import { parseAccountDisplay } from '$lib/parser/accountLabel';
+import { parseLineExtras } from '$lib/parser/lineExtras';
 import { isEntryLineDisabled } from '$lib/parser/validateEntries';
 import type {
 	Account,
@@ -77,6 +78,7 @@ function parseRawEntries(
 				};
 			}
 			const { extras, overrides } = splitLineFields(rawEntry);
+			const lineExtras = parseLineExtras(extras);
 			const entry = rawEntry.split('|');
 			const [type, accountId, main] = entry[0].toUpperCase().split('-');
 			const parsedEntry: ParsedEntry = {
@@ -93,6 +95,12 @@ function parseRawEntries(
 				entryOrder: lineIndex,
 				occurrenceIndex: 1,
 				overrides,
+				strategy: lineExtras.strategy,
+				minRate: lineExtras.minRate,
+				payUrl: lineExtras.payUrl,
+				notes: lineExtras.notes,
+				categoryId: lineExtras.categoryId,
+				autopay: lineExtras.autopay,
 			};
 			if (parsedEntry.type === 'B' && parsedEntry.accountId) {
 				parsedEntry.isMain = main === 'MAIN';
@@ -109,11 +117,17 @@ function parseRawEntries(
 					accounts[parsedEntry.accountId] = {
 						id: parsedEntry.accountId,
 						isMain: false,
-						startingBal: +extras[1],
-						runningBal: +extras[1],
-						interestRate: +extras[2] || 0,
-						interestRate2: +extras[3] || 0,
-						interestRate2Date: extras[4] || null,
+						startingBal: lineExtras.startingBal ?? 0,
+						runningBal: lineExtras.startingBal ?? 0,
+						interestRate: lineExtras.apr ?? 0,
+						interestRate2: lineExtras.apr2 ?? 0,
+						interestRate2Date: lineExtras.apr2Date ?? null,
+						strategy: lineExtras.strategy,
+						minRate: lineExtras.minRate,
+						payUrl: lineExtras.payUrl,
+						notes: lineExtras.notes,
+						categoryId: lineExtras.categoryId,
+						autopay: lineExtras.autopay,
 					};
 				}
 				applyAccountDisplay(accounts[parsedEntry.accountId], parsedEntry.desc);

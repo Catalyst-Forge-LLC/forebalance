@@ -60,6 +60,14 @@ ForeBalance starts from `STARTING_BAL`, adds monthly interest from APR, then sub
 
 Interest is the APR divided by 12, times the remaining balance, added on each payment date before that payment is subtracted. It is not daily compounding. Lenders may use a different method. Change the APR or remaining balance on the line if your statement uses other figures.
 
+Optional fields can follow the APR. Empty spots are fine, and you can leave off the ones you do not use:
+
+```
+STRATEGY|MIN_RATE|PAY_URL|CATEGORY|NOTES|autopay
+```
+
+`fixed` pays the dollar amount on the line. `min` pays at least 10% of what is still owed, unless MIN_RATE says otherwise (`0.02` is 2%). `pct` treats the amount as a percent of what is still owed, so `5` means 5%, not $5. PAY_URL is only a bookmark (`https://` or `http://`). CATEGORY is a short id such as `debt`. Add `autopay` at the end when the payment goes out on its own.
+
 ## WHEN
 
 Single date: `YYYY-MM-DD` (unpadded days like `2026-2-5` work).

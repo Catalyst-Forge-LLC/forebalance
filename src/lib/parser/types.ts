@@ -2,6 +2,11 @@ import type { BusinessDayShift } from './businessDays';
 
 export type EntryType = 'B' | 'C' | 'D' | 'G';
 
+export type PaymentStrategy = 'fixed' | 'min' | 'pct';
+
+/** Used when STRATEGY is `min` and the line has no MIN_RATE. `0.02` would mean 2%. */
+export const DEFAULT_MIN_RATE = 0.1;
+
 export type BalanceFlag = '' | 'negative' | 'low' | 'uncomfortable' | 'goal' | 'paid-off';
 
 export interface Recur {
@@ -24,6 +29,13 @@ export interface Account {
 	interestRate2Date?: string | null;
 	extraPayment?: number;
 	balanceIndex?: number;
+	strategy?: PaymentStrategy;
+	/** Fraction of remaining balance. Absent means DEFAULT_MIN_RATE when strategy is min. */
+	minRate?: number;
+	payUrl?: string;
+	notes?: string;
+	categoryId?: string;
+	autopay?: boolean;
 }
 
 export interface OccurrenceOverride {
@@ -68,6 +80,12 @@ export interface ParsedEntry {
 	inBalanceEligible?: boolean;
 	/** Override: apply this occurrence even though it is same-day as B. */
 	pending?: boolean;
+	strategy?: PaymentStrategy;
+	minRate?: number;
+	payUrl?: string;
+	notes?: string;
+	categoryId?: string;
+	autopay?: boolean;
 }
 
 export interface BalanceFlags {
