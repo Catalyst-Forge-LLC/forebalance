@@ -750,19 +750,27 @@
     flex-direction: column;
     gap: 0.45rem;
   }
-  .choice {
+  .editor .choice {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem;
+    flex-wrap: nowrap;
+    gap: 0;
 
     button {
-      flex: 1 1 auto;
+      flex: 1 1 0;
       min-width: 0;
-      padding: 0.3rem 0.4rem;
+      margin: 0;
+      padding: 0.3rem 0.35rem;
+      border-radius: 0;
       font-size: 0.82rem;
+      position: relative;
+
+      & + button { margin-left: -1px; }
+      &:first-child { border-radius: 0.35rem 0 0 0.35rem; }
+      &:last-child { border-radius: 0 0.35rem 0.35rem 0; }
     }
 
     button.selected {
+      z-index: 1;
       background: $clr-accent-soft;
       font-weight: 700;
     }
