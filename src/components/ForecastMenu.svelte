@@ -9,11 +9,12 @@
   export let onExportAll: () => void = () => {};
   export let onCopySummary: () => Promise<void> | void = () => {};
   export let onCompare: () => void = () => {};
+  export let onCopyShare: () => Promise<void> | void = () => {};
   export let canCompare = false;
 
   let open = false;
   let root: HTMLElement;
-  let copied: 'csv' | 'summary' | null = null;
+  let copied: 'csv' | 'summary' | 'share' | null = null;
   let copyTimer: ReturnType<typeof setTimeout> | undefined;
 
   function close() {
@@ -24,7 +25,7 @@
     open = !open;
   }
 
-  function flash(which: 'csv' | 'summary') {
+  function flash(which: 'csv' | 'summary' | 'share') {
     copied = which;
     if (copyTimer) clearTimeout(copyTimer);
     copyTimer = setTimeout(() => {
@@ -96,6 +97,9 @@
       <hr />
       <button type="button" role="menuitem" disabled={!ready || !canCompare} on:click={() => run(onCompare)}>
         <Icon name="clone" /> Compare with…
+      </button>
+      <button type="button" role="menuitem" disabled={!ready} on:click={async () => { await onCopyShare(); flash('share'); }}>
+        <Icon name="export" /> {copied === 'share' ? 'Copied' : 'Copy share link'}
       </button>
       <button type="button" role="menuitem" disabled={!ready} on:click={copySummary}>
         <Icon name="info" /> {copied === 'summary' ? 'Copied' : 'Copy summary'}

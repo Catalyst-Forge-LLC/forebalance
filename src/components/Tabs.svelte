@@ -70,10 +70,24 @@
 		if (i >= 0) applyIndex(i, false);
 	}
 
+	function onTabKey(event) {
+		if (!event.altKey || event.ctrlKey || event.metaKey) return;
+		const index = Number(event.key) - 1;
+		if (!Number.isInteger(index) || index < 0 || index >= tabs.length) return;
+		event.preventDefault();
+		applyIndex(index, true);
+		const id = tabs[index]?.id;
+		if (id) history.replaceState(null, '', `#${id}`);
+	}
+
 	onMount(() => {
 		syncFromHash();
 		window.addEventListener('hashchange', syncFromHash);
-		return () => window.removeEventListener('hashchange', syncFromHash);
+		window.addEventListener('keydown', onTabKey);
+		return () => {
+			window.removeEventListener('hashchange', syncFromHash);
+			window.removeEventListener('keydown', onTabKey);
+		};
 	});
 </script>
 

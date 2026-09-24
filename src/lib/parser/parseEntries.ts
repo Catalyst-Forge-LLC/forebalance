@@ -16,6 +16,7 @@ import {
 } from '$lib/parser/recurrence';
 import { parseAccountDisplay } from '$lib/parser/accountLabel';
 import { parseLineExtras, resolvePayment } from '$lib/parser/lineExtras';
+import { earliestBalanceDate, occurrenceIndexOnOrBefore } from '$lib/parser/rollRecurringStarts';
 import { isEntryLineDisabled } from '$lib/parser/validateEntries';
 import type {
 	Account,
@@ -52,6 +53,7 @@ function parseRawEntries(
 	useFederalHolidays: boolean,
 ) {
 	const accounts: Accounts = {};
+	const balanceAnchor = earliestBalanceDate(rawEntries);
 	const parsedEntries = rawEntries
 		.trim()
 		.split('\n')
@@ -129,11 +131,15 @@ function parseRawEntries(
 						notes: lineExtras.notes,
 						categoryId: lineExtras.categoryId,
 						autopay: lineExtras.autopay,
+						extraPayment: lineExtras.extraPayment,
 					};
 				} else if (existing.startingBal <= 0 && (lineExtras.startingBal ?? 0) > 0) {
 					existing.startingBal = lineExtras.startingBal ?? 0;
 					existing.runningBal = lineExtras.startingBal ?? 0;
 					if ((lineExtras.apr ?? 0) > 0) existing.interestRate = lineExtras.apr;
+				}
+				if ((lineExtras.extraPayment ?? 0) > 0) {
+					accounts[parsedEntry.accountId].extraPayment = lineExtras.extraPayment;
 				}
 				applyAccountDisplay(accounts[parsedEntry.accountId], parsedEntry.desc);
 			}
@@ -146,11 +152,28 @@ function parseRawEntries(
 				parsedEntry.businessDayShift = when.businessDayShift;
 				shiftEntryDate(parsedEntry, useFederalHolidays);
 				parsedEntry.seriesDate = parsedEntry.date;
+				const recur = parsedEntry.recur;
+				if (
+					recur &&
+					recur.count === null &&
+					parsedEntry.date &&
+					balanceAnchor &&
+					dayKey(parsedEntry.date) < dayKey(balanceAnchor) &&
+					!((lineExtras.startingBal ?? 0) > 0)
+				) {
+					const landed = occurrenceIndexOnOrBefore(parsedEntry.date, recur, balanceAnchor);
+					if (landed && landed.index > 1) {
+						parsedEntry.date = landed.date;
+						parsedEntry.occurrenceIndex = landed.index;
+						shiftEntryDate(parsedEntry, useFederalHolidays);
+						parsedEntry.seriesDate = parsedEntry.date;
+					}
+				}
 			}
 			parsedEntry.baseAmount = +parsedEntry.amount;
-			applyOverrideToEntry(parsedEntry, overrides[1]);
+			applyOverrideToEntry(parsedEntry, overrides[parsedEntry.occurrenceIndex ?? 1]);
 			if (!recurringEntries[parsedEntry.id]) {
-				recurringEntries[parsedEntry.id] = 1;
+				recurringEntries[parsedEntry.id] = parsedEntry.occurrenceIndex ?? 1;
 			}
 			if (parsedEntry.recur !== null && parsedEntry.desc) {
 				parsedEntry.desc = updateDescRecur(
@@ -267,6 +290,10 @@ export function parseEntries(
 							entryAccount.runningBal,
 							entry.minRate,
 						);
+					}
+					const extra = +(entryAccount.extraPayment ?? 0);
+					if (extra > 0 && !(entry.overridden && entry.overrides?.[entry.occurrenceIndex ?? 1]?.amount !== undefined)) {
+						entry.amount = +entry.amount + extra;
 					}
 					let interestRate = +(entryAccount.interestRate ?? 0);
 					if ((entryAccount.interestRate2 ?? 0) > 0 && entryAccount.interestRate2Date) {

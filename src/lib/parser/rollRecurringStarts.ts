@@ -109,6 +109,26 @@ function walkedBefore(start: Date, recur: Recur, current: Date): Date | null {
 	return prev;
 }
 
+/** 1-based occurrence whose date is the last one on or before the anchor. */
+export function occurrenceIndexOnOrBefore(start: Date, recur: Recur, anchor: Date): { date: Date; index: number } | null {
+	if (recur.freq === 'M' || recur.freq === 'Y') {
+		const step = recur.freq === 'Y' ? recur.multiple * 12 : recur.multiple;
+		const last = lastCalendarOnOrBefore(start, step, Boolean(recur.lastDayOfMonth), anchor);
+		if (!last) return null;
+		return { date: last.date, index: last.steps + 1 };
+	}
+	if (dayKey(start) > dayKey(anchor)) return null;
+	let date = start;
+	let index = 1;
+	for (let i = 0; i < MAX_WALK; i++) {
+		const next = updateDateRecur(date, recur);
+		if (dayKey(next) > dayKey(anchor)) return { date, index };
+		date = next;
+		index += 1;
+	}
+	return { date, index };
+}
+
 /** Last occurrence on or before the anchor (calendar months/years; walked days/weeks). */
 export function lastOccurrenceOnOrBefore(start: Date, recur: Recur, anchor: Date): Date | null {
 	if (recur.freq === 'M') {

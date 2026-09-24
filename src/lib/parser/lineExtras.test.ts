@@ -125,6 +125,16 @@ D-CO|2026-04-15,R|150|Capital One-4321|CO|2800|19.99|min`;
 		expect(payment?.amount).toBeCloseTo(280, 5);
 	});
 
+	it('adds extra dollars on top of the scheduled payment', () => {
+		const raw = `B-CHCK1000-main|2026-04-01|5000|Starting checking
+D-CO|2026-04-15,R|150|Capital One-4321|CO|2800|19.99|extra=50`;
+		const [entries, accounts] = parseEntries(raw, 2, flags);
+		expect(accounts?.CO.extraPayment).toBe(50);
+		const payment = entries?.CO?.find((entry) => entry.type === 'D');
+		expect(payment?.amount).toBe(200);
+		expect(roundTrip(['CO', '2800', '19.99', 'extra=50']).extraPayment).toBe(50);
+	});
+
 	it('still parses a shipping debt line', () => {
 		const raw = `B-CHCK1000-main|2026-04-01|420|Starting checking
 D-CO|2026-04-15,R|150|Capital One-4321|CO|2800|19.99`;

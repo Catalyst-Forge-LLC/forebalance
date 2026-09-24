@@ -236,6 +236,16 @@ D-CAR|2026-01-05,R|900|Car loan|CAR|1000|5`;
 		expect(entries).not.toBeNull();
 	});
 
+	it('starts an old unbounded series at the balance date and keeps its occurrence number', () => {
+		const raw = `B-CHCK-main|2026-09-01|5000|Checking
+D|2020-09-01,R|15|Spotify`;
+		const [entries] = parseEntries(raw, 2, balanceFlags);
+		const rows = Object.values(entries ?? {}).flat().filter((row) => row.desc?.includes('Spotify'));
+		expect(rows[0]?.occurrenceIndex).toBeGreaterThan(1);
+		expect(rows[0]?.date?.getFullYear()).toBe(2026);
+		expect(rows.some((row) => row.date && row.date.getFullYear() < 2026)).toBe(false);
+	});
+
 	it('parses all built-in starter profiles', async () => {
 		const { entryTemplates } = await import('../data/entryTemplates');
 		for (const template of entryTemplates) {

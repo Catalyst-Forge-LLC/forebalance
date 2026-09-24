@@ -5,7 +5,7 @@
 **Live:** https://forebalance.app  
 **Pack date:** 2026-09-24  
 **Audience:** coding agents implementing the next ForeBalance increment  
-**Status:** Draft, conversation-locked 2026-09-24. Not yet merged into `docs/forebalance-spec.md`.
+**Status:** Shipped 2026-09-24. Current-product summary lives in `docs/forebalance-spec.md`. This pack remains the detailed brief.
 
 This pack is the implementation brief for features discussed and locked with the product owner. It does **not** replace `docs/forebalance-spec.md` in the repo. That file remains current-product truth. This pack is the *next increment*.
 

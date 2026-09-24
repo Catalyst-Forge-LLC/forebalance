@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import { categoryName, type Category, UNFILED_ID } from '$lib/data/categories';
+  import { localIsoDate } from '$lib/formatters/dates';
   import { isHttpUrl } from '$lib/parser/lineExtras';
   import {
     insertSourceLine,
@@ -16,7 +18,11 @@
   import type { BalanceFlags, EntryType } from '$lib/parser/types';
   import CardAsk from './CardAsk.svelte';
   import { fmt } from '$lib/formatters/fmt';
+  import { evaluateAmount } from '$lib/parser/amountExpr';
+  import { applyForecastEdit } from '$lib/parser/occurrenceEdit';
   import { parseRecur } from '$lib/parser/recurrence';
+  import type { DebtPayment } from '$lib/parser/debtOutlook';
+  import type { ParsedEntry } from '$lib/parser/types';
   import { everyUnit, readWhenForm, writeWhenForm, type RepeatKind, type WhenForm } from '$lib/parser/whenForm';
 
   export let raw = '';
@@ -38,6 +44,10 @@
   let whenForm: WhenForm = readWhenForm('');
   let consumedOpen: number | null = null;
   let editorTab: 'entry' | 'when' | 'payment' | 'ask' = 'entry';
+  let extraDraft = 0;
+  let editingOccurrence: number | null = null;
+  let occurrenceDate = '';
+  let occurrenceAmount = '';
 
   const quietFlags: BalanceFlags = {
     below: { negative: 0, low: 0, uncomfortable: 0 },
@@ -50,7 +60,7 @@
     return Number.isNaN(number) ? undefined : number;
   }
 
-  function lookAhead(line: SourceLine): DebtOutlook | null {
+  function lookAhead(line: SourceLine, extra = extraDraft): DebtOutlook | null {
     const key = ensureDebtAccount(line);
     if (!key) return null;
     const extras = {
@@ -58,6 +68,7 @@
       startingBal: asNumber(line.extras.startingBal),
       apr: asNumber(line.extras.apr),
       minRate: asNumber(line.extras.minRate),
+      extraPayment: extra > 0 ? extra : undefined,
     };
     const preview = replaceSourceLine(raw, line.index, writeSourceLine({ ...line, extras }));
     const settings = $settingsStore;
@@ -81,6 +92,7 @@
         draft.extras.minRate,
         draft.extras.apr2,
         draft.extras.apr2Date,
+        extraDraft,
         $settingsStore.monthsToForecast,
         $settingsStore.useFederalHolidays,
         $settingsStore.balanceIncludesSameDay,
@@ -95,7 +107,8 @@
     /^\d{4}-\d{2}-\d{2}$/.test(balanceStart) &&
     draft.when.slice(0, 10) < balanceStart
   );
-  $: outlook = outlookKey && draft && showPayment ? lookAhead(draft) : null;
+  $: outlook = outlookKey && draft && showPayment ? lookAhead(draft, extraDraft) : null;
+  $: baselineOutlook = outlookKey && draft && showPayment ? lookAhead(draft, draft.extras.extraPayment ?? 0) : null;
   $: if (editorTab === 'when' && !showWhen) editorTab = 'entry';
   $: if (editorTab === 'payment' && !showPayment) editorTab = 'entry';
 
@@ -135,6 +148,8 @@
     openedSerialized = writeSourceLine(draft);
     openedHadAutopay = line.extras.autopay !== undefined;
     whenForm = readWhenForm(line.when);
+    extraDraft = line.extras.extraPayment ?? 0;
+    editingOccurrence = null;
     menuFor = null;
     error = '';
     editorTab = 'entry';
@@ -188,6 +203,7 @@
         line.extras.apr !== undefined ||
         line.extras.payUrl ||
         line.extras.autopay !== undefined ||
+        (line.extras.extraPayment ?? 0) > 0 ||
         sized,
     );
   }
@@ -219,6 +235,12 @@
     } else {
       draft.extras.minRate = undefined;
     }
+    const amountValue = evaluateAmount(String(draft.amount));
+    if (amountValue === null) {
+      error = 'Amount must be a number, or arithmetic like 1000+250.';
+      return;
+    }
+    draft.amount = String(Math.round(amountValue * 100) / 100);
     draft.extras.startingBal = asNumber(draft.extras.startingBal);
     draft.extras.apr = asNumber(draft.extras.apr);
     if (!draft.extras.categoryId) draft.extras.categoryId = undefined;
@@ -237,8 +259,76 @@
     else menuFor = null;
   }
 
-  function toggleMenu(index: number) {
+  async function toggleMenu(index: number) {
     menuFor = menuFor === index ? null : index;
+    if (menuFor === null) return;
+    await tick();
+    document.querySelector<HTMLButtonElement>('.cards .menu [role="menuitem"]')?.focus();
+  }
+
+  function onMenuKey(event: KeyboardEvent) {
+    const items = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('[role="menuitem"]')];
+    const index = items.findIndex((item) => item === document.activeElement);
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const step = event.key === 'ArrowDown' ? 1 : -1;
+      items[(index + step + items.length) % items.length]?.focus();
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      items[0]?.focus();
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      items.at(-1)?.focus();
+    }
+  }
+
+  function onFilterKey(event: KeyboardEvent) {
+    const buttons = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('button')];
+    const index = buttons.findIndex((item) => item === document.activeElement);
+    if (index < 0 || (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft')) return;
+    event.preventDefault();
+    const step = event.key === 'ArrowRight' ? 1 : -1;
+    const next = buttons[(index + step + buttons.length) % buttons.length];
+    next?.focus();
+    next?.click();
+  }
+
+  function extraCap(line: SourceLine): number {
+    const balance = asNumber(line.extras.startingBal) ?? 0;
+    const payment = Math.abs(+line.amount || 0);
+    const doubled = payment > 0 ? payment * 2 : 100;
+    return balance > 0 ? Math.max(1, Math.min(balance, doubled)) : doubled;
+  }
+
+  function applyExtra() {
+    if (!draft) return;
+    draft.extras.extraPayment = extraDraft > 0 ? extraDraft : undefined;
+  }
+
+  function startOccurrence(payment: DebtPayment) {
+    editingOccurrence = payment.occurrenceIndex;
+    occurrenceDate = localIsoDate(payment.date);
+    occurrenceAmount = String(payment.amount);
+  }
+
+  function saveOccurrence(payment: DebtPayment) {
+    const stub = {
+      entryOrder: payment.entryOrder,
+      rawEntry: payment.rawEntry,
+      recur: payment.recurring ? { freq: 'M', multiple: 1, count: null, recurRaw: 'R' } : null,
+      date: payment.date,
+      amount: payment.amount,
+      seriesDate: payment.seriesDate,
+      baseAmount: payment.baseAmount,
+      occurrenceIndex: payment.occurrenceIndex,
+      pending: payment.pending,
+    } as ParsedEntry;
+    commit(applyForecastEdit(raw, stub, {
+      date: occurrenceDate,
+      amount: +occurrenceAmount,
+      scope: 'occurrence',
+    }));
+    editingOccurrence = null;
   }
 
   function setAutopay(checked: boolean) {
@@ -300,7 +390,7 @@
 
 <div class="cards">
   <div class="command">
-    <div class="segments" role="group" aria-label="Entry type">
+    <div class="segments" role="group" aria-label="Entry type" on:keydown={onFilterKey}>
       {#each [
         ['all', 'All', entries.length],
         ['C', 'Credits', entries.filter((line) => line.type === 'C').length],
@@ -353,7 +443,7 @@
           <span></span><span></span><span></span>
         </button>
         {#if menuFor === line.index}
-          <div class="menu" role="menu" on:click|stopPropagation>
+          <div class="menu" role="menu" on:click|stopPropagation on:keydown={onMenuKey}>
             <button type="button" role="menuitem" on:click={() => open(line)}>Edit</button>
             <button type="button" role="menuitem" on:click={() => { menuFor = null; clone(line); }}>Clone</button>
             <button type="button" role="menuitem" on:click={() => { menuFor = null; disable(line); }}>{line.disabled ? 'Enable' : 'Delete'}</button>
@@ -531,6 +621,23 @@
           Next APR {draft.extras.apr2 ?? '—'}%{#if draft.extras.apr2Date} from {draft.extras.apr2Date}{/if}
         </p>
       {/if}
+      <label class="extra">
+        Extra each payment
+        <input type="range" min="0" max={extraCap(draft)} step="1" bind:value={extraDraft} />
+        <input type="number" min="0" step="1" bind:value={extraDraft} />
+      </label>
+      {#if baselineOutlook && outlook && extraDraft !== (draft.extras.extraPayment ?? 0)}
+        <p class="hint-line">
+          Preview only.
+          {#if outlook.payoffDate}
+            Paid off {fmt.date(outlook.payoffDate)}.
+          {:else}
+            Still open in this forecast.
+          {/if}
+          {fmt.curr(Math.max(0, baselineOutlook.interest - outlook.interest))} less interest than the saved extra.
+        </p>
+      {/if}
+      <button type="button" on:click={applyExtra}>Apply extra to this account</button>
       {#if outlook}
         <p class="hint-line">
           {#if outlook.payoffDate}
@@ -553,13 +660,21 @@
           <ul>
             {#each outlook.payments as payment}
               <li>
-                {fmt.date(payment.date)}
-                · {fmt.curr(payment.amount)}
-                {#if payment.interest}· interest {fmt.curr(payment.interest)}{/if}
-                · left {fmt.curr(payment.remaining)}
-                {#if payment.paidOff}· paid off{/if}
-                {#if payment.overridden}· override{/if}
-                {#if payment.pending}· pending{/if}
+                {#if editingOccurrence === payment.occurrenceIndex}
+                  <input type="date" bind:value={occurrenceDate} aria-label="Occurrence date" />
+                  <input bind:value={occurrenceAmount} inputmode="decimal" aria-label="Occurrence amount" />
+                  <button type="button" on:click={() => saveOccurrence(payment)}>Save this one</button>
+                  <button type="button" on:click={() => (editingOccurrence = null)}>Cancel</button>
+                {:else}
+                  {fmt.date(payment.date)}
+                  · {fmt.curr(payment.amount)}
+                  {#if payment.interest}· interest {fmt.curr(payment.interest)}{/if}
+                  · left {fmt.curr(payment.remaining)}
+                  {#if payment.paidOff}· paid off{/if}
+                  {#if payment.overridden}· override{/if}
+                  {#if payment.pending}· pending{/if}
+                  <button type="button" on:click={() => startOccurrence(payment)}>Edit this one</button>
+                {/if}
               </li>
             {/each}
           </ul>
@@ -746,6 +861,14 @@
     font-size: 0.82rem;
   }
   .hint-line { margin: 0; color: $clr-muted; font-size: 0.85rem; }
+  .extra {
+    display: grid;
+    grid-template-columns: auto 1fr 5.5rem;
+    gap: 0.45rem;
+    align-items: center;
+  }
+  .extra input[type='number'] { width: 100%; }
+  .history li { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
   .history {
     font-size: 0.82rem;
     color: $clr-muted;
@@ -871,6 +994,11 @@
     top: 8vh;
     transform: translateX(-50%);
     width: min(38rem, calc(100% - 1.5rem));
+    @media (max-width: 640px) {
+      top: 0.4rem;
+      width: calc(100% - 0.6rem);
+      max-height: calc(100vh - 0.8rem);
+    }
     max-height: 84vh;
     overflow: hidden;
     background: #fff;
@@ -970,6 +1098,9 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 0.5rem 0.7rem;
+  }
+  @media (max-width: 640px) {
+    .pair { grid-template-columns: 1fr; }
   }
   .editor h3 { margin: 0; }
   .editor label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.85rem; }

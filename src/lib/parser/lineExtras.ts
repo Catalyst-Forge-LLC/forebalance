@@ -12,11 +12,14 @@ export interface LineExtras {
 	categoryId?: string;
 	notes?: string;
 	autopay?: boolean;
+	/** Extra dollars added on top of each scheduled payment. */
+	extraPayment?: number;
 	unknown: string[];
 }
 
 const STRATEGIES = new Set<PaymentStrategy>(['fixed', 'min', 'pct']);
 const AUTOPAY = /^(no)?autopay$/i;
+const EXTRA = /^extra=(\d+(?:\.\d+)?)$/i;
 const ISO_DATE = /^\d{4}-\d{1,2}-\d{1,2}$/;
 
 function isNumeric(value: string): boolean {
@@ -59,6 +62,11 @@ export function parseLineExtras(extras: string[]): LineExtras {
 	}
 
 	const rest = tokens.slice(index);
+	const extraAt = rest.findIndex((field) => EXTRA.test(field.trim()));
+	if (extraAt >= 0) {
+		result.extraPayment = +EXTRA.exec(rest[extraAt].trim())![1];
+		rest.splice(extraAt, 1);
+	}
 	let autopayAt: number | undefined;
 	if (rest.length > 0 && AUTOPAY.test(rest[rest.length - 1].trim())) {
 		autopayAt = rest.length - 1;
@@ -146,6 +154,9 @@ export function formatLineExtras(extras: LineExtras): string[] {
 	}
 	const named = last < 0 ? [] : tail.slice(0, last + 1);
 	named.push(...extras.unknown);
+	if (extras.extraPayment !== undefined && extras.extraPayment > 0) {
+		named.push(`extra=${extras.extraPayment}`);
+	}
 	if (extras.autopay === true) named.push('autopay');
 	if (extras.autopay === false) named.push('noautopay');
 

@@ -17,7 +17,8 @@
 	import { loadCategories } from '$lib/data/categories';
 	import { initializeData } from '$lib/data/initializeData';
 	import { downloadTextFile, entrySetsStore, getActiveSet, switchEntrySet } from '$lib/data/entrySets';
-	import { activateEntrySet } from '$lib/data/entriesPersistence';
+	import { shareUrl, takeSharePayload } from '$lib/data/shareLink';
+	import { activateEntrySet, setRawEntries } from '$lib/data/entriesPersistence';
 	import { compareScenarios } from '$lib/forecast/scenarioCompare';
 	import {
 		forecastAllAccountsToCsv,
@@ -126,6 +127,10 @@
   }
   $: exportAccountLabel = selectedAccount ? accountDisplayName(selectedAccount) : 'account';
 
+  async function copyShareLink() {
+    await navigator.clipboard.writeText(shareUrl($rawEntriesStore));
+  }
+
   function exportForecastCsv() {
     if (!forecastReady || !accounts) return;
     downloadTextFile(
@@ -166,6 +171,11 @@
     loadCategories();
     void initializeData().finally(() => {
       entriesReady = true;
+      const shared = takeSharePayload();
+      if (!shared) return;
+      if (confirm('Load the shared scenario in this browser? It replaces the current entries on this device only.')) {
+        setRawEntries(shared);
+      }
     });
   });
 </script>
@@ -243,6 +253,7 @@
                 onExportAll={exportAllAccountsCsv}
                 onCopySummary={copyForecastSummary}
                 onCompare={() => (compareOpen = true)}
+                onCopyShare={copyShareLink}
               />
             </div>
           </SetSwitcher>

@@ -6,6 +6,8 @@ One line per transaction. Fields are separated by `|`:
 TYPE|WHEN|AMOUNT|DESCRIPTION
 ```
 
+An amount may be arithmetic, such as `1000+250`. The card stores the result.
+
 Example:
 
 ```
@@ -68,7 +70,7 @@ Optional fields can follow the APR. Empty spots are fine, and you can leave off 
 STRATEGY|MIN_RATE|PAY_URL|CATEGORY|NOTES|autopay
 ```
 
-`fixed` pays the dollar amount on the line. `min` pays at least 10% of what is still owed, unless MIN_RATE says otherwise (`0.02` is 2%). `pct` treats the amount as a percent of what is still owed, so `5` means 5%, not $5. PAY_URL is only a bookmark (`https://` or `http://`). CATEGORY is a short id such as `debt`. Add `autopay` at the end when the payment goes out on its own.
+`extra=50` adds $50 on top of each scheduled payment. The card slider previews that until you apply it. `fixed` pays the dollar amount on the line. `min` pays at least 10% of what is still owed, unless MIN_RATE says otherwise (`0.02` is 2%). `pct` treats the amount as a percent of what is still owed, so `5` means 5%, not $5. PAY_URL is only a bookmark (`https://` or `http://`). CATEGORY is a short id such as `debt`. Add `autopay` at the end when the payment goes out on its own.
 
 ## WHEN
 

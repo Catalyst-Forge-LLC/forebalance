@@ -9,6 +9,12 @@ export interface DebtPayment {
 	paidOff: boolean;
 	overridden: boolean;
 	pending: boolean;
+	occurrenceIndex: number;
+	entryOrder?: number;
+	rawEntry: string;
+	recurring: boolean;
+	seriesDate: Date | null;
+	baseAmount: number;
 }
 
 export interface DebtOutlook {
@@ -36,6 +42,12 @@ export function debtOutlook(entries: ParsedEntry[], asOf: Date): DebtOutlook | n
 			paidOff: entry.flag === 'paid-off',
 			overridden: !!entry.overridden,
 			pending: !!entry.pending,
+			occurrenceIndex: entry.occurrenceIndex ?? 1,
+			entryOrder: entry.entryOrder,
+			rawEntry: entry.rawEntry,
+			recurring: !!entry.recur,
+			seriesDate: entry.seriesDate ?? null,
+			baseAmount: entry.baseAmount ?? +entry.amount,
 		});
 	}
 	if (payments.length === 0) return null;
