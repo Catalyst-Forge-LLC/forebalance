@@ -17,7 +17,11 @@ WHEN:
 - m = interval multiple (default 1). f = D daily, W weekly, M monthly (default), Y yearly. c = how many times (default: rest of the forecast).
 Examples:
 2026-04-01,R = monthly
+2026-04-01,R3 = monthly, three times (no letter: the number is the count)
 2026-03-15,R3M = every third month
+2026-03-15,R3M3 = every third month, three times
+2026-02-01,RW3 = weekly, three times
+2026-02-01,R3W = every three weeks
 2026-01-01,RY = yearly
 2026-02-01,R2W = every two weeks (same as people typing 2RW)
 2026-02-01,RW5 = weekly, five times
@@ -93,7 +97,10 @@ export function answerSyntaxQuestion(question: string): string | null {
 		return '`,RML` (or a date like `2026-01-L`) is the last calendar day of each month. Example: `D|2026-01-L,RML|1200|Mortgage`.';
 	}
 
-	const token = spoken.match(/\bR[0-9]*ML[<>]?\b/i)?.[0] ?? spoken.match(/\bR[0-9]*[DWMY][0-9]*[<>]?\b/i)?.[0];
+	const token =
+		spoken.match(/\bR[0-9]*ML[<>]?\b/i)?.[0] ??
+		spoken.match(/\bR[0-9]*[DWMY][0-9]*[<>]?\b/i)?.[0] ??
+		spoken.match(/\bR[0-9]+[<>]?\b/i)?.[0];
 	if (token) {
 		return explainRecurrenceToken(token);
 	}

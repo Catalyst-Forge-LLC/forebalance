@@ -16,6 +16,7 @@
   import type { BalanceFlags, EntryType } from '$lib/parser/types';
   import CardAsk from './CardAsk.svelte';
   import { fmt } from '$lib/formatters/fmt';
+  import { parseRecur } from '$lib/parser/recurrence';
   import { everyUnit, readWhenForm, writeWhenForm, type RepeatKind, type WhenForm } from '$lib/parser/whenForm';
 
   export let raw = '';
@@ -284,15 +285,14 @@
   }
 
   function cadence(recur: string): string {
-    if (recur === 'R' || recur === 'RM' || recur === 'R1M') return 'monthly';
-    if (recur === 'RW' || recur === 'R1W') return 'weekly';
-    if (recur === 'R2W') return 'every 2 weeks';
-    if (recur === 'RY' || recur === 'R1Y') return 'yearly';
-    if (recur === 'RD' || recur === 'R1D') return 'daily';
-    const every = recur.match(/^R(\d+)([DWMY])$/i);
-    if (!every) return recur.replace(/^R/, '');
-    const unit = { D: 'days', W: 'weeks', M: 'months', Y: 'years' }[every[2].toUpperCase()] ?? every[2];
-    return `every ${every[1]} ${unit}`;
+    const parsed = parseRecur(recur);
+    if (!parsed) return recur.replace(/^R/, '');
+    const once = { D: 'daily', W: 'weekly', M: 'monthly', Y: 'yearly' }[parsed.freq];
+    const many = { D: 'days', W: 'weeks', M: 'months', Y: 'years' }[parsed.freq];
+    const every = parsed.multiple === 1 ? once : `every ${parsed.multiple} ${many}`;
+    const last = parsed.lastDayOfMonth ? ', last day' : '';
+    const times = parsed.count ? `, ${parsed.count} times` : '';
+    return `${every}${last}${times}`;
   }
 </script>
 
@@ -376,7 +376,7 @@
     on:submit|preventDefault={close}
   >
     <header>
-      <h3>Edit entry</h3>
+      <h3>{draft.desc.trim() || 'Edit entry'}</h3>
       <button type="button" on:click={close} aria-label="Close and save">×</button>
     </header>
     <div class="editor-tabs" role="tablist" aria-label="Entry sections">
@@ -393,6 +393,7 @@
     {#if error}<p class="error">{error}</p>{/if}
     {#if editorTab === 'entry'}
     <fieldset class="group">
+      <label class="desc-field">Description <input bind:value={draft.desc} /></label>
       <div class="pair">
         <div>
           <span class="field-label" id="entry-type-label">Type</span>
@@ -440,7 +441,6 @@
           </label>
         </div>
       {/if}
-      <label>Description <input bind:value={draft.desc} /></label>
       <label>Notes <textarea rows="2" bind:value={draft.extras.notes}></textarea></label>
     </fieldset>
     {/if}
@@ -888,7 +888,22 @@
     padding: 0.7rem 1rem;
     background: #fff;
   }
-  .editor header { justify-content: space-between; border-bottom: 1px solid $clr-border; }
+  .editor header {
+    justify-content: space-between;
+    gap: 0.75rem;
+    border-bottom: 1px solid $clr-border;
+  }
+  .editor h3 {
+    margin: 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .desc-field input {
+    font-size: 1.05rem;
+    font-weight: 650;
+  }
   .editor-tabs {
     flex: none;
     display: flex;

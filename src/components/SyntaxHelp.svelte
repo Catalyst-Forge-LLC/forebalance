@@ -71,9 +71,12 @@ D|2026-04-01,R&lt;|1645|Rent</pre>
         <tbody>
           <tr><td><code>2026-04-01</code></td><td>Once</td></tr>
           <tr><td><code>,R</code></td><td>Monthly</td></tr>
+          <tr><td><code>,R3</code></td><td>Monthly, three times</td></tr>
           <tr><td><code>,R2W</code></td><td>Every two weeks</td></tr>
           <tr><td><code>,RW5</code></td><td>Weekly, five times</td></tr>
+          <tr><td><code>,R3W</code></td><td>Every three weeks</td></tr>
           <tr><td><code>,R3M</code></td><td>Every third month</td></tr>
+          <tr><td><code>,R3M3</code></td><td>Every third month, three times</td></tr>
           <tr><td><code>,RY</code></td><td>Yearly</td></tr>
           <tr><td><code>,RML</code> / <code>-L</code></td><td>Last day of the month</td></tr>
           <tr><td><code>,R&lt;</code> / <code>,R&gt;</code></td><td>Previous / next business day</td></tr>

@@ -70,7 +70,7 @@ export function writeWhenForm(form: WhenForm): string {
 		token = every === 1 ? 'RML' : `R${every}ML`;
 	} else {
 		const multiple = every === 1 ? '' : String(every);
-		const freq = form.repeat === 'M' ? '' : form.repeat;
+		const freq = form.repeat === 'M' && every === 1 ? '' : form.repeat;
 		token = `R${multiple}${freq}${times}`;
 	}
 	if (form.shift) token += form.shift;

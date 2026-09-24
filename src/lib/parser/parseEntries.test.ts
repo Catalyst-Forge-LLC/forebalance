@@ -11,7 +11,7 @@ const balanceFlags: BalanceFlags = {
 describe('debt account id 0', () => {
 	it('tracks a loan whose account id is 0 and whose series starts before the balance', () => {
 		const raw = `B-CHCK-main|2026-09-01|5000|Checking
-D|2026-04-25,R3|500|John Deere Finance|0|1200|15`;
+D|2026-04-25,R3M|500|John Deere Finance|0|1200|15`;
 		const [entries, accounts] = parseEntries(raw, 12, balanceFlags, {
 			useFederalHolidays: false,
 			balanceIncludesSameDay: true,
@@ -24,7 +24,7 @@ D|2026-04-25,R3|500|John Deere Finance|0|1200|15`;
 	it('uses this line’s starting balance when account 0 was already created empty', () => {
 		const raw = `B-CHCK-main|2026-09-01|5000|Checking
 D|2026-01-15,R|10|Other|0
-D|2026-04-25,R3|500|John Deere Finance|0|1200|15`;
+D|2026-04-25,R3M|500|John Deere Finance|0|1200|15`;
 		const [entries, accounts] = parseEntries(raw, 12, balanceFlags, {
 			useFederalHolidays: false,
 			balanceIncludesSameDay: true,
@@ -52,6 +52,15 @@ describe('parseRecur', () => {
 			count: 5,
 			recurRaw: 'R2W5',
 		});
+	});
+
+	it('reads a bare number as a monthly count, and a number before the letter as the interval', () => {
+		expect(parseRecur('R3')).toMatchObject({ freq: 'M', multiple: 1, count: 3 });
+		expect(parseRecur('R3M')).toMatchObject({ freq: 'M', multiple: 3, count: null });
+		expect(parseRecur('R3M3')).toMatchObject({ freq: 'M', multiple: 3, count: 3 });
+		expect(parseRecur('RW3')).toMatchObject({ freq: 'W', multiple: 1, count: 3 });
+		expect(parseRecur('R3W')).toMatchObject({ freq: 'W', multiple: 3, count: null });
+		expect(parseRecur('R3W3')).toMatchObject({ freq: 'W', multiple: 3, count: 3 });
 	});
 });
 

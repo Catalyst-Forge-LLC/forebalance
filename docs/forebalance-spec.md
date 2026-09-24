@@ -86,7 +86,11 @@ Examples:
 | Entry | Meaning |
 |---|---|
 | `2026-04-01,R` | Monthly from Apr 1 |
+| `2026-04-01,R3` | Monthly, three times (no letter: the number is the count) |
 | `2026-03-15,R3M` | Every third month (quarterly) from Mar 15 |
+| `2026-03-15,R3M3` | Every third month, three times |
+| `2026-02-01,RW3` | Weekly, three times |
+| `2026-02-01,R3W` | Every three weeks |
 | `2026-01-01,RY` | Yearly on Jan 1 |
 | `2026-02-01,R2W` | Every two weeks from Feb 1 |
 | `2026-02-10,R2D` | Every other day from Feb 10 |

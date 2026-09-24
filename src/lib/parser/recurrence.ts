@@ -70,11 +70,14 @@ export function parseRecur(recur: string): Recur | null {
 	if (!match) {
 		return null;
 	}
-	const [, multiple, freq, count] = match;
+	const [, leading, freq, trailing] = match;
+	// No frequency letter: the number is how many times, on the monthly default.
+	// R3 = monthly, 3 times. R3M = every 3 months. R3M3 = every 3 months, 3 times.
+	const bareCount = freq === '' && leading !== '';
 	return {
 		freq: (freq === '' ? defaultFrequency : freq) as Recur['freq'],
-		multiple: multiple === '' ? 1 : +multiple,
-		count: count === '' ? null : +count,
+		multiple: bareCount || leading === '' ? 1 : +leading,
+		count: bareCount ? +leading : trailing === '' ? null : +trailing,
 		recurRaw: match[0],
 	};
 }
