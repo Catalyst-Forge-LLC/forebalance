@@ -56,10 +56,9 @@
   }
 
   img {
-    width: 2rem;
-    height: 2rem;
+    width: 2.35rem;
+    height: 2.35rem;
     flex-shrink: 0;
-    border-radius: 22%;
   }
 
   .titles {
