@@ -14,6 +14,8 @@ export interface EntrySet {
 	name: string;
 	raw: string;
 	templateId?: string;
+	description?: string;
+	parentId?: string | null;
 }
 
 export interface EntrySetsState {
@@ -166,22 +168,29 @@ export function renameEntrySet(id: string, name: string): EntrySetsState {
 	return next;
 }
 
-export function cloneEntrySet(id: string): EntrySet {
+export function forkEntrySet(id: string, name: string, description = ''): EntrySet {
 	const state = get(entrySetsStore);
 	const source = state.sets.find((set) => set.id === id) ?? getActiveSet(state);
-	const clone: EntrySet = {
+	const fork: EntrySet = {
 		id: newSetId(),
-		name: uniqueSetName(source.name, state.sets),
+		name: uniqueSetName(name, state.sets),
+		description: description.trim(),
+		parentId: source.id,
 		raw: source.raw,
-		templateId: source.templateId,
 	};
 	const next: EntrySetsState = {
-		activeId: clone.id,
-		sets: [...state.sets, clone],
+		activeId: fork.id,
+		sets: [...state.sets, fork],
 	};
 	entrySetsStore.set(next);
 	persistEntrySets(next);
-	return clone;
+	return fork;
+}
+
+export function cloneEntrySet(id: string): EntrySet {
+	const state = get(entrySetsStore);
+	const source = state.sets.find((set) => set.id === id) ?? getActiveSet(state);
+	return forkEntrySet(id, source.name);
 }
 
 export function deleteEntrySet(id: string): EntrySetsState {
@@ -248,7 +257,7 @@ export function allSetsBackupPayload(
 	currencyIsoCode: string;
 	locale: string;
 	exportedAt: string;
-	sets: { name: string; raw: string }[];
+	sets: { name: string; raw: string; description?: string; parentId?: string }[];
 	categories?: { id: string; name: string; color?: string; order: number }[];
 } {
 	return {
@@ -260,6 +269,8 @@ export function allSetsBackupPayload(
 		sets: state.sets.map((set) => ({
 			name: set.name,
 			raw: ensureCurrencyHeader(set.raw, extractCurrency(set.raw) ?? currencyIsoCode),
+			...(set.description ? { description: set.description } : {}),
+			...(set.parentId ? { parentId: set.parentId } : {}),
 		})),
 		...(categories ? { categories } : {}),
 	};

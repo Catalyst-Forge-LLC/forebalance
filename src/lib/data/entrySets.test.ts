@@ -64,6 +64,7 @@ describe('entry set CRUD', () => {
 		const state = get(entrySetsStore);
 		expect(state.sets.length).toBe(5);
 		expect(clone.id).toBe(state.activeId);
+		expect(clone.parentId).toBe(sourceId);
 		expect(clone.name).toMatch(/Close month/);
 	});
 

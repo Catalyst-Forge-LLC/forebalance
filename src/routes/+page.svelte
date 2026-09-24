@@ -16,7 +16,9 @@
 
 	import { loadCategories } from '$lib/data/categories';
 	import { initializeData } from '$lib/data/initializeData';
-	import { downloadTextFile, entrySetsStore, getActiveSet } from '$lib/data/entrySets';
+	import { downloadTextFile, entrySetsStore, getActiveSet, switchEntrySet } from '$lib/data/entrySets';
+	import { activateEntrySet } from '$lib/data/entriesPersistence';
+	import { compareScenarios } from '$lib/forecast/scenarioCompare';
 	import {
 		forecastAllAccountsToCsv,
 		forecastEntriesToCsv,
@@ -29,6 +31,7 @@
 	import Icon from '../components/Icon.svelte';
 	import SetSwitcher from '../components/SetSwitcher.svelte';
 	import ForecastMenu from '../components/ForecastMenu.svelte';
+	import ScenarioCompare from '../components/ScenarioCompare.svelte';
 
   let accountEntries = {};
   let accounts;
@@ -99,7 +102,28 @@
     document.getElementById(`forecast-row-${rowIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  let compareOpen = false;
+  let compareId = '';
+
   $: scenarioName = getActiveSet($entrySetsStore)?.name ?? 'scenario';
+  $: otherSets = $entrySetsStore.sets.filter((set) => set.id !== $entrySetsStore.activeId);
+  $: if (compareOpen && !otherSets.some((set) => set.id === compareId)) {
+    compareId = otherSets[0]?.id ?? '';
+  }
+  $: compareOther = otherSets.find((set) => set.id === compareId);
+  $: compared = compareOpen && compareOther
+    ? compareScenarios($rawEntriesStore, compareOther.raw, $settingsStore.monthsToForecast, balanceFlags, {
+        useFederalHolidays: $settingsStore.useFederalHolidays,
+        balanceIncludesSameDay: $settingsStore.balanceIncludesSameDay,
+      })
+    : null;
+
+  function openCompared() {
+    if (!compareId) return;
+    const next = switchEntrySet(compareId, $rawEntriesStore);
+    if (next) activateEntrySet(next.raw);
+    compareOpen = false;
+  }
   $: exportAccountLabel = selectedAccount ? accountDisplayName(selectedAccount) : 'account';
 
   function exportForecastCsv() {
@@ -213,13 +237,29 @@
               <ForecastMenu
                 ready={forecastReady}
                 hasMultipleAccounts={accountList.length > 1}
+                canCompare={otherSets.length > 0}
                 onExportCsv={exportForecastCsv}
                 onCopyCsv={copyForecastCsv}
                 onExportAll={exportAllAccountsCsv}
                 onCopySummary={copyForecastSummary}
+                onCompare={() => (compareOpen = true)}
               />
             </div>
           </SetSwitcher>
+          {#if compareOpen && compared && compareOther}
+            <ScenarioCompare
+              leftName={scenarioName}
+              rightName={compareOther.name}
+              left={compared.left}
+              right={compared.right}
+              lines={compared.lines}
+              others={otherSets.map((set) => ({ id: set.id, name: set.name }))}
+              otherId={compareId}
+              onPick={(id) => (compareId = id)}
+              onOpen={openCompared}
+              onClose={() => (compareOpen = false)}
+            />
+          {/if}
           {#if forecastReady}
             <div class="forecast-glance">
               <ForecastSummary

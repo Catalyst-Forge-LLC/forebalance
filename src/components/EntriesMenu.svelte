@@ -115,7 +115,7 @@
   {#if open}
     <div class="panel" role="menu">
       <button type="button" role="menuitem" on:click={() => run(onClone)}>
-        <Icon name="clone" /> Clone
+        <Icon name="clone" /> Fork what-if…
       </button>
       <button type="button" role="menuitem" disabled={!canDelete} on:click={() => run(onDelete)}>
         <Icon name="trash" /> Delete

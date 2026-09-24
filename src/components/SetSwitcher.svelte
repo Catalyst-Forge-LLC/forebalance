@@ -13,6 +13,9 @@
   let lastActiveId = '';
 
   $: activeSet = $entrySetsStore.sets.find((set) => set.id === $entrySetsStore.activeId);
+  $: parentName = activeSet?.parentId
+    ? $entrySetsStore.sets.find((set) => set.id === activeSet.parentId)?.name
+    : '';
   $: if (activeSet && activeSet.id !== lastActiveId) {
     lastActiveId = activeSet.id;
     draftName = activeSet.name;
@@ -57,6 +60,13 @@
   <div class="extra">
     <slot name="extra" />
   </div>
+  {#if parentName || activeSet?.description}
+    <p class="lineage">
+      {#if parentName}Fork of {parentName}{/if}
+      {#if parentName && activeSet?.description} · {/if}
+      {activeSet?.description ?? ''}
+    </p>
+  {/if}
 </div>
 
 <style lang="scss">
@@ -74,6 +84,15 @@
     background: $clr-surface;
     border: 1px solid $clr-border;
     border-radius: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .lineage {
+    flex-basis: 100%;
+    margin: 0;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: $clr-muted;
   }
 
   .compact {

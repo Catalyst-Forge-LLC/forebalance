@@ -8,6 +8,8 @@
   export let onCopyCsv: () => Promise<void> | void = () => {};
   export let onExportAll: () => void = () => {};
   export let onCopySummary: () => Promise<void> | void = () => {};
+  export let onCompare: () => void = () => {};
+  export let canCompare = false;
 
   let open = false;
   let root: HTMLElement;
@@ -92,6 +94,9 @@
         </button>
       {/if}
       <hr />
+      <button type="button" role="menuitem" disabled={!ready || !canCompare} on:click={() => run(onCompare)}>
+        <Icon name="clone" /> Compare with…
+      </button>
       <button type="button" role="menuitem" disabled={!ready} on:click={copySummary}>
         <Icon name="info" /> {copied === 'summary' ? 'Copied' : 'Copy summary'}
       </button>
