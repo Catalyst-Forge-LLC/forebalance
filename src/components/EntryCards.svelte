@@ -9,9 +9,12 @@
     writeSourceLine,
     type SourceLine,
   } from '$lib/parser/sourceLines';
+  import { settingsStore } from '$lib/stores/settings';
+  import { parseEntries } from '$lib/parser/parseEntries';
+  import { debtOutlook, type DebtOutlook } from '$lib/parser/debtOutlook';
+  import type { BalanceFlags, EntryType } from '$lib/parser/types';
   import { fmt } from '$lib/formatters/fmt';
   import { everyUnit, readWhenForm, writeWhenForm, type RepeatKind, type WhenForm } from '$lib/parser/whenForm';
-  import type { EntryType } from '$lib/parser/types';
 
   export let raw = '';
   export let categories: Category[] = [];
@@ -27,6 +30,55 @@
   let removeIndex: number | null = null;
   let menuFor: number | null = null;
   let whenForm: WhenForm = readWhenForm('');
+
+  const quietFlags: BalanceFlags = {
+    below: { negative: 0, low: 0, uncomfortable: 0 },
+    above: { goal: 0 },
+  };
+
+  function asNumber(value: number | string | undefined): number | undefined {
+    if (value === undefined || (value as unknown) === '') return undefined;
+    const number = +value;
+    return Number.isNaN(number) ? undefined : number;
+  }
+
+  function lookAhead(line: SourceLine): DebtOutlook | null {
+    const key = (line.accountSuffix || line.extras.accountSlot || '').toUpperCase();
+    if (!key) return null;
+    const extras = {
+      ...line.extras,
+      startingBal: asNumber(line.extras.startingBal),
+      apr: asNumber(line.extras.apr),
+      minRate: asNumber(line.extras.minRate),
+    };
+    const preview = replaceSourceLine(raw, line.index, writeSourceLine({ ...line, extras }));
+    const settings = $settingsStore;
+    const [entries] = parseEntries(preview, settings.monthsToForecast, quietFlags, {
+      useFederalHolidays: settings.useFederalHolidays,
+      balanceIncludesSameDay: settings.balanceIncludesSameDay,
+    });
+    return debtOutlook(entries?.[key] ?? [], new Date());
+  }
+
+  $: outlookKey = draft
+    ? [
+        draft.type,
+        draft.accountSuffix,
+        draft.extras.accountSlot,
+        draft.when,
+        draft.amount,
+        draft.extras.strategy,
+        draft.extras.startingBal,
+        draft.extras.apr,
+        draft.extras.minRate,
+        draft.extras.apr2,
+        draft.extras.apr2Date,
+        $settingsStore.monthsToForecast,
+        $settingsStore.useFederalHolidays,
+        $settingsStore.balanceIncludesSameDay,
+      ].join('|')
+    : '';
+  $: outlook = outlookKey && draft && showsDebtFields(draft) ? lookAhead(draft) : null;
 
   $: lines = readSourceLines(raw);
   $: entries = lines.filter((line) => line.kind === 'entry');
@@ -139,6 +191,8 @@
     } else {
       draft.extras.minRate = undefined;
     }
+    draft.extras.startingBal = asNumber(draft.extras.startingBal);
+    draft.extras.apr = asNumber(draft.extras.apr);
     if (!draft.extras.categoryId) draft.extras.categoryId = undefined;
     const nextLine = writeSourceLine(draft);
     const index = draft.index;
@@ -181,6 +235,12 @@
     removeIndex = null;
     openIndex = null;
     draft = null;
+  }
+
+  function dueDay(form: WhenForm): string {
+    const day = Number((form.date || '').split('-')[2]);
+    if (!day || (form.repeat !== 'once' && form.repeat !== 'M')) return '';
+    return `Due on day ${day}.`;
   }
 
   function whenLabel(when: string): string {
@@ -420,13 +480,48 @@
         {/if}
       </div>
       <label>Pay link <input bind:value={draft.extras.payUrl} placeholder="https://" /></label>
-      {#if draft.extras.apr !== undefined}
-        <p class="hint-line">APR {draft.extras.apr}%</p>
-      {/if}
+      <div class="pair">
+        <label>Starting balance <input bind:value={draft.extras.startingBal} inputmode="decimal" /></label>
+        <label>APR <input bind:value={draft.extras.apr} inputmode="decimal" placeholder="percent" /></label>
+      </div>
       {#if draft.extras.apr2 !== undefined || draft.extras.apr2Date}
         <p class="hint-line">
           Next APR {draft.extras.apr2 ?? '—'}%{#if draft.extras.apr2Date} from {draft.extras.apr2Date}{/if}
         </p>
+      {/if}
+      {#if outlook}
+        <p class="hint-line">
+          {#if outlook.payoffDate}
+            Paid off {fmt.date(outlook.payoffDate)}
+            {#if outlook.months === 0}
+              · this month
+            {:else}
+              · {outlook.months} {outlook.months === 1 ? 'month' : 'months'}
+            {/if}
+          {:else}
+            Still open after this forecast
+          {/if}
+          · {fmt.curr(outlook.interest)} interest
+        </p>
+        <p class="hint-line">
+          {dueDay(whenForm)} Monthly APR/12, not a lender payoff quote.
+        </p>
+        <details class="history">
+          <summary>Payments ({outlook.payments.length})</summary>
+          <ul>
+            {#each outlook.payments as payment}
+              <li>
+                {fmt.date(payment.date)}
+                · {fmt.curr(payment.amount)}
+                {#if payment.interest}· interest {fmt.curr(payment.interest)}{/if}
+                · left {fmt.curr(payment.remaining)}
+                {#if payment.paidOff}· paid off{/if}
+                {#if payment.overridden}· override{/if}
+                {#if payment.pending}· pending{/if}
+              </li>
+            {/each}
+          </ul>
+        </details>
       {/if}
       <label class="check">
         <input
@@ -606,6 +701,13 @@
     font-size: 0.82rem;
   }
   .hint-line { margin: 0; color: $clr-muted; font-size: 0.85rem; }
+  .history {
+    font-size: 0.82rem;
+    color: $clr-muted;
+
+    summary { cursor: pointer; }
+    ul { margin: 0.25rem 0 0; padding-left: 1.1rem; }
+  }
 
   @keyframes card-sheen {
     from { transform: translateX(-80%); }

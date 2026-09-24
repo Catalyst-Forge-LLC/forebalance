@@ -60,6 +60,8 @@ ForeBalance starts from `STARTING_BAL`, adds monthly interest from APR, then sub
 
 Interest is the APR divided by 12, times the remaining balance, added on each payment date before that payment is subtracted. It is not daily compounding. Lenders may use a different method. Change the APR or remaining balance on the line if your statement uses other figures.
 
+A debt card shows when that balance would be paid off, and how much interest falls inside the forecast. If it is still open at the end of the forecast, the card says so. That date uses the same monthly math. It is not a lender payoff quote.
+
 Optional fields can follow the APR. Empty spots are fine, and you can leave off the ones you do not use:
 
 ```
