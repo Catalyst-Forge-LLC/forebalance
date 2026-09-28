@@ -8,4 +8,10 @@
 		background: linear-gradient(180deg, #f3f8f2 0%, #ffffff 100%);
 		border-bottom: 1px solid var(--fb-border);
 	}
+
+	@media (min-width: 62em) {
+		.tab-list {
+			display: none;
+		}
+	}
 </style>

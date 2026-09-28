@@ -1,4 +1,5 @@
 <script>
+	import SectionNav from './SectionNav.svelte';
 	import SiteMenu from './SiteMenu.svelte';
 </script>
 
@@ -11,6 +12,7 @@
         <span class="tagline">See the balance ahead.</span>
       </span>
     </a>
+    <SectionNav />
     <SiteMenu />
   </div>
 </header>

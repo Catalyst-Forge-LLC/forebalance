@@ -4,6 +4,7 @@
 </script>
 
 <script>
+	import { activeTabId } from '$lib/nav/activeTab';
 	import { appStateStore } from '$lib/stores/settings';
 	import { tabIdFromHash } from '$lib/nav/hashes';
 	import { setContext, onDestroy, onMount } from 'svelte';
@@ -13,9 +14,14 @@
 	const panels = [];
 	const selectedTab = writable(null);
 	const selectedPanel = writable(null);
+	let currentIndex = -1;
 
 	function applyIndex(i, withLoader) {
-		selectedTab.set(tabs[i]);
+		const tab = tabs[i];
+		if (!tab) return;
+		currentIndex = i;
+		selectedTab.set(tab);
+		if (tab.id) activeTabId.set(tab.id);
 		if (withLoader && panels[i]?.showLoader) {
 			$appStateStore.showLoader = true;
 			setTimeout(() => selectedPanel.set(panels[i]), 200);
@@ -63,11 +69,16 @@
 		selectedPanel,
 	});
 
-	function syncFromHash() {
+	function syncFromHash(withLoader = true) {
 		const wanted = tabIdFromHash();
 		if (!wanted) return;
 		const i = tabs.findIndex((tab) => tab.id === wanted);
-		if (i >= 0) applyIndex(i, false);
+		if (i < 0) return;
+		if (i === currentIndex) {
+			activeTabId.set(wanted);
+			return;
+		}
+		applyIndex(i, withLoader);
 	}
 
 	function onTabKey(event) {
@@ -80,12 +91,16 @@
 		if (id) history.replaceState(null, '', `#${id}`);
 	}
 
+	function onHashChange() {
+		syncFromHash(true);
+	}
+
 	onMount(() => {
-		syncFromHash();
-		window.addEventListener('hashchange', syncFromHash);
+		syncFromHash(false);
+		window.addEventListener('hashchange', onHashChange);
 		window.addEventListener('keydown', onTabKey);
 		return () => {
-			window.removeEventListener('hashchange', syncFromHash);
+			window.removeEventListener('hashchange', onHashChange);
 			window.removeEventListener('keydown', onTabKey);
 		};
 	});
