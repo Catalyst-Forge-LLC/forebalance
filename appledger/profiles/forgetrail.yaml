@@ -1,0 +1,213 @@
+profile: forgetrail
+profile_version: 0.1.0
+archetype: product
+project_status: active
+current_phase_instance: phase-c9d2e8f99e10
+phase_instances:
+  - id: phase-1bd49ed90130
+    phase: plan
+    status: completed
+    started_at: 2026-09-03T00:00:00Z
+    completed_at: 2026-09-03T00:00:00Z
+    criteria:
+      - id: crit-6a339d49c932
+        text: Tech choices confirmed
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-564fef0cd2ee
+        text: Folder structure confirmed
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-164c4012683b
+        text: Data model shape confirmed
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-dd1e4fd31151
+        text: First feature batch defined
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-4bbf3ca6468c
+        text: Major decisions recorded in workflow_tracking.json decisions[]
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-76b0c631f40f
+        text: Product spec and review plan locked
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+  - id: phase-65df5370e72e
+    phase: build
+    status: completed
+    started_at: 2026-09-03T00:00:00Z
+    completed_at: 2026-09-15T00:00:00Z
+    criteria:
+      - id: crit-3f1b017da1c6
+        text: App runs with pnpm dev
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-5c551a19a43b
+        text: Real data visible on screen
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-f3de1790d76f
+        text: Core CRUD works
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-09a2407c9994
+        text: Hero flow functions end to end
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-30b96ddaadbf
+        text: README.md written
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-060406f47110
+        text: CONTEXT_PROMPT.md created from the locked spec (TODO.md / IDEAS.md pruned
+          — spec is the backlog)
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+  - id: phase-67c064f28401
+    phase: stabilize
+    status: completed
+    started_at: 2026-09-03T00:00:00Z
+    completed_at: 2026-09-15T00:00:00Z
+    criteria:
+      - id: crit-cab71c10837a
+        text: Build and tests pass locally
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-d71884fd2db3
+        text: Sass deprecations silenced
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-53d2dae6c7fb
+        text: Svelte 5 migration in use
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-0b7c9a5f69b7
+        text: Dependabot alerts fixed; CI + weekly Dependabot added
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-9ef50d9e4b4b
+        text: Malformed lines surface as editor warnings
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+  - id: phase-c9d2e8f99e10
+    phase: iterate
+    status: in_progress
+    started_at: 2026-09-03T00:00:00Z
+    criteria:
+      - id: crit-ed02bb7ac3c2
+        text: Forecast summary + sparkline
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-23dfb240817f
+        text: File link + Import
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-9d89145e5327
+        text: Business-day shift, RML, disable prefix, pending occurrence
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-09ec00cd16ef
+        text: Multi-account selector + Help
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-e63a0e2528e9
+        text: CodeMirror editor
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-694966a0583b
+        text: Labs on demand (no eager WebLLM)
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-96802e4475d2
+        text: Public MIT, npm name hold, GitHub card
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-9d387167af92
+        text: Non-color threshold marks
+        status: pending
+        evidence_refs: []
+      - id: crit-bd69b882e062
+        text: Mobile Forecast / editor pass
+        status: pending
+        evidence_refs: []
+  - id: phase-a3c2ead17054
+    phase: refine
+    status: not_started
+    criteria:
+      - id: crit-b83628948c0e
+        text: No file exceeds ~500 lines without justification
+        status: pending
+        evidence_refs: []
+      - id: crit-9f1a67ab2f86
+        text: Shared utilities extracted
+        status: pending
+        evidence_refs: []
+      - id: crit-ec2bc0c5de09
+        text: No duplicated patterns
+        status: pending
+        evidence_refs: []
+      - id: crit-f9a5d6f95917
+        text: Build passes after each refactor
+        status: pending
+        evidence_refs: []
+  - id: phase-380029fbbb62
+    phase: align
+    status: not_started
+    criteria:
+      - id: crit-cc12adcf7899
+        text: Brand/copy already on About + README; formal BRAND_AND_PRODUCT optional
+        status: pending
+        evidence_refs: []
+      - id: crit-9213cbedc0c6
+        text: Spec remaining items are a11y/mobile, not a brand gap
+        status: pending
+        evidence_refs: []
+  - id: phase-cca13442d6ba
+    phase: harden
+    status: not_started
+    criteria:
+      - id: crit-84d25e2240bb
+        text: Live at forebalance.app via Wrangler
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-b77239effdc8
+        text: CI on main/PRs
+        status: met
+        evidence_refs: []
+        disposition_reason: Imported as a historical assertion. Verification was not recorded.
+      - id: crit-9c2ee0b47282
+        text: Optional CODE_QUALITY / security audit when wanted
+        status: pending
+        evidence_refs: []
+      - id: crit-fadeb84135d6
+        text: DEPLOYMENT.md if DNS/runbook needs to live in-repo
+        status: pending
+        evidence_refs: []
+transitions: []
