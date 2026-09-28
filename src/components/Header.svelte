@@ -48,6 +48,24 @@
     }
   }
 
+  @media (min-width: 62em) {
+    .bar {
+      align-items: stretch;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    .brand {
+      padding-top: 0.4rem;
+      padding-bottom: 0.4rem;
+    }
+
+    :global(.site-menu) {
+      display: flex;
+      align-items: center;
+    }
+  }
+
   .brand {
     display: flex;
     align-items: center;

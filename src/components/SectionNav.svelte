@@ -51,20 +51,21 @@
 		.sections {
 			display: flex;
 			flex: 1 1 auto;
-			align-items: center;
+			align-items: stretch;
 			justify-content: space-evenly;
-			gap: 0.2rem;
+			gap: 0.15rem;
 			min-width: 0;
 			margin-left: 0.5rem;
 		}
 
 		a {
+			position: relative;
 			display: inline-flex;
 			align-items: center;
 			gap: 0.3rem;
-			margin: 0;
-			padding: 0.32rem 0.6rem;
-			border-radius: 0.4rem;
+			margin: 0.4rem 0 0;
+			padding: 0 0.75rem;
+			border-radius: 0.45rem 0.45rem 0 0;
 			color: $clr-accent-ink;
 			font-size: 0.85rem;
 			line-height: 1.2;
@@ -73,13 +74,22 @@
 		}
 
 		a:hover {
-			background: rgba(232, 242, 232, 0.7);
+			background: rgba(232, 242, 232, 0.65);
 		}
 
 		a[aria-current='page'] {
 			background: $clr-accent-soft;
-			box-shadow: inset 0 -2px 0 $clr-gold;
 			font-weight: 700;
+		}
+
+		a[aria-current='page']::after {
+			content: '';
+			position: absolute;
+			left: 0;
+			right: 0;
+			bottom: -4px;
+			height: 4px;
+			background: $clr-gold;
 		}
 
 		a:focus {
