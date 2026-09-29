@@ -1,7 +1,7 @@
 schemaVersion: 0.2.0
 scan_id: scan-add
 product:
-  name: forebalance
+  name: ForeBalance
   type: unknown
   status: unknown
 features:

@@ -1,4 +1,4 @@
-# Feature register: forebalance
+# Feature register: ForeBalance
 
 Scan `scan-init`. Candidates are not confirmed capabilities.
 

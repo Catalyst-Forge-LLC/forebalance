@@ -2,7 +2,7 @@
 feature_facts_version: 0.2.0
 mode: map-backed
 audience: internal
-name: forebalance
+name: ForeBalance
 type: unknown
 status: unknown
 selection_state: not-curated
@@ -16,7 +16,7 @@ generated:
   date: 2026-09-25
   generator: featurefacts
   generator_version: 0.2.0
-  projection_fingerprint: 20dd52782f0ae0006a9789dc1362c04ca71c8c3a76e003558c1efb6b53b9eaef
+  projection_fingerprint: af8b141743342067d413666eb1d891d8eb33aec4163ea15de21fd31702132683
 counts:
   scope: eligible-confirmed-active
   registered: 0
@@ -43,11 +43,11 @@ assessments:
     undisclosed: 0
 ---
 
-# Feature Facts: forebalance
+# Feature Facts: ForeBalance
 
 What can this product do?
 
-Curation has not been approved. The scanner does not select rows.
+No confirmed non-retired capabilities are eligible for this publication target.
 
 Zero rows is a valid label. Candidates are not confirmed capabilities.
 Within the eligible confirmed scope: 0 registered, 0 selected, and 0 not selected.
