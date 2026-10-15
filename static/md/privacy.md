@@ -6,12 +6,22 @@ That is a product decision, not a toggle. ForeBalance is a static website. There
 
 ## What that means
 
-- Anything you enter — amounts, balances, account names — never leaves this device.
+- Entries stay in this browser unless you explicitly export them or share a scenario link.
 - ForeBalance has no accounts, sign-ins, ads, or tracking cookies.
 - Clearing this site’s data in the browser deletes your scenarios. Browser storage is not a durable backup. Export a saved file (`.psv`) from Entries, or every scenario from the Reset dialog on Settings, if you want a copy you keep.
 - A linked file, when your browser supports it, is also only on your disk.
 
 The files that make up this site are hosted like any other static page. They do not receive your forecast.
+
+## Sharing a scenario
+
+A scenario link contains the full entry text. Anyone with the link can read it, so share only what you intend to disclose. New links put the text after `#` (the URL fragment), which browsers do not send in the HTTP request to the host. Links are not encrypted and may be retained by browser history, clipboard tools, or the service where you send them.
+
+Older links used a `?share=` query. Opening those links sends that query to the hosting server before the app can remove it. The app still accepts them for compatibility, but generates only fragment links now. Replace older shared links with new ones.
+
+## Save failures and linked files
+
+If browser storage is full or unavailable, ForeBalance keeps edits in memory and shows a warning. Export a copy before closing the tab. A linked file belongs to the scenario selected when you confirm the link; editing a different scenario does not write to that file. Reopening ForeBalance restores the link without replacing browser entries with disk contents. Relink explicitly to import the file again. Older links without a recorded scenario owner must be linked again.
 
 ## Hosting
 

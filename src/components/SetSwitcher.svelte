@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    entrySetsStore,
-    renameEntrySet,
-    switchEntrySet,
-  } from '$lib/data/entrySets';
+  import { entrySetsStore, renameEntrySet, switchEntrySet } from '$lib/data/entrySets';
   import { activateEntrySet } from '$lib/data/entriesPersistence';
   import { rawEntriesStore } from '$lib/stores/settings';
 
@@ -13,9 +9,7 @@
   let lastActiveId = '';
 
   $: activeSet = $entrySetsStore.sets.find((set) => set.id === $entrySetsStore.activeId);
-  $: parentName = activeSet?.parentId
-    ? $entrySetsStore.sets.find((set) => set.id === activeSet.parentId)?.name
-    : '';
+  $: parentName = activeSet?.parentId ? $entrySetsStore.sets.find((set) => set.id === activeSet.parentId)?.name : '';
   $: if (activeSet && activeSet.id !== lastActiveId) {
     lastActiveId = activeSet.id;
     draftName = activeSet.name;
@@ -42,11 +36,8 @@
 <div class="bar" class:compact={!editable}>
   <label class="inline">
     <span>Scenario</span>
-    <select
-      value={$entrySetsStore.activeId}
-      on:change={(e) => onSelectSet(e.currentTarget.value)}
-    >
-      {#each $entrySetsStore.sets as set}
+    <select value={$entrySetsStore.activeId} on:change={(e) => onSelectSet(e.currentTarget.value)}>
+      {#each $entrySetsStore.sets as set (set)}
         <option value={set.id}>{set.name}</option>
       {/each}
     </select>
@@ -63,7 +54,9 @@
   {#if parentName || activeSet?.description}
     <p class="lineage">
       {#if parentName}Fork of {parentName}{/if}
-      {#if parentName && activeSet?.description} · {/if}
+      {#if parentName && activeSet?.description}
+        ·
+      {/if}
       {activeSet?.description ?? ''}
     </p>
   {/if}

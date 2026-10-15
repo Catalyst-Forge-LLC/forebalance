@@ -22,14 +22,13 @@
     return beyond ? 'After this forecast' : '—';
   }
 
-  $: monthRows = [...new Set([
-    ...(left?.months ?? []).map((month) => month.month),
-    ...(right?.months ?? []).map((month) => month.month),
-  ])].sort().map((month) => ({
-    month,
-    left: left?.months.find((item) => item.month === month)?.balance ?? null,
-    right: right?.months.find((item) => item.month === month)?.balance ?? null,
-  }));
+  $: monthRows = [...new Set([...(left?.months ?? []).map((month) => month.month), ...(right?.months ?? []).map((month) => month.month)])]
+    .sort()
+    .map((month) => ({
+      month,
+      left: left?.months.find((item) => item.month === month)?.balance ?? null,
+      right: right?.months.find((item) => item.month === month)?.balance ?? null,
+    }));
 </script>
 
 <section class="compare" aria-label="Compare scenarios">
@@ -38,7 +37,7 @@
     <label>
       With
       <select value={otherId} on:change={(event) => onPick(event.currentTarget.value)}>
-        {#each others as other}
+        {#each others as other (other)}
           <option value={other.id}>{other.name}</option>
         {/each}
       </select>
@@ -67,14 +66,14 @@
           <td>{money(left.lowestBalance)}</td>
           <td>{money(right.lowestBalance)}</td>
         </tr>
-        {#each monthRows as month}
+        {#each monthRows as month (month)}
           <tr>
             <th>{month.month}</th>
             <td>{money(month.left)}</td>
             <td>{money(month.right)}</td>
           </tr>
         {/each}
-        {#each left.debts as debt}
+        {#each left.debts as debt (debt)}
           {@const other = right.debts.find((item) => item.id === debt.id)}
           <tr>
             <th>{debt.name} left</th>
@@ -97,7 +96,7 @@
     <details>
       <summary>{lines.length} line {lines.length === 1 ? 'change' : 'changes'}</summary>
       <ul>
-        {#each lines as line}
+        {#each lines as line (line)}
           <li>
             {#if line.kind === 'added'}Added {line.after}
             {:else if line.kind === 'removed'}Removed {line.before}
@@ -132,9 +131,20 @@
     gap: 0.5rem;
     margin-bottom: 0.5rem;
 
-    h3 { margin: 0; flex: 1; }
-    label { display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; }
-    select, button { font: inherit; }
+    h3 {
+      margin: 0;
+      flex: 1;
+    }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.85rem;
+    }
+    select,
+    button {
+      font: inherit;
+    }
   }
 
   table {
@@ -142,12 +152,31 @@
     border-collapse: collapse;
     font-size: 0.85rem;
 
-    th, td { padding: 0.2rem 0.35rem; text-align: left; }
-    td { font-variant-numeric: tabular-nums; }
-    tbody th { font-weight: 600; color: $clr-muted; }
+    th,
+    td {
+      padding: 0.2rem 0.35rem;
+      text-align: left;
+    }
+    td {
+      font-variant-numeric: tabular-nums;
+    }
+    tbody th {
+      font-weight: 600;
+      color: $clr-muted;
+    }
   }
 
-  details { margin-top: 0.4rem; font-size: 0.82rem; }
-  ul { margin: 0.3rem 0 0; padding-left: 1.1rem; }
-  p { margin: 0.3rem 0 0; color: $clr-muted; font-size: 0.85rem; }
+  details {
+    margin-top: 0.4rem;
+    font-size: 0.82rem;
+  }
+  ul {
+    margin: 0.3rem 0 0;
+    padding-left: 1.1rem;
+  }
+  p {
+    margin: 0.3rem 0 0;
+    color: $clr-muted;
+    font-size: 0.85rem;
+  }
 </style>

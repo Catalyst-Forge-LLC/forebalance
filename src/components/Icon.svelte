@@ -3,12 +3,10 @@
   export let size = 16;
 
   const paths: Record<string, string> = {
-    welcome:
-      'M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01',
+    welcome: 'M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01',
     entries: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
     forecast: 'M3 17 9 11l4 4 8-8M13 7h8v8',
-    settings:
-      'M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4',
+    settings: 'M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M2 14h4M10 8h4M18 16h4',
     labs: 'M9 3h6M10 9h4M10 3v6L4.8 18.2A2 2 0 0 0 6.5 21h11a2 2 0 0 0 1.7-2.8L14 9V3',
     help: 'M12 17h.01M9.1 9a3 3 0 1 1 5.8 1c-.7.8-2 1.2-2.9 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18',
     about: 'M12 8h.01M11 12h1v4h1M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18',

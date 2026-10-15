@@ -95,15 +95,7 @@
 </script>
 
 <div class="site-menu" bind:this={root}>
-  <button
-    type="button"
-    class="icon-btn"
-    aria-expanded={open}
-    aria-haspopup="menu"
-    aria-label="Site menu"
-    title="About, privacy, and license"
-    on:click={toggle}
-  >
+  <button type="button" class="icon-btn" aria-expanded={open} aria-haspopup="menu" aria-label="Site menu" title="About, privacy, and license" on:click={toggle}>
     <Icon name="menu" />
   </button>
 
@@ -119,52 +111,23 @@
         <Icon name="help" /> Help
       </a>
       <hr />
-      <a
-        role="menuitem"
-        href="https://github.com/Catalyst-Forge-LLC/forebalance"
-        target="_blank"
-        rel="noreferrer"
-        on:click={close}
-      >
+      <a role="menuitem" href="https://github.com/Catalyst-Forge-LLC/forebalance" target="_blank" rel="noreferrer" on:click={close}>
         <Icon name="github" /> Source on GitHub
       </a>
-      <a
-        role="menuitem"
-        href="https://www.catalystforge.com/"
-        target="_blank"
-        rel="noreferrer"
-        on:click={close}
-      >
+      <a role="menuitem" href="https://www.catalystforge.com/" target="_blank" rel="noreferrer" on:click={close}>
         <img class="mark" src="/cf/catalyst-forge.png" width="16" height="16" alt="" />
         Catalyst Forge
       </a>
-      <div
-        class="flyout-row"
-        on:mouseenter={scheduleToolsOpen}
-        on:mouseleave={scheduleToolsClose}
-      >
-        <button
-          type="button"
-          role="menuitem"
-          aria-expanded={toolsOpen}
-          on:focus={scheduleToolsOpen}
-          on:click={() => (toolsOpen = !toolsOpen)}
-        >
+      <div class="flyout-row" role="presentation" on:mouseenter={scheduleToolsOpen} on:mouseleave={scheduleToolsClose}>
+        <button type="button" role="menuitem" aria-expanded={toolsOpen} on:focus={scheduleToolsOpen} on:click={() => (toolsOpen = !toolsOpen)}>
           <span class="chevron" aria-hidden="true">◂</span>
           <img class="mark" src="/cf/catalyst-forge.png" width="16" height="16" alt="" />
           CF tools
         </button>
         {#if toolsOpen}
           <div class="submenu" role="menu">
-            {#each tools as tool}
-              <a
-                role="menuitem"
-                href={tool.href}
-                target="_blank"
-                rel="noreferrer"
-                title={tool.blurb}
-                on:click={close}
-              >
+            {#each tools as tool (tool)}
+              <a role="menuitem" href={tool.href} target="_blank" rel="noreferrer" title={tool.blurb} on:click={close}>
                 <img class="mark" src={tool.icon} width="16" height="16" alt="" />
                 <span class="tool-copy">
                   <span class="tool-name">{tool.name}</span>
@@ -185,8 +148,7 @@
       </p>
       <p class="legal">
         Free to use.
-        <a href="https://github.com/Catalyst-Forge-LLC/forebalance/blob/main/LICENSE">MIT License</a>.
-        Not financial advice.
+        <a href="https://github.com/Catalyst-Forge-LLC/forebalance/blob/main/LICENSE">MIT License</a>. Not financial advice.
       </p>
     </div>
   {/if}

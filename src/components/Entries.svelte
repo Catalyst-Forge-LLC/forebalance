@@ -1,21 +1,19 @@
 <script lang="ts">
+  import { storage, canUseBrowserStorage } from '$lib/persistence/storage';
   import { validateRawEntries } from '$lib/parser/validateEntries';
   import { onMount } from 'svelte';
   import { logd } from '$lib/util/log';
-  import {
-    formatHistoryLabel,
-    listEntryVersions,
-    type EntryVersion,
-    entryHistoryStore,
-  } from '$lib/data/entryHistory';
+  import { formatHistoryLabel, listEntryVersions, type EntryVersion, entryHistoryStore } from '$lib/data/entryHistory';
   import { listedCurrencies } from '$lib/data/currencies';
   import { ensureCurrencyHeader, extractCurrency } from '$lib/data/currencyHeader';
   import { categoriesStore, loadCategories } from '$lib/data/categories';
   import { entrySetsStore } from '$lib/data/entrySets';
-  import { setRawEntries } from '$lib/data/entriesPersistence';
+  import { setRawEntries, setScenarioRaw } from '$lib/data/entriesPersistence';
   import { applyDisplayCurrency, rawEntriesStore, settingsStore } from '$lib/stores/settings';
   import {
-    getLinkedFileName,
+    linkedFile,
+    confirmPendingLink,
+    cancelPendingLink,
     isFileSystemAccessSupported,
     isForebalancePsvName,
     linkPsvFile,
@@ -32,7 +30,6 @@
   import EntrySetsPanel from './EntrySetsPanel.svelte';
   import Icon from './Icon.svelte';
   import EntryCards from './EntryCards.svelte';
-  import PsvEditor from './PsvEditor.svelte';
   import SyntaxHelp from './SyntaxHelp.svelte';
   import Tooltip from './Tooltip.svelte';
 
@@ -43,6 +40,9 @@
   let lastInputEntries = '';
   let draftEntries = '';
   let linkedFileName: string | null = null;
+  let pendingScenarioId = '';
+  let pendingIsLink = false;
+  $: linkedFileName = $linkedFile?.scenarioId === $entrySetsStore.activeId ? $linkedFile.name : null;
   let fsSupported = false;
   let showDrop = false;
   let importInput: HTMLInputElement;
@@ -66,9 +66,9 @@
   const VIEW_KEY = 'forebalance.entriesView.v1';
 
   function readView(id: string): 'cards' | 'raw' {
-    if (typeof localStorage === 'undefined') return 'cards';
+    if (!canUseBrowserStorage()) return 'cards';
     try {
-      const map = JSON.parse(localStorage.getItem(VIEW_KEY) || '{}') as Record<string, string>;
+      const map = JSON.parse(storage.getItem(VIEW_KEY) || '{}') as Record<string, string>;
       return map[id] === 'raw' ? 'raw' : 'cards';
     } catch {
       return 'cards';
@@ -78,10 +78,16 @@
   function rememberView(mode: 'cards' | 'raw') {
     viewMode = mode;
     const id = $entrySetsStore.activeId;
-    if (!id || typeof localStorage === 'undefined') return;
-    const map = JSON.parse(localStorage.getItem(VIEW_KEY) || '{}') as Record<string, string>;
+    if (!id || !canUseBrowserStorage()) return;
+    let map: Record<string, string> = {};
+    try {
+      const parsed = JSON.parse(storage.getItem(VIEW_KEY) || '{}');
+      map = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+    } catch {
+      /* reset invalid view preference */
+    }
     map[id] = mode;
-    localStorage.setItem(VIEW_KEY, JSON.stringify(map));
+    storage.setItem(VIEW_KEY, JSON.stringify(map));
   }
 
   $: if ($rawEntriesStore !== lastInputEntries) {
@@ -103,7 +109,6 @@
   onMount(() => {
     loadCategories();
     fsSupported = isFileSystemAccessSupported();
-    linkedFileName = getLinkedFileName();
     lastInputEntries = $rawEntriesStore;
     draftEntries = $rawEntriesStore;
   });
@@ -132,7 +137,7 @@
     rememberView('cards');
   }
 
-  function handleEditorCommit(inputEntries: string, allowEmpty = false) {
+  function handleEditorCommit(inputEntries: string, allowEmpty = true) {
     if (lastInputEntries === inputEntries) {
       return;
     }
@@ -147,6 +152,8 @@
   }
 
   async function startImport(file: File) {
+    pendingScenarioId = $entrySetsStore.activeId;
+    pendingIsLink = false;
     pendingContent = await readImportFile(file);
     pendingName = file.name;
     importOpen = true;
@@ -178,7 +185,19 @@
     currencyOpen = true;
   }
 
-  function finishImport(code: string) {
+  async function finishImport(code: string) {
+    if (pendingScenarioId !== $entrySetsStore.activeId) {
+      cancelPendingImport();
+      return;
+    }
+    if (pendingIsLink && !(await confirmPendingLink(pendingScenarioId))) {
+      cancelPendingImport();
+      return;
+    }
+    if (pendingScenarioId !== $entrySetsStore.activeId) {
+      cancelPendingImport();
+      return;
+    }
     const raw = ensureCurrencyHeader(pendingContent, code);
     applyRawEntries(raw);
     applyDisplayCurrency(code, { scaleThresholds: true });
@@ -192,6 +211,8 @@
   }
 
   function cancelPendingImport() {
+    cancelPendingLink();
+    pendingIsLink = false;
     importOpen = false;
     unusualOpen = false;
     currencyOpen = false;
@@ -213,9 +234,10 @@
   }
 
   async function clickLinkFile() {
-    const linked = await linkPsvFile();
+    pendingScenarioId = $entrySetsStore.activeId;
+    const linked = await linkPsvFile(pendingScenarioId);
     if (linked) {
-      linkedFileName = linked.name;
+      pendingIsLink = true;
       pendingName = linked.name;
       pendingContent = linked.content;
       linkOpen = true;
@@ -251,16 +273,7 @@
 
 <div class="entries-page">
   <EntrySetsPanel>
-    <div
-      slot="tools"
-      class="tools-slot"
-      let:onClone
-      let:onDelete
-      let:canDelete
-      let:templates
-      let:onAddStarter
-      let:onExport
-    >
+    <div slot="tools" class="tools-slot" let:onClone let:onDelete let:canDelete let:templates let:onAddStarter let:onExport>
       <Tooltip content={persistTip} position="bottom">
         <button type="button" class="icon-btn" aria-label="How this is saved">
           <Icon name="info" />
@@ -287,13 +300,7 @@
       />
     </div>
 
-    <input
-      bind:this={importInput}
-      type="file"
-      accept=".psv,.txt,text/plain"
-      class="sr-only"
-      on:change={onImportSelected}
-    />
+    <input bind:this={importInput} type="file" accept=".psv,.txt,text/plain" class="sr-only" on:change={onImportSelected} />
 
     <div class="editor-pane">
       <div class="view-toggle" role="group" aria-label="Editor view">
@@ -313,20 +320,26 @@
           onCommit={(next) => handleEditorCommit(next, true)}
         />
       {:else}
-        <PsvEditor
-          value={$rawEntriesStore}
-          hasWarnings={validationWarnings.length > 0}
-          onDraft={handleEditorDraft}
-          onChange={handleEditorCommit}
-          onCursorLine={(index) => (cursorLine = index)}
-        />
+        {#key $entrySetsStore.activeId}
+          {#await import('./PsvEditor.svelte') then editor}
+            <svelte:component
+              this={editor.default}
+              scenarioId={$entrySetsStore.activeId}
+              value={$rawEntriesStore}
+              hasWarnings={validationWarnings.length > 0}
+              onDraft={handleEditorDraft}
+              onChange={setScenarioRaw}
+              onCursorLine={(index) => (cursorLine = index)}
+            />
+          {/await}
+        {/key}
       {/if}
 
       {#if validationWarnings.length}
         <div class="validation-warnings" role="alert">
           <strong>Entry warnings</strong>
           <ul>
-            {#each validationWarnings as warning}
+            {#each validationWarnings as warning (warning)}
               <li>Line {warning.line}: {warning.message}</li>
             {/each}
           </ul>
@@ -362,13 +375,7 @@
   {/if}
 </ConfirmModal>
 
-<ConfirmModal
-  open={unusualOpen}
-  title="Import this file?"
-  confirmLabel="Import anyway"
-  onCancel={() => (unusualOpen = false)}
-  onConfirm={applyPending}
->
+<ConfirmModal open={unusualOpen} title="Import this file?" confirmLabel="Import anyway" onCancel={() => (unusualOpen = false)} onConfirm={applyPending}>
   <p><strong>{pendingName}</strong> is not a <code>.psv</code> file. Import it anyway?</p>
 </ConfirmModal>
 
@@ -380,26 +387,19 @@
   onConfirm={() => finishImport(pendingCurrency)}
 >
   <p>
-    <strong>{pendingName}</strong> does not say which currency the amounts are in.
-    ForeBalance will not convert the numbers — it only changes how they look.
+    <strong>{pendingName}</strong> does not say which currency the amounts are in. ForeBalance will not convert the numbers — it only changes how they look.
   </p>
   <label class="currency-pick">
     Use
     <select bind:value={pendingCurrency}>
-      {#each currencies as option}
+      {#each currencies as option (option)}
         <option value={option.code}>{option.label}</option>
       {/each}
     </select>
   </label>
 </ConfirmModal>
 
-<ConfirmModal
-  open={linkOpen}
-  title="Load the linked file?"
-  confirmLabel="Load entries"
-  onCancel={() => (linkOpen = false)}
-  onConfirm={confirmLink}
->
+<ConfirmModal open={linkOpen} title="Load the linked file?" confirmLabel="Load entries" onCancel={cancelPendingImport} onConfirm={confirmLink}>
   <p>Link to <strong>{pendingName}</strong> and load its entries into this scenario?</p>
   {#if pendingFileCurrency}
     <p>This file is marked {pendingFileCurrency}. Forecast will show that currency.</p>
@@ -414,15 +414,14 @@
   onConfirm={confirmRollStarts}
 >
   <p>
-    Recurring lines still walk every occurrence from the date in the text, even though Forecast
-    drops rows before the <code>B</code> line. This rewrites unbounded series so they start
-    <strong>one period before</strong> that balance date (or today, if there is no balance line).
-    Cadence, amounts, and end dates stay the same. Counted series like <code>RW5</code> are left
-    alone.
+    Recurring lines still walk every occurrence from the date in the text, even though Forecast drops rows before the <code>B</code> line. This rewrites
+    unbounded series so they start
+    <strong>one period before</strong> that balance date (or today, if there is no balance line). Cadence, amounts, and end dates stay the same. Counted series
+    like <code>RW5</code> are left alone.
   </p>
   <p>{rollPreview.changed} line{rollPreview.changed === 1 ? '' : 's'} would change in this scenario:</p>
   <ul class="roll-examples">
-    {#each rollPreview.examples as change}
+    {#each rollPreview.examples as change (change)}
       <li><strong>{change.desc}</strong>: <code>{change.from}</code> → <code>{change.to}</code></li>
     {/each}
   </ul>
@@ -441,8 +440,7 @@
   {#if pendingRestore}
     <p>
       Replace the current text with the version from
-      <strong>{formatHistoryLabel(pendingRestore.at)}</strong>? The text you have now is kept under
-      Previous versions.
+      <strong>{formatHistoryLabel(pendingRestore.at)}</strong>? The text you have now is kept under Previous versions.
     </p>
   {/if}
 </ConfirmModal>

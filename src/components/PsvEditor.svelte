@@ -5,8 +5,10 @@
   import { psvLinter, psvTheme } from '$lib/editor/psvExtensions';
 
   export let value = '';
+  export let scenarioId = '';
+  const ownerId = scenarioId;
   /** Fired on blur and after typing pauses — use this to persist / reparse. */
-  export let onChange: (value: string) => void = () => {};
+  export let onChange: (value: string, scenarioId: string) => void = () => {};
   /** Fired on every edit for cheap local UI (warnings). Do not parse the forecast here. */
   export let onDraft: (value: string) => void = () => {};
   export let hasWarnings = false;
@@ -28,18 +30,19 @@
       clearTimeout(commitTimer);
       commitTimer = undefined;
     }
-    onChange(currentDoc());
+    if (view) onChange(currentDoc(), ownerId);
   }
 
   function scheduleCommit() {
     if (commitTimer) clearTimeout(commitTimer);
     commitTimer = setTimeout(() => {
       commitTimer = undefined;
-      onChange(currentDoc());
+      onChange(currentDoc(), ownerId);
     }, commitDelayMs);
   }
 
   onMount(() => {
+    window.addEventListener('pagehide', flushCommit);
     view = new EditorView({
       parent: container,
       state: EditorState.create({
@@ -74,6 +77,7 @@
   });
 
   onDestroy(() => {
+    if (typeof window !== 'undefined') window.removeEventListener('pagehide', flushCommit);
     flushCommit();
     view?.destroy();
   });

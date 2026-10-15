@@ -1,11 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { EntryTemplate } from '$lib/data/entryTemplates';
-  import {
-    formatHistoryLabel,
-    historySnippet,
-    type EntryVersion,
-  } from '$lib/data/entryHistory';
+  import { formatHistoryLabel, historySnippet, type EntryVersion } from '$lib/data/entryHistory';
   import Icon from './Icon.svelte';
 
   export let canDelete = true;
@@ -100,15 +96,7 @@
 </script>
 
 <div class="menu" bind:this={root}>
-  <button
-    type="button"
-    class="icon-btn"
-    aria-expanded={open}
-    aria-haspopup="menu"
-    aria-label="Scenario actions"
-    title="Scenario actions"
-    on:click={toggle}
-  >
+  <button type="button" class="icon-btn" aria-expanded={open} aria-haspopup="menu" aria-label="Scenario actions" title="Scenario actions" on:click={toggle}>
     <Icon name="kebab" />
   </button>
 
@@ -151,11 +139,7 @@
         <Icon name="calendar" /> Roll recurring starts
       </button>
       <hr />
-      <div
-        class="flyout-row"
-        on:mouseenter={() => scheduleFlyout('starter')}
-        on:mouseleave={scheduleFlyoutClose}
-      >
+      <div class="flyout-row" role="presentation" on:mouseenter={() => scheduleFlyout('starter')} on:mouseleave={scheduleFlyoutClose}>
         <button
           type="button"
           role="menuitem"
@@ -168,24 +152,15 @@
         </button>
         {#if flyout === 'starter'}
           <div class="submenu" role="menu">
-            {#each templates as template}
-              <button
-                type="button"
-                role="menuitem"
-                title={template.blurb}
-                on:click={() => run(() => onAddStarter(template.id))}
-              >
+            {#each templates as template (template)}
+              <button type="button" role="menuitem" title={template.blurb} on:click={() => run(() => onAddStarter(template.id))}>
                 {template.name}
               </button>
             {/each}
           </div>
         {/if}
       </div>
-      <div
-        class="flyout-row"
-        on:mouseenter={() => scheduleFlyout('history')}
-        on:mouseleave={scheduleFlyoutClose}
-      >
+      <div class="flyout-row" role="presentation" on:mouseenter={() => scheduleFlyout('history')} on:mouseleave={scheduleFlyoutClose}>
         <button
           type="button"
           role="menuitem"
@@ -201,12 +176,8 @@
             {#if versions.length === 0}
               <p class="empty">No earlier versions yet. Edits in this scenario are kept here (last 20).</p>
             {:else}
-              {#each versions as version}
-                <button
-                  type="button"
-                  role="menuitem"
-                  on:click={() => run(() => onRestore(version))}
-                >
+              {#each versions as version (version)}
+                <button type="button" role="menuitem" on:click={() => run(() => onRestore(version))}>
                   <span class="when">{formatHistoryLabel(version.at)}</span>
                   <span class="snip">{historySnippet(version.raw)}</span>
                 </button>

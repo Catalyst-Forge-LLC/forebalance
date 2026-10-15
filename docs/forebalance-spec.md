@@ -15,7 +15,7 @@ The plaintext entry format is the core of the product, not an implementation det
 ### Design principles
 
 1. **Text is the source of truth.** Every feature must be expressible in the entry format.
-2. **Local only.** No network calls, no telemetry, no accounts, no ads. Data never leaves the device.
+2. **Browser-local scenarios.** No accounts, cloud saves, or app-owned telemetry. Entry data stays local unless the user explicitly exports or shares it. Hosting may include the performance beacon described in Privacy, and optional Labs may download model assets. New shared links carry entries in the URL fragment, not the HTTP query.
 3. **Answer one question well:** *what will my balance be, and when does it get uncomfortable?*
 4. **Degrade gracefully.** A malformed line should never blank the forecast.
 

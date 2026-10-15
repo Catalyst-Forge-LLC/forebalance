@@ -1,16 +1,11 @@
 <script lang="ts">
+  import EntryWhen from './EntryWhen.svelte';
+  import { modal } from '$lib/ui/modal';
   import { tick } from 'svelte';
   import { categoryName, type Category, UNFILED_ID } from '$lib/data/categories';
   import { localIsoDate } from '$lib/formatters/dates';
   import { isHttpUrl } from '$lib/parser/lineExtras';
-  import {
-    insertSourceLine,
-    readSourceLines,
-    removeSourceLine,
-    replaceSourceLine,
-    writeSourceLine,
-    type SourceLine,
-  } from '$lib/parser/sourceLines';
+  import { insertSourceLine, readSourceLines, removeSourceLine, replaceSourceLine, writeSourceLine, type SourceLine } from '$lib/parser/sourceLines';
   import { settingsStore } from '$lib/stores/settings';
   import { parseEntries } from '$lib/parser/parseEntries';
   import { debtOutlook, type DebtOutlook } from '$lib/parser/debtOutlook';
@@ -23,7 +18,7 @@
   import { parseRecur } from '$lib/parser/recurrence';
   import type { DebtPayment } from '$lib/parser/debtOutlook';
   import type { ParsedEntry } from '$lib/parser/types';
-  import { everyUnit, readWhenForm, writeWhenForm, type RepeatKind, type WhenForm } from '$lib/parser/whenForm';
+  import { readWhenForm, writeWhenForm, type WhenForm } from '$lib/parser/whenForm';
 
   export let raw = '';
   export let categories: Category[] = [];
@@ -34,7 +29,7 @@
 
   let typeFilter: 'all' | 'C' | 'D' = 'all';
   let groupFilter = 'all';
-  let openIndex: number | null = null;
+
   let draft: SourceLine | null = null;
   let openedSerialized = '';
   let openedHadAutopay = false;
@@ -101,12 +96,7 @@
   $: showWhen = !!draft && !whenForm.raw && draft.type !== 'B';
   $: showPayment = showsDebtFields(draft);
   $: balanceStart = (lines.find((line) => line.kind === 'entry' && line.type === 'B')?.when ?? '').slice(0, 10);
-  $: seriesIsEarly = !!(
-    draft &&
-    /,R/i.test(draft.when) &&
-    /^\d{4}-\d{2}-\d{2}$/.test(balanceStart) &&
-    draft.when.slice(0, 10) < balanceStart
-  );
+  $: seriesIsEarly = !!(draft && /,R/i.test(draft.when) && /^\d{4}-\d{2}-\d{2}$/.test(balanceStart) && draft.when.slice(0, 10) < balanceStart);
   $: outlook = outlookKey && draft && showPayment ? lookAhead(draft, extraDraft) : null;
   $: baselineOutlook = outlookKey && draft && showPayment ? lookAhead(draft, draft.extras.extraPayment ?? 0) : null;
   $: if (editorTab === 'when' && !showWhen) editorTab = 'entry';
@@ -129,9 +119,7 @@
     const id = line.extras.categoryId || UNFILED_ID;
     return id === groupFilter;
   });
-  $: unfiledCount = entries.filter(
-    (line) => line.type !== 'B' && (!line.extras.categoryId || line.extras.categoryId === UNFILED_ID),
-  ).length;
+  $: unfiledCount = entries.filter((line) => line.type !== 'B' && (!line.extras.categoryId || line.extras.categoryId === UNFILED_ID)).length;
 
   function commit(next: string) {
     if (next === raw) return;
@@ -139,7 +127,6 @@
   }
 
   function open(line: SourceLine) {
-    openIndex = line.index;
     draft = {
       ...line,
       extras: { ...line.extras, unknown: [...line.extras.unknown] },
@@ -159,12 +146,6 @@
     if (!draft || draft.type === next) return;
     draft.type = next;
     onTypeChange();
-  }
-
-  function pickRepeat(next: RepeatKind) {
-    if (whenForm.repeat === next) return;
-    whenForm.repeat = next;
-    onWhenChange();
   }
 
   function onWhenChange() {
@@ -198,19 +179,18 @@
     const sized = line.extras.strategy === 'min' || line.extras.strategy === 'pct';
     return Boolean(
       (line.accountSuffix && !line.isMain) ||
-        line.extras.accountSlot ||
-        line.extras.startingBal !== undefined ||
-        line.extras.apr !== undefined ||
-        line.extras.payUrl ||
-        line.extras.autopay !== undefined ||
-        (line.extras.extraPayment ?? 0) > 0 ||
-        sized,
+      line.extras.accountSlot ||
+      line.extras.startingBal !== undefined ||
+      line.extras.apr !== undefined ||
+      line.extras.payUrl ||
+      line.extras.autopay !== undefined ||
+      (line.extras.extraPayment ?? 0) > 0 ||
+      sized,
     );
   }
 
   function close() {
     if (!draft) {
-      openIndex = null;
       return;
     }
     const datePart = draft.when.split(',')[0] ?? '';
@@ -247,7 +227,7 @@
     const nextLine = writeSourceLine(draft);
     const index = draft.index;
     const unchanged = nextLine === openedSerialized;
-    openIndex = null;
+
     draft = null;
     error = '';
     if (!unchanged) commit(replaceSourceLine(raw, index, nextLine));
@@ -323,11 +303,13 @@
       occurrenceIndex: payment.occurrenceIndex,
       pending: payment.pending,
     } as ParsedEntry;
-    commit(applyForecastEdit(raw, stub, {
-      date: occurrenceDate,
-      amount: +occurrenceAmount,
-      scope: 'occurrence',
-    }));
+    commit(
+      applyForecastEdit(raw, stub, {
+        date: occurrenceDate,
+        amount: +occurrenceAmount,
+        scope: 'occurrence',
+      }),
+    );
     editingOccurrence = null;
   }
 
@@ -351,7 +333,7 @@
     if (removeIndex === null) return;
     commit(removeSourceLine(raw, removeIndex));
     removeIndex = null;
-    openIndex = null;
+
     draft = null;
   }
 
@@ -363,11 +345,8 @@
 
   function whenLabel(when: string): string {
     const [date, token = ''] = when.split(',');
-    const shift = token.includes('<') || date?.includes('<')
-      ? ' · prior business day'
-      : token.includes('>') || date?.includes('>')
-        ? ' · next business day'
-        : '';
+    const shift =
+      token.includes('<') || date?.includes('<') ? ' · prior business day' : token.includes('>') || date?.includes('>') ? ' · next business day' : '';
     const day = (date ?? '').replace(/[<>]/g, '') || 'No date';
     const recur = token.replace(/[<>]/g, '');
     if (!recur) return `${day}${shift}`;
@@ -390,13 +369,9 @@
 
 <div class="cards">
   <div class="command">
-    <div class="segments" role="group" aria-label="Entry type" on:keydown={onFilterKey}>
-      {#each [
-        ['all', 'All', entries.length],
-        ['C', 'Credits', entries.filter((line) => line.type === 'C').length],
-        ['D', 'Debits', entries.filter((line) => line.type === 'D').length],
-      ] as [id, label, count]}
-        <button type="button" class:selected={typeFilter === id} on:click={() => (typeFilter = id)}>
+    <div class="segments" role="toolbar" tabindex="-1" aria-label="Entry type" on:keydown={onFilterKey}>
+      {#each [['all', 'All', entries.length], ['C', 'Credits', entries.filter((line) => line.type === 'C').length], ['D', 'Debits', entries.filter((line) => line.type === 'D').length]] as [id, label, count] (id)}
+        <button type="button" class:selected={typeFilter === id} on:click={() => (typeFilter = id as typeof typeFilter)}>
           {label} ({count})
         </button>
       {/each}
@@ -405,7 +380,7 @@
       Group
       <select bind:value={groupFilter}>
         <option value="all">All groups</option>
-        {#each categories as category}
+        {#each categories as category (category)}
           <option value={category.id}>
             {category.name}{category.id === UNFILED_ID && unfiledCount > 0 ? ` (${unfiledCount})` : ''}
           </option>
@@ -415,7 +390,7 @@
   </div>
 
   <ul class="list">
-    {#each visible as line}
+    {#each visible as line (line)}
       <li class="type-{line.type.toLowerCase()}" class:disabled={line.disabled} class:menu-open={menuFor === line.index}>
         <span class="sheen" aria-hidden="true"></span>
         <button type="button" class="body" on:click={() => open(line)}>
@@ -443,11 +418,33 @@
           <span></span><span></span><span></span>
         </button>
         {#if menuFor === line.index}
-          <div class="menu" role="menu" on:click|stopPropagation on:keydown={onMenuKey}>
+          <div class="menu" role="menu" tabindex="-1" on:click|stopPropagation on:keydown={onMenuKey}>
             <button type="button" role="menuitem" on:click={() => open(line)}>Edit</button>
-            <button type="button" role="menuitem" on:click={() => { menuFor = null; clone(line); }}>Clone</button>
-            <button type="button" role="menuitem" on:click={() => { menuFor = null; disable(line); }}>{line.disabled ? 'Enable' : 'Delete'}</button>
-            <button type="button" role="menuitem" class="danger" on:click={() => { menuFor = null; removeIndex = line.index; }}>Hard delete</button>
+            <button
+              type="button"
+              role="menuitem"
+              on:click={() => {
+                menuFor = null;
+                clone(line);
+              }}>Clone</button
+            >
+            <button
+              type="button"
+              role="menuitem"
+              on:click={() => {
+                menuFor = null;
+                disable(line);
+              }}>{line.disabled ? 'Enable' : 'Delete'}</button
+            >
+            <button
+              type="button"
+              role="menuitem"
+              class="danger"
+              on:click={() => {
+                menuFor = null;
+                removeIndex = line.index;
+              }}>Hard delete</button
+            >
           </div>
         {/if}
       </li>
@@ -458,258 +455,199 @@
 </div>
 
 {#if draft}
-  <div class="backdrop" role="presentation" on:click={close}></div>
-  <form
-    class="editor"
-    role="dialog"
-    aria-label="Edit entry"
-    on:submit|preventDefault={close}
-  >
-    <header>
-      <h3>{draft.desc.trim() || 'Edit entry'}</h3>
-      <button type="button" on:click={close} aria-label="Close and save">×</button>
-    </header>
-    <div class="editor-tabs" role="tablist" aria-label="Entry sections">
-      <button type="button" role="tab" aria-selected={editorTab === 'entry'} class:selected={editorTab === 'entry'} on:click={() => (editorTab = 'entry')}>Entry</button>
-      {#if showWhen}
-        <button type="button" role="tab" aria-selected={editorTab === 'when'} class:selected={editorTab === 'when'} on:click={() => (editorTab = 'when')}>When</button>
-      {/if}
-      {#if showPayment}
-        <button type="button" role="tab" aria-selected={editorTab === 'payment'} class:selected={editorTab === 'payment'} on:click={() => (editorTab = 'payment')}>Payment</button>
-      {/if}
-      <button type="button" role="tab" aria-selected={editorTab === 'ask'} class:selected={editorTab === 'ask'} on:click={() => (editorTab = 'ask')}>Ask</button>
-    </div>
-    <div class="editor-body">
-    {#if error}<p class="error">{error}</p>{/if}
-    {#if editorTab === 'entry'}
-    <fieldset class="group">
-      <label class="desc-field">Description <input bind:value={draft.desc} /></label>
-      <div class="pair">
-        <div>
-          <span class="field-label" id="entry-type-label">Type</span>
-          <div class="choice" role="radiogroup" aria-labelledby="entry-type-label">
-            {#each [
-              ['B', 'Balance'],
-              ['C', 'Money in'],
-              ['D', 'Money out'],
-            ] as [id, label]}
-              <button
-                type="button"
-                role="radio"
-                aria-checked={draft.type === id}
-                class:selected={draft.type === id}
-                on:click={() => pickType(id as EntryType)}
-              >{label}</button>
-            {/each}
-          </div>
-        </div>
-        {#if whenForm.raw}
-          <label>When <input bind:value={draft.when} /></label>
-        {:else}
-          <label>Date
-            <input type="date" bind:value={whenForm.date} on:change={onWhenChange} />
-          </label>
+  <dialog class="editor" aria-label="Edit entry" use:modal on:cancel|preventDefault={close}>
+    <form style="display: contents" on:submit|preventDefault={close}>
+      <header>
+        <h3>{draft.desc.trim() || 'Edit entry'}</h3>
+        <button type="button" on:click={close} aria-label="Close and save">×</button>
+      </header>
+      <div class="editor-tabs" role="tablist" aria-label="Entry sections">
+        <button type="button" role="tab" aria-selected={editorTab === 'entry'} class:selected={editorTab === 'entry'} on:click={() => (editorTab = 'entry')}
+          >Entry</button
+        >
+        {#if showWhen}
+          <button type="button" role="tab" aria-selected={editorTab === 'when'} class:selected={editorTab === 'when'} on:click={() => (editorTab = 'when')}
+            >When</button
+          >
         {/if}
+        {#if showPayment}
+          <button
+            type="button"
+            role="tab"
+            aria-selected={editorTab === 'payment'}
+            class:selected={editorTab === 'payment'}
+            on:click={() => (editorTab = 'payment')}>Payment</button
+          >
+        {/if}
+        <button type="button" role="tab" aria-selected={editorTab === 'ask'} class:selected={editorTab === 'ask'} on:click={() => (editorTab = 'ask')}
+          >Ask</button
+        >
       </div>
-      {#if draft.type === 'B'}
-        <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
-      {:else}
-        <div class="pair">
-          <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
-          <label>Category
-            <select
-              value={draft.extras.categoryId ?? ''}
-              on:change={(event) => {
-                if (draft) draft.extras.categoryId = event.currentTarget.value || undefined;
-              }}
-            >
-              <option value="">Unfiled</option>
-              {#each categories.filter((category) => category.id !== UNFILED_ID) as category}
-                <option value={category.id}>{category.name}</option>
-              {/each}
-            </select>
-          </label>
-        </div>
-      {/if}
-      <label>Notes <textarea rows="2" bind:value={draft.extras.notes}></textarea></label>
-    </fieldset>
-    {/if}
-    {#if showWhen && editorTab === 'when'}
-      <fieldset class="group">
-        {#if seriesIsEarly}
-          <p class="hint-line">
-            This series starts before the balance date. Scenario actions → Roll recurring starts moves it to just before that date.
-          </p>
-        {/if}
-        <div>
-          <span class="field-label" id="entry-repeat-label">Repeats</span>
-          <div class="choice" role="radiogroup" aria-labelledby="entry-repeat-label">
-            {#each [
-              ['once', 'Once'],
-              ['D', 'Daily'],
-              ['W', 'Weekly'],
-              ['M', 'Monthly'],
-              ['Y', 'Yearly'],
-            ] as [id, label]}
-              <button
-                type="button"
-                role="radio"
-                aria-checked={whenForm.repeat === id}
-                class:selected={whenForm.repeat === id}
-                on:click={() => pickRepeat(id as RepeatKind)}
-              >{label}</button>
-            {/each}
-          </div>
-        </div>
-        {#if whenForm.repeat !== 'once'}
-          <div class="when-row">
-            <label>Every
-              <span class="every">
-                <input type="number" min="1" bind:value={whenForm.every} on:change={onWhenChange} />
-                {everyUnit(whenForm)}
-              </span>
-            </label>
-          </div>
-        {/if}
-        {#if whenForm.repeat === 'M'}
-          <label class="check">
-            <input type="checkbox" bind:checked={whenForm.lastDay} on:change={onWhenChange} />
-            Last day of the month
-          </label>
-        {/if}
-        {#if whenForm.repeat !== 'once'}
-          <div class="when-row">
-            <label>Times
-              <input type="number" min="1" placeholder="No limit" bind:value={whenForm.times} on:change={onWhenChange} />
-            </label>
-            <label>End
-              <input type="date" bind:value={whenForm.end} on:change={onWhenChange} />
-            </label>
-            <label>Raise % / year
-              <input type="number" min="0" step="0.1" placeholder="0" bind:value={whenForm.raise} on:change={() => { whenForm.raiseEvery = 'Y'; onWhenChange(); }} />
-            </label>
-            <label>Weekend
-              <select bind:value={whenForm.shift} on:change={onWhenChange}>
-                <option value="">Keep date</option>
-                <option value="<">Previous weekday</option>
-                <option value=">">Next weekday</option>
-              </select>
-            </label>
-          </div>
-        {/if}
-      </fieldset>
-    {/if}
-    {#if showPayment && editorTab === 'payment'}
-      <fieldset class="group">
-      <div class="pair">
-        <label>Payment style
-          <select bind:value={draft.extras.strategy}>
-            <option value={undefined}>Scheduled amount</option>
-            <option value="fixed">Fixed amount</option>
-            <option value="min">Minimum rate</option>
-            <option value="pct">Percent of balance</option>
-          </select>
-        </label>
-        {#if draft.extras.strategy === 'min'}
-          <label>Minimum rate <input bind:value={draft.extras.minRate} placeholder="0.10 = 10%" /></label>
-        {/if}
-      </div>
-      <label>Pay link <input bind:value={draft.extras.payUrl} placeholder="https://" /></label>
-      <div class="pair">
-        <label>Starting balance <input bind:value={draft.extras.startingBal} inputmode="decimal" /></label>
-        <label>APR <input bind:value={draft.extras.apr} inputmode="decimal" placeholder="percent" /></label>
-      </div>
-      {#if draft.extras.apr2 !== undefined || draft.extras.apr2Date}
-        <p class="hint-line">
-          Next APR {draft.extras.apr2 ?? '—'}%{#if draft.extras.apr2Date} from {draft.extras.apr2Date}{/if}
-        </p>
-      {/if}
-      <label class="extra">
-        Extra each payment
-        <input type="range" min="0" max={extraCap(draft)} step="1" bind:value={extraDraft} />
-        <input type="number" min="0" step="1" bind:value={extraDraft} />
-      </label>
-      {#if baselineOutlook && outlook && extraDraft !== (draft.extras.extraPayment ?? 0)}
-        <p class="hint-line">
-          Preview only.
-          {#if outlook.payoffDate}
-            Paid off {fmt.date(outlook.payoffDate)}.
-          {:else}
-            Still open in this forecast.
-          {/if}
-          {fmt.curr(Math.max(0, baselineOutlook.interest - outlook.interest))} less interest than the saved extra.
-        </p>
-      {/if}
-      <button type="button" on:click={applyExtra}>Apply extra to this account</button>
-      {#if outlook}
-        <p class="hint-line">
-          {#if outlook.payoffDate}
-            Paid off {fmt.date(outlook.payoffDate)}
-            {#if outlook.months === 0}
-              · this month
+      <div class="editor-body">
+        {#if error}<p class="error">{error}</p>{/if}
+        {#if editorTab === 'entry'}
+          <fieldset class="group">
+            <label class="desc-field">Description <input bind:value={draft.desc} /></label>
+            <div class="pair">
+              <div>
+                <span class="field-label" id="entry-type-label">Type</span>
+                <div class="choice" role="radiogroup" aria-labelledby="entry-type-label">
+                  {#each [['B', 'Balance'], ['C', 'Money in'], ['D', 'Money out']] as [id, label] (id)}
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={draft.type === id}
+                      class:selected={draft.type === id}
+                      on:click={() => pickType(id as EntryType)}>{label}</button
+                    >
+                  {/each}
+                </div>
+              </div>
+              {#if whenForm.raw}
+                <label>When <input bind:value={draft.when} /></label>
+              {:else}
+                <label
+                  >Date
+                  <input type="date" bind:value={whenForm.date} on:change={onWhenChange} />
+                </label>
+              {/if}
+            </div>
+            {#if draft.type === 'B'}
+              <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
             {:else}
-              · {outlook.months} {outlook.months === 1 ? 'month' : 'months'}
+              <div class="pair">
+                <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
+                <label
+                  >Category
+                  <select
+                    value={draft.extras.categoryId ?? ''}
+                    on:change={(event) => {
+                      if (draft) draft.extras.categoryId = event.currentTarget.value || undefined;
+                    }}
+                  >
+                    <option value="">Unfiled</option>
+                    {#each categories.filter((category) => category.id !== UNFILED_ID) as category (category)}
+                      <option value={category.id}>{category.name}</option>
+                    {/each}
+                  </select>
+                </label>
+              </div>
             {/if}
-          {:else}
-            Still open after this forecast
-          {/if}
-          · {fmt.curr(outlook.interest)} interest
-        </p>
-        <p class="hint-line">
-          {dueDay(whenForm)} Monthly APR/12, not a lender payoff quote.
-        </p>
-        <details class="history">
-          <summary>Payments ({outlook.payments.length})</summary>
-          <ul>
-            {#each outlook.payments as payment}
-              <li>
-                {#if editingOccurrence === payment.occurrenceIndex}
-                  <input type="date" bind:value={occurrenceDate} aria-label="Occurrence date" />
-                  <input bind:value={occurrenceAmount} inputmode="decimal" aria-label="Occurrence amount" />
-                  <button type="button" on:click={() => saveOccurrence(payment)}>Save this one</button>
-                  <button type="button" on:click={() => (editingOccurrence = null)}>Cancel</button>
+            <label>Notes <textarea rows="2" bind:value={draft.extras.notes}></textarea></label>
+          </fieldset>
+        {/if}
+        {#if showWhen && editorTab === 'when'}
+          <EntryWhen bind:whenForm {seriesIsEarly} {onWhenChange} />
+        {/if}
+        {#if showPayment && editorTab === 'payment'}
+          <fieldset class="group">
+            <div class="pair">
+              <label
+                >Payment style
+                <select bind:value={draft.extras.strategy}>
+                  <option value={undefined}>Scheduled amount</option>
+                  <option value="fixed">Fixed amount</option>
+                  <option value="min">Minimum rate</option>
+                  <option value="pct">Percent of balance</option>
+                </select>
+              </label>
+              {#if draft.extras.strategy === 'min'}
+                <label>Minimum rate <input bind:value={draft.extras.minRate} placeholder="0.10 = 10%" /></label>
+              {/if}
+            </div>
+            <label>Pay link <input bind:value={draft.extras.payUrl} placeholder="https://" /></label>
+            <div class="pair">
+              <label>Starting balance <input bind:value={draft.extras.startingBal} inputmode="decimal" /></label>
+              <label>APR <input bind:value={draft.extras.apr} inputmode="decimal" placeholder="percent" /></label>
+            </div>
+            {#if draft.extras.apr2 !== undefined || draft.extras.apr2Date}
+              <p class="hint-line">
+                Next APR {draft.extras.apr2 ?? '—'}%{#if draft.extras.apr2Date}
+                  from {draft.extras.apr2Date}{/if}
+              </p>
+            {/if}
+            <label class="extra">
+              Extra each payment
+              <input type="range" min="0" max={extraCap(draft)} step="1" bind:value={extraDraft} />
+              <input type="number" min="0" step="1" bind:value={extraDraft} />
+            </label>
+            {#if baselineOutlook && outlook && extraDraft !== (draft.extras.extraPayment ?? 0)}
+              <p class="hint-line">
+                Preview only.
+                {#if outlook.payoffDate}
+                  Paid off {fmt.date(outlook.payoffDate)}.
                 {:else}
-                  {fmt.date(payment.date)}
-                  · {fmt.curr(payment.amount)}
-                  {#if payment.interest}· interest {fmt.curr(payment.interest)}{/if}
-                  · left {fmt.curr(payment.remaining)}
-                  {#if payment.paidOff}· paid off{/if}
-                  {#if payment.overridden}· override{/if}
-                  {#if payment.pending}· pending{/if}
-                  <button type="button" on:click={() => startOccurrence(payment)}>Edit this one</button>
+                  Still open in this forecast.
                 {/if}
-              </li>
-            {/each}
-          </ul>
-        </details>
-      {/if}
-      <label class="check">
-        <input
-          type="checkbox"
-          checked={!!draft.extras.autopay}
-          on:change={(event) => setAutopay(event.currentTarget.checked)}
-        />
-        Autopay
-      </label>
-      </fieldset>
-    {/if}
-    {#if editorTab === 'ask'}
-      <CardAsk raw={raw} line={draft} settings={$settingsStore} />
-    {/if}
-    </div>
-    <footer class="editor-foot">
-      <button type="submit" class="button-action">Save and close</button>
-    </footer>
-  </form>
+                {fmt.curr(Math.max(0, baselineOutlook.interest - outlook.interest))} less interest than the saved extra.
+              </p>
+            {/if}
+            <button type="button" on:click={applyExtra}>Apply extra to this account</button>
+            {#if outlook}
+              <p class="hint-line">
+                {#if outlook.payoffDate}
+                  Paid off {fmt.date(outlook.payoffDate)}
+                  {#if outlook.months === 0}
+                    · this month
+                  {:else}
+                    · {outlook.months} {outlook.months === 1 ? 'month' : 'months'}
+                  {/if}
+                {:else}
+                  Still open after this forecast
+                {/if}
+                · {fmt.curr(outlook.interest)} interest
+              </p>
+              <p class="hint-line">
+                {dueDay(whenForm)} Monthly APR/12, not a lender payoff quote.
+              </p>
+              <details class="history">
+                <summary>Payments ({outlook.payments.length})</summary>
+                <ul>
+                  {#each outlook.payments as payment (payment)}
+                    <li>
+                      {#if editingOccurrence === payment.occurrenceIndex}
+                        <input type="date" bind:value={occurrenceDate} aria-label="Occurrence date" />
+                        <input bind:value={occurrenceAmount} inputmode="decimal" aria-label="Occurrence amount" />
+                        <button type="button" on:click={() => saveOccurrence(payment)}>Save this one</button>
+                        <button type="button" on:click={() => (editingOccurrence = null)}>Cancel</button>
+                      {:else}
+                        {fmt.date(payment.date)}
+                        · {fmt.curr(payment.amount)}
+                        {#if payment.interest}· interest {fmt.curr(payment.interest)}{/if}
+                        · left {fmt.curr(payment.remaining)}
+                        {#if payment.paidOff}· paid off{/if}
+                        {#if payment.overridden}· override{/if}
+                        {#if payment.pending}· pending{/if}
+                        <button type="button" on:click={() => startOccurrence(payment)}>Edit this one</button>
+                      {/if}
+                    </li>
+                  {/each}
+                </ul>
+              </details>
+            {/if}
+            <label class="check">
+              <input type="checkbox" checked={!!draft.extras.autopay} on:change={(event) => setAutopay(event.currentTarget.checked)} />
+              Autopay
+            </label>
+          </fieldset>
+        {/if}
+        {#if editorTab === 'ask'}
+          <CardAsk {raw} line={draft} settings={$settingsStore} />
+        {/if}
+      </div>
+      <footer class="editor-foot">
+        <button type="submit" class="button-action">Save and close</button>
+      </footer>
+    </form>
+  </dialog>
 {/if}
 
 {#if removeIndex !== null}
-  <div class="backdrop" role="presentation" on:click={() => (removeIndex = null)}></div>
-  <div class="editor confirm" role="dialog" aria-label="Remove line">
+  <dialog class="editor confirm" aria-label="Remove line" use:modal on:cancel={() => (removeIndex = null)}>
     <p>Hard delete removes this line. Delete keeps it in the file and turns it off.</p>
     <button type="button" on:click={() => (removeIndex = null)}>Cancel</button>
     <button type="button" class="danger" on:click={confirmRemove}>Hard delete</button>
-  </div>
+  </dialog>
 {/if}
 
 <style lang="scss">
@@ -731,15 +669,23 @@
     margin-bottom: 0.75rem;
     flex: none;
   }
-  .segments { display: flex; gap: 0.25rem; }
-  .segments button, .kebab button, .editor button {
+  .segments {
+    display: flex;
+    gap: 0.25rem;
+  }
+  .segments button,
+  .kebab button,
+  .editor button {
     border: 1px solid $clr-border;
     background: #fff;
     border-radius: 0.35rem;
     padding: 0.35rem 0.6rem;
     cursor: pointer;
   }
-  .segments button.selected { background: $clr-accent-soft; font-weight: 700; }
+  .segments button.selected {
+    background: $clr-accent-soft;
+    font-weight: 700;
+  }
   .list {
     list-style: none;
     margin: 0;
@@ -765,23 +711,44 @@
     border: 1px solid $clr-border;
     border-radius: 0.4rem;
     background: #fff;
-    transition: background-color 0.25s ease, border-color 0.3s ease, box-shadow 0.45s ease;
+    transition:
+      background-color 0.25s ease,
+      border-color 0.3s ease,
+      box-shadow 0.45s ease;
 
-    &.type-b { background: #e8eef6; }
-    &.type-c { background: #e7f5e8; }
-    &.type-d { background: #f8efe8; }
-    &.disabled { opacity: 0.55; }
-    &.menu-open { z-index: 4; }
+    &.type-b {
+      background: #e8eef6;
+    }
+    &.type-c {
+      background: #e7f5e8;
+    }
+    &.type-d {
+      background: #f8efe8;
+    }
+    &.disabled {
+      opacity: 0.55;
+    }
+    &.menu-open {
+      z-index: 4;
+    }
 
     &:hover {
       border-color: $clr-gold;
       box-shadow: 0 0 12px rgba(196, 163, 90, 0.22);
 
-      &.type-b { background: #d5e1f0; }
-      &.type-c { background: #d2ead4; }
-      &.type-d { background: #f0e0d4; }
+      &.type-b {
+        background: #d5e1f0;
+      }
+      &.type-c {
+        background: #d2ead4;
+      }
+      &.type-d {
+        background: #f0e0d4;
+      }
 
-      &::after { border-color: $clr-gold; }
+      &::after {
+        border-color: $clr-gold;
+      }
 
       .sheen::before {
         animation: card-sheen 0.9s ease;
@@ -832,7 +799,9 @@
     z-index: 1;
 
     &:focus,
-    &:focus-visible { outline: none; }
+    &:focus-visible {
+      outline: none;
+    }
   }
   .body {
     flex: 1;
@@ -863,26 +832,46 @@
     color: $clr-muted;
     font-size: 0.82rem;
   }
-  .hint-line { margin: 0; color: $clr-muted; font-size: 0.85rem; }
+  .hint-line {
+    margin: 0;
+    color: $clr-muted;
+    font-size: 0.85rem;
+  }
   .extra {
     display: grid;
     grid-template-columns: auto 1fr 5.5rem;
     gap: 0.45rem;
     align-items: center;
   }
-  .extra input[type='number'] { width: 100%; }
-  .history li { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+  .extra input[type='number'] {
+    width: 100%;
+  }
+  .history li {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+  }
   .history {
     font-size: 0.82rem;
     color: $clr-muted;
 
-    summary { cursor: pointer; }
-    ul { margin: 0.25rem 0 0; padding-left: 1.1rem; }
+    summary {
+      cursor: pointer;
+    }
+    ul {
+      margin: 0.25rem 0 0;
+      padding-left: 1.1rem;
+    }
   }
 
   @keyframes card-sheen {
-    from { transform: translateX(-80%); }
-    to { transform: translateX(80%); }
+    from {
+      transform: translateX(-80%);
+    }
+    to {
+      transform: translateX(80%);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -895,8 +884,17 @@
       display: none;
     }
   }
-  .chip { flex: none; font-weight: 700; color: $clr-accent-ink; }
-  .amount { flex: none; margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .chip {
+    flex: none;
+    font-weight: 700;
+    color: $clr-accent-ink;
+  }
+  .amount {
+    flex: none;
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
   .kebab-btn {
     align-self: center;
     flex: none;
@@ -948,7 +946,9 @@
       text-align: left;
       cursor: pointer;
 
-      &:hover { background: $clr-accent-soft; }
+      &:hover {
+        background: $clr-accent-soft;
+      }
     }
   }
   .editor .group {
@@ -967,42 +967,36 @@
     line-height: 1.1;
     color: $clr-accent-ink;
   }
-  .when-row {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.45rem 0.55rem;
-    align-items: end;
 
-    input, select { width: 100%; min-width: 0; box-sizing: border-box; }
+  .danger {
+    color: #8a1f1f;
   }
-  .every {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-
-    input { width: 3.4rem; }
+  .empty {
+    padding: 0.8rem;
+    color: $clr-muted;
   }
-  .danger { color: #8a1f1f; }
-  .empty { padding: 0.8rem; color: $clr-muted; }
-  .backdrop {
+  .editor::backdrop {
     position: fixed;
     inset: 0;
     background: rgba(28, 33, 28, 0.35);
     z-index: 20;
   }
   .editor {
+    margin: 0;
+    border: 1px solid #668866;
     position: fixed;
     z-index: 21;
     left: 50%;
     top: 8vh;
     transform: translateX(-50%);
     width: min(38rem, calc(100% - 1.5rem));
+    max-height: 84vh;
     @media (max-width: 640px) {
       top: 0.4rem;
       width: calc(100% - 0.6rem);
       max-height: calc(100vh - 0.8rem);
     }
-    max-height: 84vh;
+
     overflow: hidden;
     background: #fff;
     border-radius: 0.5rem;
@@ -1059,7 +1053,10 @@
       border-bottom-color: $clr-gold;
     }
   }
-  .editor-foot { justify-content: center; border-top: 1px solid $clr-border; }
+  .editor-foot {
+    justify-content: center;
+    border-top: 1px solid $clr-border;
+  }
   .editor-body {
     overflow: auto;
     padding: 0.7rem 1rem;
@@ -1081,9 +1078,15 @@
       font-size: 0.82rem;
       position: relative;
 
-      & + button { margin-left: -1px; }
-      &:first-child { border-radius: 0.35rem 0 0 0.35rem; }
-      &:last-child { border-radius: 0 0.35rem 0.35rem 0; }
+      & + button {
+        margin-left: -1px;
+      }
+      &:first-child {
+        border-radius: 0.35rem 0 0 0.35rem;
+      }
+      &:last-child {
+        border-radius: 0 0.35rem 0.35rem 0;
+      }
     }
 
     button.selected {
@@ -1103,20 +1106,39 @@
     gap: 0.5rem 0.7rem;
   }
   @media (max-width: 640px) {
-    .pair { grid-template-columns: 1fr; }
+    .pair {
+      grid-template-columns: 1fr;
+    }
   }
-  .editor h3 { margin: 0; }
-  .editor label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.85rem; }
-  .editor input, .editor select, .editor textarea { font: inherit; padding: 0.35rem 0.45rem; width: 100%; box-sizing: border-box; }
-  .editor textarea { resize: vertical; min-height: 3.2rem; }
-  .editor label.check {
-    flex-direction: row;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.4rem;
+  .editor h3 {
+    margin: 0;
+  }
+  .editor label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.85rem;
+  }
+  .editor input,
+  .editor select,
+  .editor textarea {
+    font: inherit;
+    padding: 0.35rem 0.45rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .editor textarea {
+    resize: vertical;
+    min-height: 3.2rem;
+  }
 
-    input { width: auto; padding: 0; }
+  .error {
+    color: #8a1f1f;
+    margin: 0;
   }
-  .error { color: #8a1f1f; margin: 0; }
-  .confirm { gap: 0.6rem; padding: 0.9rem 1rem; overflow: auto; }
+  .confirm {
+    gap: 0.6rem;
+    padding: 0.9rem 1rem;
+    overflow: auto;
+  }
 </style>

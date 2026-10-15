@@ -14,16 +14,10 @@
     type QueryType,
   } from '$lib/labs/catalog';
   import { keepPsvLines } from '$lib/labs/draft';
-  import {
-    chooseBackend,
-    hasWebGpu,
-    probeNano,
-    type LabsBackend,
-    type NanoStatus,
-  } from '$lib/labs/detect';
+  import { chooseBackend, hasWebGpu, probeNano, type LabsBackend, type NanoStatus } from '$lib/labs/detect';
   import { WEBLLM_MODEL_ID, createLabsSession, type LabsSession } from '$lib/labs/session';
   import { entrySetsStore } from '$lib/data/entrySets';
-  import { fmt } from '$lib/formatters/fmt';
+  import { createFormatter } from '$lib/formatters/fmt';
   import { settingsStore } from '$lib/stores/settings';
   import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
 
@@ -49,14 +43,11 @@
   let freeAsk = '';
   let routedIds = '';
 
-  $: activeName =
-    $entrySetsStore.sets.find((set) => set.id === $entrySetsStore.activeId)?.name ?? 'this scenario';
-  $: bothEngines =
-    (nanoStatus === 'available' || nanoStatus === 'downloadable' || nanoStatus === 'downloading') &&
-    webgpu;
+  $: activeName = $entrySetsStore.sets.find((set) => set.id === $entrySetsStore.activeId)?.name ?? 'this scenario';
+  $: bothEngines = (nanoStatus === 'available' || nanoStatus === 'downloadable' || nanoStatus === 'downloading') && webgpu;
   $: currencyCode = $settingsStore.currencyIsoCode;
-  $: affordPlaceholder = `A ${fmt.curr(240)} tire on Friday / skip eating out this month`;
-  $: draftPlaceholder = `Rent ${fmt.curr(1185)} on the 1st, gig pay around ${fmt.curr(500)} each Friday…`;
+  $: affordPlaceholder = `A ${createFormatter($settingsStore).curr(240)} tire on Friday / skip eating out this month`;
+  $: draftPlaceholder = `Rent ${createFormatter($settingsStore).curr(1185)} on the 1st, gig pay around ${createFormatter($settingsStore).curr(500)} each Friday…`;
 
   onMount(() => {
     void refreshProbe();
@@ -112,23 +103,17 @@
     routedIds = '';
     progressText = 'Routing…';
     try {
-      const routed = splitModelReply(
-        await session.prompt(routerPrompt(currencyCode), `Ask: ${ask}`, { maxTokens: 24 }),
-      );
+      const routed = splitModelReply(await session.prompt(routerPrompt(currencyCode), `Ask: ${ask}`, { maxTokens: 24 }));
       let ids = refineRoutedIds(parseRouterReply(routed.answer), ask);
       if (!ids.length) {
         progressText = 'Routing again…';
-        const retry = splitModelReply(
-          await session.prompt(routerRetryPrompt(), `Ask: ${ask}`, { maxTokens: 24 }),
-        );
+        const retry = splitModelReply(await session.prompt(routerRetryPrompt(), `Ask: ${ask}`, { maxTokens: 24 }));
         ids = refineRoutedIds(parseRouterReply(retry.answer), ask);
       }
       const types = typesById(ids);
       routedIds = types.map((type) => type.id).join(', ') || 'none';
       progressText = types.length ? `Filling ${routedIds}…` : 'No type matched…';
-      const reply = splitModelReply(
-        await session.prompt(specialistPrompt(types, currencyCode), catalogAsk(ask, types, extra)),
-      );
+      const reply = splitModelReply(await session.prompt(specialistPrompt(types, currencyCode), catalogAsk(ask, types, extra)));
       let answer = reply.answer;
       if (types.length && types.every((type) => type.kind === 'draft')) {
         const lines = keepPsvLines(answer);
@@ -144,10 +129,7 @@
   }
 
   function explainForecast() {
-    return runRouted(
-      'Why is this tight?',
-      `${brief()}\n\nComputed:\n${buildWhyTight(entries, balanceFlags, useMainBalance, activeName)}`,
-    );
+    return runRouted('Why is this tight?', `${brief()}\n\nComputed:\n${buildWhyTight(entries, balanceFlags, useMainBalance, activeName)}`);
   }
 
   function upcomingHits() {
@@ -180,8 +162,7 @@
     <p class="badge">Labs</p>
     <h2>On-device helper</h2>
     <p>
-      Experimental and on this device. <strong>Load a model first</strong>, then ask. Prompts stay
-      in the tab. Nothing is sent to ForeBalance.
+      Experimental and on this device. <strong>Load a model first</strong>, then ask. Prompts stay in the tab. Nothing is sent to ForeBalance.
     </p>
   </header>
 
@@ -193,9 +174,7 @@
       <strong>{webgpu ? 'yes' : 'no'}</strong>
     </p>
     {#if preferred === 'none'}
-      <p class="warn">
-        Need Google Chrome 148+ (Nano) or a desktop browser with WebGPU (Brave and Edge usually).
-      </p>
+      <p class="warn">Need Google Chrome 148+ (Nano) or a desktop browser with WebGPU (Brave and Edge usually).</p>
     {/if}
   </section>
 
@@ -218,17 +197,12 @@
         <p>This Chrome can use <strong>Gemini Nano</strong>. Load it before you ask.</p>
       {:else}
         <p>
-          This browser can run <strong>Qwen3 1.7B</strong> (~1&nbsp;GB from Hugging Face, then
-          cached). Load it before you ask.
+          This browser can run <strong>Qwen3 1.7B</strong> (~1&nbsp;GB from Hugging Face, then cached). Load it before you ask.
         </p>
       {/if}
 
       <button type="button" class="primary" disabled={!selected || loading || running} on:click={loadEngine}>
-        {session
-          ? `Reload ${session.label}`
-          : selected === 'nano'
-            ? 'Load Gemini Nano'
-            : 'Load Qwen3 1.7B'}
+        {session ? `Reload ${session.label}` : selected === 'nano' ? 'Load Gemini Nano' : 'Load Qwen3 1.7B'}
       </button>
       {#if loading || session}
         <label class="progress">
@@ -243,55 +217,28 @@
     <section class="actions">
       <h3>2. Ask</h3>
       {#if !session}
-        <p class="hint">
-          Questions stay disabled until the model is loaded. First click is a download; later visits
-          use the cache.
-        </p>
+        <p class="hint">Questions stay disabled until the model is loaded. First click is a download; later visits use the cache.</p>
       {:else}
-        <p class="hint">
-          Each question is answered in two steps, so the reply stays on your forecast.
-        </p>
+        <p class="hint">Each question is answered in two steps, so the reply stays on your forecast.</p>
       {/if}
-      <button type="button" disabled={!session || running || !forecastReady} on:click={explainForecast}>
-        Why is this tight?
-      </button>
-      <button type="button" disabled={!session || running || !forecastReady} on:click={upcomingHits}>
-        What hits next?
-      </button>
-      <button type="button" disabled={!session || running || !forecastReady} on:click={moneyDrains}>
-        Where does the money go?
-      </button>
+      <button type="button" disabled={!session || running || !forecastReady} on:click={explainForecast}> Why is this tight? </button>
+      <button type="button" disabled={!session || running || !forecastReady} on:click={upcomingHits}> What hits next? </button>
+      <button type="button" disabled={!session || running || !forecastReady} on:click={moneyDrains}> Where does the money go? </button>
       {#if !forecastReady}
         <p class="hint">Open a scenario with a forecast first.</p>
       {/if}
 
       <label>
         Can I afford this?
-        <textarea
-          bind:value={affordAsk}
-          rows="2"
-          placeholder={affordPlaceholder}
-        ></textarea>
+        <textarea bind:value={affordAsk} rows="2" placeholder={affordPlaceholder}></textarea>
       </label>
-      <button
-        type="button"
-        disabled={!session || running || !forecastReady || !affordAsk.trim()}
-        on:click={affordCheck}
-      >
-        Check
-      </button>
+      <button type="button" disabled={!session || running || !forecastReady || !affordAsk.trim()} on:click={affordCheck}> Check </button>
 
       <label>
         Draft entries from a description
-        <textarea
-          bind:value={draftAsk}
-          rows="3"
-          placeholder={draftPlaceholder}
-        ></textarea>
+        <textarea bind:value={draftAsk} rows="3" placeholder={draftPlaceholder}></textarea>
       </label>
-      <button type="button" disabled={!session || running || !draftAsk.trim()} on:click={draftEntries}>
-        Draft entries
-      </button>
+      <button type="button" disabled={!session || running || !draftAsk.trim()} on:click={draftEntries}> Draft entries </button>
 
       <label>
         A format question, or your own

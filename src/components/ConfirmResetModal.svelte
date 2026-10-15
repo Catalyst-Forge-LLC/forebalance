@@ -20,12 +20,7 @@
   $: canConfirm = typed.trim().toUpperCase() === REQUIRED;
 
   function exportFirst() {
-    exportAllSetsBackup(
-      $rawEntriesStore,
-      $settingsStore.currencyIsoCode,
-      $settingsStore.locale,
-      $categoriesStore,
-    );
+    exportAllSetsBackup($rawEntriesStore, $settingsStore.currencyIsoCode, $settingsStore.locale, $categoriesStore);
     exported = true;
   }
 
@@ -49,38 +44,28 @@
 </script>
 
 {#if open}
-<dialog use:show on:close={onCancel} on:cancel={onCancel}>
-  <h2 id="reset-title">Reset everything?</h2>
-  <p>
-    This deletes <strong>every scenario</strong> and restores the four starters plus default
-    thresholds. It cannot be undone.
-  </p>
-  <p class="warn">Export a copy first if you might want these numbers again. Browser storage will not keep them after reset.</p>
+  <dialog use:show on:close={onCancel} on:cancel={onCancel}>
+    <h2 id="reset-title">Reset everything?</h2>
+    <p>
+      This deletes <strong>every scenario</strong> and restores the four starters plus default thresholds. It cannot be undone.
+    </p>
+    <p class="warn">Export a copy first if you might want these numbers again. Browser storage will not keep them after reset.</p>
 
-  <button type="button" class="button-action export" on:click={exportFirst}>
-    <Icon name="download" /> Export every scenario first
-  </button>
-  {#if exported}
-    <p class="ok">Downloaded <code>forebalance-all-sets-*.json</code> (every scenario).</p>
-  {/if}
-
-  <label>
-    Type <strong>{REQUIRED}</strong> to confirm
-    <input
-      type="text"
-      bind:value={typed}
-      autocomplete="off"
-      spellcheck="false"
-      placeholder={REQUIRED}
-      use:focusConfirm
-    />
-  </label>
-
-  <div class="actions">
-    <button type="button" class="button-action cancel" on:click={onCancel}>Cancel</button>
-    <button type="button" class="button-action destroy" disabled={!canConfirm} on:click={confirmReset}>
-      Reset all scenarios
+    <button type="button" class="button-action export" on:click={exportFirst}>
+      <Icon name="download" /> Export every scenario first
     </button>
+    {#if exported}
+      <p class="ok">Downloaded <code>forebalance-all-sets-*.json</code> (every scenario).</p>
+    {/if}
+
+    <label>
+      Type <strong>{REQUIRED}</strong> to confirm
+      <input type="text" bind:value={typed} autocomplete="off" spellcheck="false" placeholder={REQUIRED} use:focusConfirm />
+    </label>
+
+    <div class="actions">
+      <button type="button" class="button-action cancel" on:click={onCancel}>Cancel</button>
+      <button type="button" class="button-action destroy" disabled={!canConfirm} on:click={confirmReset}> Reset all scenarios </button>
     </div>
   </dialog>
 {/if}

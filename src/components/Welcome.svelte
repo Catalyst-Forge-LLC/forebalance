@@ -5,20 +5,8 @@
   import ForecastSparkline from './ForecastSparkline.svelte';
   import { computeForecastSummary } from '$lib/parser/forecastSummary';
   import { fmt } from '$lib/formatters/fmt';
-  import {
-    addNamedSet,
-    addSetFromTemplate,
-    entrySetsStore,
-    listTemplates,
-    resolveStarterClick,
-    switchEntrySet,
-    updateActiveRaw,
-  } from '$lib/data/entrySets';
-  import {
-    buildSimpleExample,
-    SIMPLE_EXAMPLE_ID,
-    SIMPLE_EXAMPLE_NAME,
-  } from '$lib/data/simpleExample';
+  import { addNamedSet, addSetFromTemplate, entrySetsStore, listTemplates, resolveStarterClick, switchEntrySet, updateActiveRaw } from '$lib/data/entrySets';
+  import { buildSimpleExample, SIMPLE_EXAMPLE_ID, SIMPLE_EXAMPLE_NAME } from '$lib/data/simpleExample';
   import { getTemplate } from '$lib/data/entryTemplates';
   import { activateEntrySet } from '$lib/data/entriesPersistence';
   import { rawEntriesStore } from '$lib/stores/settings';
@@ -34,7 +22,7 @@
   let copied = false;
   let copyTimer: ReturnType<typeof setTimeout> | undefined;
 
-  $: templates = listTemplates();
+  const templates = listTemplates();
   $: sets = $entrySetsStore.sets;
   $: active = sets.find((set) => set.id === $entrySetsStore.activeId);
   $: addedOwnScenario = sets.some((set) => {
@@ -43,7 +31,7 @@
   });
   $: summary = forecastReady ? computeForecastSummary(entries, balanceFlags, useMainBalance) : null;
 
-  $: exampleRaw = buildSimpleExample();
+  const exampleRaw = buildSimpleExample();
 
   function openForecast() {
     location.hash = '#forecast';
@@ -53,8 +41,7 @@
     const currentRaw = get(rawEntriesStore);
     const state = get(entrySetsStore);
     const decision = resolveStarterClick(state.sets, templateId);
-    let next =
-      decision.action === 'switch' ? switchEntrySet(decision.id, currentRaw) : null;
+    let next = decision.action === 'switch' ? switchEntrySet(decision.id, currentRaw) : null;
     if (decision.action === 'add') {
       updateActiveRaw(currentRaw);
       next = addSetFromTemplate(templateId);
@@ -64,9 +51,7 @@
   }
 
   function unusedSimpleExample() {
-    return sets.find(
-      (set) => set.templateId === SIMPLE_EXAMPLE_ID && set.name === SIMPLE_EXAMPLE_NAME,
-    );
+    return sets.find((set) => set.templateId === SIMPLE_EXAMPLE_ID && set.name === SIMPLE_EXAMPLE_NAME);
   }
 
   function loadSimpleExample() {
@@ -108,9 +93,9 @@
     <a
       class="sliver"
       href="#forecast"
-      aria-label="Current forecast for {active?.name ?? 'this scenario'}. Lowest {fmt.curr(
-        summary.lowest.balance,
-      )} on {fmt.date(summary.lowest.date)}. Open Forecast."
+      aria-label="Current forecast for {active?.name ?? 'this scenario'}. Lowest {fmt.curr(summary.lowest.balance)} on {fmt.date(
+        summary.lowest.date,
+      )}. Open Forecast."
     >
       <div class="sliver-copy">
         <span class="sliver-kicker">This scenario</span>
@@ -141,21 +126,16 @@
     <p>
       Each entry is one item. <code>B</code> is the balance you read from the bank,
       <code>C</code> is money in, <code>D</code> is money out, and <code>,R</code> repeats monthly.
-      <a href="#help">Help</a> has the rest. Sample numbers are made up. This is not financial
-      advice (<a href="#about">About</a>).
+      <a href="#help">Help</a> has the rest. Sample numbers are made up. This is not financial advice (<a href="#about">About</a>).
     </p>
     <pre class="example-src">{exampleRaw.trim()}</pre>
     <p>
-      The <code>B</code> entry is checking on the 1st after rent clears: $420. A balance is the
-      end-of-day number by default, so the $1,500 rent dated the same day is already in it and
-      does not come out again. That $420 sits below the $500 uncomfortable mark until the $1,800
-      paycheck on the 15th brings it to $2,220. On a day with no balance entered, money in is
-      counted before money out.
+      The <code>B</code> entry is checking on the 1st after rent clears: $420. A balance is the end-of-day number by default, so the $1,500 rent dated the same day
+      is already in it and does not come out again. That $420 sits below the $500 uncomfortable mark until the $1,800 paycheck on the 15th brings it to $2,220. On
+      a day with no balance entered, money in is counted before money out.
     </p>
     <div class="walkthrough-actions">
-      <button type="button" class="button-action" on:click={loadSimpleExample}>
-        Load this example
-      </button>
+      <button type="button" class="button-action" on:click={loadSimpleExample}> Load this example </button>
       <button type="button" class="button-action copy" on:click={copySimpleExample}>
         {copied ? 'Copied' : 'Copy the example'}
       </button>
@@ -165,21 +145,16 @@
   <section class="starters" aria-label="Starter scenarios">
     <h2>{addedOwnScenario ? 'Add a starter' : 'Try a starter'}</h2>
     {#if addedOwnScenario}
-      <p class="starter-note">
-        These add a fresh copy. Your renamed scenarios stay where they are.
-      </p>
+      <p class="starter-note">These add a fresh copy. Your renamed scenarios stay where they are.</p>
     {/if}
     <div class="starter-grid">
-      {#each templates as template}
+      {#each templates as template (template)}
         {@const action = resolveStarterClick(sets, template.id).action}
         <button
           type="button"
           class="starter"
-          class:selected={action === 'switch' &&
-            (active?.templateId === template.id && active?.name === template.name)}
-          title={action === 'switch'
-            ? `Open ${template.name} on Forecast`
-            : `Add ${template.name} as a new scenario`}
+          class:selected={action === 'switch' && active?.templateId === template.id && active?.name === template.name}
+          title={action === 'switch' ? `Open ${template.name} on Forecast` : `Add ${template.name} as a new scenario`}
           on:click={() => openStarter(template.id)}
         >
           <strong>{template.name}</strong>

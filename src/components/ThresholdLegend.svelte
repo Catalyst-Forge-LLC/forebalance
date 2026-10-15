@@ -5,11 +5,9 @@
 </script>
 
 <div class="legend" class:compact>
-  <p class="intro">
-    Threshold marks stay on the row even if color is hard to see. Change the amounts on Settings.
-  </p>
+  <p class="intro">Threshold marks stay on the row even if color is hard to see. Change the amounts on Settings.</p>
   <ul>
-    {#each THRESHOLD_MARKS as item}
+    {#each THRESHOLD_MARKS as item (item)}
       <li class="flag-{item.id}">
         <span class="mark" aria-hidden="true">{item.mark}</span>
         <span class="label">{item.label}</span>

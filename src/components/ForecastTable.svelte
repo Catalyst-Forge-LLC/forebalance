@@ -7,13 +7,13 @@
   import { fmt } from '$lib/formatters/fmt';
   import { flagIndicator, flagLabel } from '$lib/formatters/thresholdMarks';
   import { accountDisplayName } from '$lib/parser/accountLabel';
-  import type { ParsedEntry } from '$lib/parser/types';
+  import type { ParsedEntry, Accounts } from '$lib/parser/types';
   import Tooltip from './Tooltip.svelte';
   import ThresholdLegend from './ThresholdLegend.svelte';
   import Icon from './Icon.svelte';
 
   export let tableEntries: ParsedEntry[] = [];
-  export let accounts = {};
+  export let accounts: Accounts = {};
   export let viewingMainAccount = true;
 
   let editIndex: number | null = null;
@@ -24,23 +24,19 @@
 
   $: mainAccount = Object.values(accounts).find((account) => account.isMain);
 
-  function displayBalance(entry) {
+  function displayBalance(entry: ParsedEntry) {
     if (viewingMainAccount) {
-      return fmt.curr(entry.mainBalance);
+      return fmt.curr(entry.mainBalance ?? 0);
     }
-    return fmt.curr(entry.subAccountRunningBal ?? entry.balance ?? entry.mainBalance);
+    return fmt.curr(entry.subAccountRunningBal ?? entry.balance ?? entry.mainBalance ?? 0);
   }
 
-  const isNewMonth = (date1, date2) => date1.getMonth() != date2.getMonth();
+  const isNewMonth = (date1: Date | null, date2: Date | null) => date1?.getMonth() !== date2?.getMonth() || date1?.getFullYear() !== date2?.getFullYear();
 
   $: entryCount = tableEntries.length;
-  $: monthStartIndexes = new Set(
-    tableEntries.flatMap((entry, i) =>
-      i === 0 || isNewMonth(entry.date, tableEntries[i - 1].date) ? [i] : [],
-    ),
-  );
+  $: monthStartIndexes = new Set(tableEntries.flatMap((entry, i) => (i === 0 || isNewMonth(entry.date, tableEntries[i - 1].date) ? [i] : [])));
 
-  function monthStartFor(i) {
+  function monthStartFor(i: number) {
     for (let j = i; j >= 0; j--) {
       if (monthStartIndexes.has(j)) return j;
     }
@@ -51,9 +47,9 @@
     $appStateStore.showLoader = false;
   });
 
-  const showMonthHeader = (i) => monthStartIndexes.has(i);
+  const showMonthHeader = (i: number) => monthStartIndexes.has(i);
 
-  const showMonthFooter = (i) => {
+  const showMonthFooter = (i: number) => {
     const entry = tableEntries[i];
     if (i >= 0 && i < entryCount - 1 && isNewMonth(entry.date, tableEntries[i + 1].date)) {
       return true;
@@ -61,7 +57,7 @@
     return i === entryCount - 1;
   };
 
-  const monthSummary = (i) => {
+  const monthSummary = (i: number) => {
     let summaryCredit = 0;
     let summaryDebit = 0;
     let summaryNet = 0;
@@ -80,7 +76,7 @@
     return [fmt.curr(summaryCredit), fmt.curr(summaryDebit), 'NET ' + fmt.curr(summaryNet)];
   };
 
-  const runningBalanceMonthlySummary = (i) => {
+  const runningBalanceMonthlySummary = (i: number) => {
     let debtBalance = 0;
     let debtInterest = 0;
     let debtDetails = '';
@@ -91,7 +87,7 @@
           debtInterest += +entry.monthlyInterest;
         }
         if (mainAccount && entry.accountId !== mainAccount.id) {
-          debtDetails += `${entry.accountId}: ${fmt.curr(entry.subAccountRunningBal)} (${entry.monthlyInterest ? fmt.curr(entry.monthlyInterest) : 'n/a'})<br>`;
+          debtDetails += `${entry.accountId}: ${fmt.curr(entry.subAccountRunningBal ?? 0)} (${entry.monthlyInterest ? fmt.curr(entry.monthlyInterest) : 'n/a'})<br>`;
         }
       }
     });
@@ -144,13 +140,13 @@
     }
   }
 
-  function getAccountSummary(entry) {
-    const account = accounts[entry.accountId];
+  function getAccountSummary(entry: ParsedEntry) {
+    const account = accounts[entry.accountId ?? ''];
     if (account && account !== mainAccount && account.startingBal > 0) {
       return `
 ${accountDisplayName(account)}<br>
 Started: ${fmt.curr(account.startingBal)}<br>
-Remaining: ${fmt.curr(entry.subAccountRunningBal)}<br>
+Remaining: ${fmt.curr(entry.subAccountRunningBal ?? 0)}<br>
 ${entry.monthlyInterest ? `Monthly interest: ${fmt.curr(entry.monthlyInterest)}<br>` : ''}
 ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     }
@@ -160,9 +156,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
   function turnOff(entry: ParsedEntry) {
     const lines = $rawEntriesStore.split('\n');
     const idx =
-      entry.entryOrder !== undefined && lines[entry.entryOrder] === entry.rawEntry
-        ? entry.entryOrder
-        : lines.findIndex((line) => line === entry.rawEntry);
+      entry.entryOrder !== undefined && lines[entry.entryOrder] === entry.rawEntry ? entry.entryOrder : lines.findIndex((line) => line === entry.rawEntry);
     if (idx < 0) return;
     const line = lines[idx] ?? '';
     if (!line || line.startsWith('!') || line.startsWith('#')) return;
@@ -170,12 +164,9 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     setRawEntries(lines.join('\n'));
   }
 
-  function descriptionFor(entry) {
-    const extra =
-      mainAccount && entry.accountId && mainAccount.id !== entry.accountId
-        ? ` [${accountDisplayName(accounts[entry.accountId])}]`
-        : '';
-    if (extra && entry.desc && entry.desc.includes(accountDisplayName(accounts[entry.accountId]))) {
+  function descriptionFor(entry: ParsedEntry) {
+    const extra = mainAccount && entry.accountId && mainAccount.id !== entry.accountId ? ` [${accountDisplayName(accounts[entry.accountId ?? ''])}]` : '';
+    if (extra && entry.desc && entry.desc.includes(accountDisplayName(accounts[entry.accountId ?? '']))) {
       return entry.desc;
     }
     return `${entry.desc ?? ''}${extra}`;
@@ -190,7 +181,7 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
   <ThresholdLegend compact />
   <table>
     <tbody>
-      {#each tableEntries as entry, i}
+      {#each tableEntries as entry, i (i)}
         {#if showMonthHeader(i)}
           <tr>
             <td class="new-month" colspan="6">{fmt.date2(entry.date)}</td>
@@ -215,20 +206,15 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
             ? 'Already counted in the same-day balance line. Click to mark as not yet posted.'
             : entry.pending && entry.inBalanceEligible
               ? 'Marked not yet posted — this amount still applies after the balance.'
-            : entry.recur
-              ? `Click to adjust occurrence #${entry.occurrenceIndex ?? 1} or the whole series`
-              : 'Click to edit this line'}
+              : entry.recur
+                ? `Click to adjust occurrence #${entry.occurrenceIndex ?? 1} or the whole series`
+                : 'Click to edit this line'}
           on:click={() => beginEdit(entry, i)}
         >
           {#if editIndex === i}
             <td></td>
             <td>
-              <input
-                type="date"
-                bind:value={editDate}
-                on:click|stopPropagation
-                on:keydown={(e) => rowKeydown(e, entry)}
-              />
+              <input type="date" bind:value={editDate} on:click|stopPropagation on:keydown={(e) => rowKeydown(e, entry)} />
             </td>
             <td class="desc">
               {descriptionFor(entry)}
@@ -267,25 +253,13 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
             </td>
             <td class="num-col" colspan={entry.type === 'B' ? 2 : 1} align="right">
               {#if entry.type === 'C' || entry.type === 'B'}
-                <input
-                  type="number"
-                  step="any"
-                  bind:value={editAmount}
-                  on:click|stopPropagation
-                  on:keydown={(e) => rowKeydown(e, entry)}
-                />
+                <input type="number" step="any" bind:value={editAmount} on:click|stopPropagation on:keydown={(e) => rowKeydown(e, entry)} />
               {/if}
             </td>
             {#if entry.type !== 'B'}
               <td class="num-col" align="right">
                 {#if entry.type === 'D'}
-                  <input
-                    type="number"
-                    step="any"
-                    bind:value={editAmount}
-                    on:click|stopPropagation
-                    on:keydown={(e) => rowKeydown(e, entry)}
-                  />
+                  <input type="number" step="any" bind:value={editAmount} on:click|stopPropagation on:keydown={(e) => rowKeydown(e, entry)} />
                 {/if}
               </td>
             {/if}
@@ -312,20 +286,19 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
                 />
               {/if}
             </td>
-            <td>{fmt.date(entry.date)}{#if entry.overridden}<abbr title="This occurrence was adjusted">*</abbr>{/if}</td>
+            <td
+              >{fmt.date(entry.date)}{#if entry.overridden}<abbr title="This occurrence was adjusted">*</abbr>{/if}</td
+            >
             <td class="desc"
-              ><Tooltip content={getAccountSummary(entry)}>{descriptionFor(entry)}</Tooltip
-              >{#if entry.inBalance}
+              ><Tooltip content={getAccountSummary(entry)}>{descriptionFor(entry)}</Tooltip>{#if entry.inBalance}
                 <span class="in-balance-tag">in balance</span>{/if}{#if entry.pending && entry.inBalanceEligible}
                 <span class="in-balance-tag pending-tag">not yet posted</span>{/if}</td
             >
             <td class="num-col" align="right"
-              >{#if entry.type === 'C'}{#if entry.inBalance}<s>{fmt.curr(entry.amount)}</s
-                  >{:else}{fmt.curr(entry.amount)}{/if}{/if}</td
+              >{#if entry.type === 'C'}{#if entry.inBalance}<s>{fmt.curr(entry.amount)}</s>{:else}{fmt.curr(entry.amount)}{/if}{/if}</td
             >
             <td class="num-col" align="right"
-              >{#if entry.type === 'D'}{#if entry.inBalance}<s>{fmt.curr(entry.amount)}</s
-                  >{:else}{fmt.curr(entry.amount)}{/if}{/if}</td
+              >{#if entry.type === 'D'}{#if entry.inBalance}<s>{fmt.curr(entry.amount)}</s>{:else}{fmt.curr(entry.amount)}{/if}{/if}</td
             >
             <td align="right"
               >{flagIndicator(entry.flag)}{displayBalance(entry)}{#if flagLabel(entry.flag)}
@@ -337,18 +310,14 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
           {@const { debtBalance, debtInterest, debtDetails } = runningBalanceMonthlySummary(i)}
           <tr class="month-summary">
             <td colspan="3">Summary</td>
-            {#each monthSummary(i) as summary, si}
+            {#each monthSummary(i) as summary, si (si)}
               <td class:num-col={si < 2}>{summary}</td>
             {/each}
           </tr>
           {#if debtBalance > 0 || debtInterest > 0}
             <tr class="debt-summary">
               <td colspan="6"
-                ><Tooltip content={debtDetails}
-                  >Debt remaining: {fmt.curr(debtBalance)}, interest this month: {fmt.curr(
-                    debtInterest,
-                  )}</Tooltip
-                ></td
+                ><Tooltip content={debtDetails}>Debt remaining: {fmt.curr(debtBalance)}, interest this month: {fmt.curr(debtInterest)}</Tooltip></td
               >
             </tr>
           {/if}
@@ -361,8 +330,12 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
 <style lang="scss">
   @use '../scss/colors' as *;
 
-  .on-col { width: 1.6rem; }
-  .on-col input { margin: 0; }
+  .on-col {
+    width: 1.6rem;
+  }
+  .on-col input {
+    margin: 0;
+  }
   .table-wrap {
     box-sizing: border-box;
     width: calc(100% - 2rem);

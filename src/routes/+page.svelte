@@ -1,41 +1,37 @@
 <script lang="ts">
-	import { appStateStore, settingsStore, rawEntriesStore } from '$lib/stores/settings';
-	import { Tabs, TabList, TabPanel, Tab } from './../components/tabs';
-	import { parseEntries } from '$lib/parser/parseEntries';
-	import { currencyLabel } from '$lib/data/currencies';
-	import { accountDisplayName, formatAccountOption } from '$lib/parser/accountLabel';
-	import { fmt } from '$lib/formatters/fmt';
+  import type { AccountEntries, Accounts } from '$lib/parser/types';
+  import { appStateStore, settingsStore, rawEntriesStore } from '$lib/stores/settings';
+  import { Tabs, TabList, TabPanel, Tab } from './../components/tabs';
+  import { parseEntries } from '$lib/parser/parseEntries';
+  import { currencyLabel } from '$lib/data/currencies';
+  import { accountDisplayName, formatAccountOption } from '$lib/parser/accountLabel';
+  import { fmt } from '$lib/formatters/fmt';
 
-	import ForecastTable from '../components/ForecastTable.svelte';
-	import ForecastSummary from '../components/ForecastSummary.svelte';
-	import ForecastSparkline from '../components/ForecastSparkline.svelte';
-	import Entries from '../components/Entries.svelte';
-	import Settings from '../components/Settings.svelte';
-	import Help from '../components/Help.svelte';
-	import Welcome from '../components/Welcome.svelte';
+  import ForecastTable from '../components/ForecastTable.svelte';
+  import ForecastSummary from '../components/ForecastSummary.svelte';
+  import ForecastSparkline from '../components/ForecastSparkline.svelte';
+  import Entries from '../components/Entries.svelte';
+  import Settings from '../components/Settings.svelte';
+  import Help from '../components/Help.svelte';
+  import Welcome from '../components/Welcome.svelte';
 
-	import { loadCategories } from '$lib/data/categories';
-	import { initializeData } from '$lib/data/initializeData';
-	import { downloadTextFile, entrySetsStore, getActiveSet, switchEntrySet } from '$lib/data/entrySets';
-	import { shareUrl, takeSharePayload } from '$lib/data/shareLink';
-	import { activateEntrySet, setRawEntries } from '$lib/data/entriesPersistence';
-	import { compareScenarios } from '$lib/forecast/scenarioCompare';
-	import {
-		forecastAllAccountsToCsv,
-		forecastEntriesToCsv,
-		forecastFilename,
-		forecastSummaryText,
-	} from '$lib/forecast/exportCsv';
-	import { forecastBlockReason } from '$lib/parser/forecastReady';
-	import { onMount } from 'svelte';
-	import { logd } from '$lib/util/log';
-	import Icon from '../components/Icon.svelte';
-	import SetSwitcher from '../components/SetSwitcher.svelte';
-	import ForecastMenu from '../components/ForecastMenu.svelte';
-	import ScenarioCompare from '../components/ScenarioCompare.svelte';
+  import { loadCategories } from '$lib/data/categories';
+  import { initializeData } from '$lib/data/initializeData';
+  import { downloadTextFile, entrySetsStore, getActiveSet, switchEntrySet } from '$lib/data/entrySets';
+  import { shareUrl, takeSharePayload } from '$lib/data/shareLink';
+  import { activateEntrySet, setRawEntries } from '$lib/data/entriesPersistence';
+  import { compareScenarios } from '$lib/forecast/scenarioCompare';
+  import { forecastAllAccountsToCsv, forecastEntriesToCsv, forecastFilename, forecastSummaryText } from '$lib/forecast/exportCsv';
+  import { forecastBlockReason } from '$lib/parser/forecastReady';
+  import { onMount } from 'svelte';
+  import { logd } from '$lib/util/log';
+  import Icon from '../components/Icon.svelte';
+  import SetSwitcher from '../components/SetSwitcher.svelte';
+  import ForecastMenu from '../components/ForecastMenu.svelte';
+  import ScenarioCompare from '../components/ScenarioCompare.svelte';
 
-  let accountEntries = {};
-  let accounts;
+  let accountEntries: AccountEntries | null = null;
+  let accounts: Accounts | null = null;
   let selectedAccountId = '';
   let parsedOnce = false;
   /** False until initializeData has read stored scenarios. The empty first parse must not count. */
@@ -71,12 +67,7 @@
     parsedOnce = true;
   }
 
-  $: if (
-    $settingsStore.monthsToForecast &&
-    $settingsStore.currencyIsoCode &&
-    $settingsStore.locale &&
-    balanceFlags
-  ) {
+  $: if ($settingsStore.monthsToForecast && $settingsStore.currencyIsoCode && $settingsStore.locale && balanceFlags) {
     applyParsed($rawEntriesStore || null);
   }
 
@@ -112,12 +103,13 @@
     compareId = otherSets[0]?.id ?? '';
   }
   $: compareOther = otherSets.find((set) => set.id === compareId);
-  $: compared = compareOpen && compareOther
-    ? compareScenarios($rawEntriesStore, compareOther.raw, $settingsStore.monthsToForecast, balanceFlags, {
-        useFederalHolidays: $settingsStore.useFederalHolidays,
-        balanceIncludesSameDay: $settingsStore.balanceIncludesSameDay,
-      })
-    : null;
+  $: compared =
+    compareOpen && compareOther
+      ? compareScenarios($rawEntriesStore, compareOther.raw, $settingsStore.monthsToForecast, balanceFlags, {
+          useFederalHolidays: $settingsStore.useFederalHolidays,
+          balanceIncludesSameDay: $settingsStore.balanceIncludesSameDay,
+        })
+      : null;
 
   function openCompared() {
     if (!compareId) return;
@@ -133,27 +125,17 @@
 
   function exportForecastCsv() {
     if (!forecastReady || !accounts) return;
-    downloadTextFile(
-      forecastFilename(scenarioName, exportAccountLabel),
-      forecastEntriesToCsv(selectedEntries, accounts, selectedIsMain),
-      'text/csv',
-    );
+    downloadTextFile(forecastFilename(scenarioName, exportAccountLabel), forecastEntriesToCsv(selectedEntries, accounts, selectedIsMain), 'text/csv');
   }
 
   async function copyForecastCsv() {
     if (!forecastReady || !accounts) return;
-    await navigator.clipboard.writeText(
-      forecastEntriesToCsv(selectedEntries, accounts, selectedIsMain),
-    );
+    await navigator.clipboard.writeText(forecastEntriesToCsv(selectedEntries, accounts, selectedIsMain));
   }
 
   function exportAllAccountsCsv() {
     if (!forecastReady || !accounts || !accountEntries) return;
-    downloadTextFile(
-      forecastFilename(scenarioName, 'all-accounts'),
-      forecastAllAccountsToCsv(accountList, accountEntries, accounts),
-      'text/csv',
-    );
+    downloadTextFile(forecastFilename(scenarioName, 'all-accounts'), forecastAllAccountsToCsv(accountList, accountEntries, accounts), 'text/csv');
   }
 
   async function copyForecastSummary() {
@@ -193,26 +175,16 @@
     <div class="tab-panel">
       <div class="loader" class:loaded={!$appStateStore.showLoader}>Calculating your forecast...</div>
       <TabPanel>
-        <Welcome
-          entries={selectedEntries}
-          {balanceFlags}
-          useMainBalance={selectedIsMain}
-          forecastReady={forecastReady}
-          scenarioPending={!entriesReady}
-        />
+        <Welcome entries={selectedEntries} {balanceFlags} useMainBalance={selectedIsMain} {forecastReady} scenarioPending={!entriesReady} />
       </TabPanel>
       <TabPanel>
         <Entries></Entries>
       </TabPanel>
-      <TabPanel showLoader="true">
+      <TabPanel showLoader={true}>
         <div class="forecast-column">
           <SetSwitcher editable={false}>
             <div slot="extra" class="account-slot">
-              <a
-                href="#settings"
-                class="currency-mark"
-                title="{currencyLabel($settingsStore.currencyIsoCode)}. Change in Settings."
-              >
+              <a href="#settings" class="currency-mark" title="{currencyLabel($settingsStore.currencyIsoCode)}. Change in Settings.">
                 <span class="sr-only">Display currency</span>
                 {$settingsStore.currencyIsoCode}
               </a>
@@ -225,19 +197,15 @@
                       title={selectedAccountHelp(selectedAccount)}
                       on:change={(e) => (selectedAccountId = e.currentTarget.value)}
                     >
-                      {#each accountList as account}
+                      {#each accountList as account (account)}
                         <option value={account.id}>{formatAccountOption(account)}</option>
                       {/each}
                     </select>
                   </label>
                 {:else}
                   <div class="account-buttons" title={selectedAccountHelp(selectedAccount)}>
-                    {#each accountList as account}
-                      <button
-                        type="button"
-                        class:selected={selectedAccountId === account.id}
-                        on:click={() => (selectedAccountId = account.id)}
-                      >
+                    {#each accountList as account (account)}
+                      <button type="button" class:selected={selectedAccountId === account.id} on:click={() => (selectedAccountId = account.id)}>
                         {formatAccountOption(account)}
                       </button>
                     {/each}
@@ -273,23 +241,10 @@
           {/if}
           {#if forecastReady}
             <div class="forecast-glance">
-              <ForecastSummary
-                entries={selectedEntries}
-                {balanceFlags}
-                useMainBalance={selectedIsMain}
-                onScrollToRow={scrollToForecastRow}
-              />
-              <ForecastSparkline
-                entries={selectedEntries}
-                {balanceFlags}
-                useMainBalance={selectedIsMain}
-              />
+              <ForecastSummary entries={selectedEntries} {balanceFlags} useMainBalance={selectedIsMain} onScrollToRow={scrollToForecastRow} />
+              <ForecastSparkline entries={selectedEntries} {balanceFlags} useMainBalance={selectedIsMain} />
             </div>
-            <ForecastTable
-              tableEntries={accountEntries[selectedAccountId]}
-              {accounts}
-              viewingMainAccount={selectedIsMain}
-            ></ForecastTable>
+            <ForecastTable tableEntries={selectedEntries} accounts={accounts ?? {}} viewingMainAccount={selectedIsMain}></ForecastTable>
           {:else if parsedOnce}
             <div class="forecast-empty">
               <p>{forecastReason}</p>
@@ -305,12 +260,7 @@
         {#await import('../components/Labs.svelte')}
           <p class="labs-boot">Opening Labs…</p>
         {:then { default: Labs }}
-          <Labs
-            entries={selectedEntries}
-            {balanceFlags}
-            useMainBalance={selectedIsMain}
-            forecastReady={forecastReady}
-          />
+          <Labs entries={selectedEntries} {balanceFlags} useMainBalance={selectedIsMain} {forecastReady} />
         {/await}
       </TabPanel>
       <TabPanel>

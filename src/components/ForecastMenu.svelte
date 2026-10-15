@@ -69,15 +69,7 @@
 </script>
 
 <div class="menu" bind:this={root}>
-  <button
-    type="button"
-    class="icon-btn"
-    aria-expanded={open}
-    aria-haspopup="menu"
-    aria-label="Forecast actions"
-    title="Forecast actions"
-    on:click={toggle}
-  >
+  <button type="button" class="icon-btn" aria-expanded={open} aria-haspopup="menu" aria-label="Forecast actions" title="Forecast actions" on:click={toggle}>
     <Icon name="kebab" />
   </button>
 
@@ -87,7 +79,8 @@
         <Icon name="download" /> Export CSV
       </button>
       <button type="button" role="menuitem" disabled={!ready} on:click={copyCsv}>
-        <Icon name="export" /> {copied === 'csv' ? 'Copied' : 'Copy CSV'}
+        <Icon name="export" />
+        {copied === 'csv' ? 'Copied' : 'Copy CSV'}
       </button>
       {#if hasMultipleAccounts}
         <button type="button" role="menuitem" disabled={!ready} on:click={() => run(onExportAll)}>
@@ -98,11 +91,21 @@
       <button type="button" role="menuitem" disabled={!ready || !canCompare} on:click={() => run(onCompare)}>
         <Icon name="clone" /> Compare with…
       </button>
-      <button type="button" role="menuitem" disabled={!ready} on:click={async () => { await onCopyShare(); flash('share'); }}>
-        <Icon name="export" /> {copied === 'share' ? 'Copied' : 'Copy share link'}
+      <button
+        type="button"
+        role="menuitem"
+        disabled={!ready}
+        on:click={async () => {
+          await onCopyShare();
+          flash('share');
+        }}
+      >
+        <Icon name="export" />
+        {copied === 'share' ? 'Copied' : 'Copy share link'}
       </button>
       <button type="button" role="menuitem" disabled={!ready} on:click={copySummary}>
-        <Icon name="info" /> {copied === 'summary' ? 'Copied' : 'Copy summary'}
+        <Icon name="info" />
+        {copied === 'summary' ? 'Copied' : 'Copy summary'}
       </button>
     </div>
   {/if}

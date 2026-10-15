@@ -13,18 +13,18 @@
   function ensureTippy() {
     if (!content || !element || tippyInstance) return;
     tippyInstance = tippy(element, {
-      content,
+      content: content.replace(/<br\s*\/?\s*>/gi, '\n'),
       placement: position as Props['placement'],
       duration: [300, 200],
       theme,
-      allowHTML: true,
+      allowHTML: false,
       arrow: true,
       appendTo: () => document.body,
     });
   }
 
   $: if (tippyInstance && content) {
-    tippyInstance.setContent(content);
+    tippyInstance.setContent(content.replace(/<br\s*\/?\s*>/gi, '\n'));
   }
 
   onDestroy(() => {
@@ -32,16 +32,14 @@
   });
 </script>
 
-<div
-  bind:this={element}
-  class="tooltip-wrapper"
-  role="group"
-  on:pointerenter={ensureTippy}
->
+<div bind:this={element} class="tooltip-wrapper" role="group" on:pointerenter={ensureTippy} on:focusin={ensureTippy}>
   <slot></slot>
 </div>
 
 <style>
+  :global(.tippy-content) {
+    white-space: pre-line;
+  }
   .tooltip-wrapper {
     display: inline-block;
   }

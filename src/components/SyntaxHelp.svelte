@@ -33,13 +33,7 @@
 </script>
 
 <div class="syntax-help" bind:this={root}>
-  <button
-    type="button"
-    class="toggle"
-    aria-expanded={open}
-    aria-controls="syntax-help-panel"
-    on:click={toggle}
-  >
+  <button type="button" class="toggle" aria-expanded={open} aria-controls="syntax-help-panel" on:click={toggle}>
     <Icon name="help" />
     Format
   </button>
@@ -86,8 +80,7 @@ D|2026-04-01,R&lt;|1645|Rent</pre>
       <h4>Same day</h4>
       <p>
         <code>B</code> is the end-of-day number by default. Same-day money in and money out show as
-        <em>in balance</em>. Check <em>Not yet posted</em> on Forecast if one still has to hit
-        (<code>|#1=pending</code>).
+        <em>in balance</em>. Check <em>Not yet posted</em> on Forecast if one still has to hit (<code>|#1=pending</code>).
       </p>
 
       <h4>One occurrence</h4>

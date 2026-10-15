@@ -1,16 +1,15 @@
 <script>
-	import { getContext } from 'svelte';
-	import { TABS } from './Tabs.svelte';
+  import { getContext } from 'svelte';
+  import { TABS } from './Tabs.svelte';
 
-	export let showLoader = false;
+  export let showLoader = false;
 
-	const panel = {showLoader};
-	const { registerPanel, selectedPanel } = getContext(TABS);
+  const panel = { showLoader };
+  const { registerPanel, selectedPanel } = getContext(TABS);
 
-
-	registerPanel(panel);
+  registerPanel(panel);
 </script>
 
 {#if $selectedPanel === panel}
-	<slot></slot>
+  <slot></slot>
 {/if}

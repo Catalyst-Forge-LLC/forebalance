@@ -1,5 +1,7 @@
 # ForeBalance — Review & Modernization Plan
 
+**Implementation update (2026-10-13):** This remains a historical review. See [Modernization delivery](./modernization-2026-10-13.md) for the current safety fixes, tooling upgrades, measurements, and verification.
+
 **Status:** Historical review (locked 2026-09-03). Foundation, P0/P1 DSL, and public MIT are in the product as of 2026-09-15.  
 **Current truth:** [`forebalance-spec.md`](./forebalance-spec.md) and `CONTEXT_PROMPT.md`.  
 **Date:** 2026-09-03 (status note 2026-09-15)

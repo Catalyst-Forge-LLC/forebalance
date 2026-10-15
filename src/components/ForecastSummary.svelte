@@ -47,7 +47,7 @@
 
 {#if entries.length && summaryItems.length}
   <section class="forecast-summary" aria-label="Forecast summary">
-    {#each summaryItems as item}
+    {#each summaryItems as item (item)}
       <button
         type="button"
         class="summary-link"

@@ -4,275 +4,263 @@ import { parseEntries } from './parseEntries';
 import type { BalanceFlags } from './types';
 
 const balanceFlags: BalanceFlags = {
-	below: { negative: 0, low: 500, uncomfortable: 1000 },
-	above: { goal: 5000 },
+  below: { negative: 0, low: 500, uncomfortable: 1000 },
+  above: { goal: 5000 },
 };
 
 describe('debt account id 0', () => {
-	it('tracks a loan whose account id is 0 and whose series starts before the balance', () => {
-		const raw = `B-CHCK-main|2026-09-01|5000|Checking
+  it('tracks a loan whose account id is 0 and whose series starts before the balance', () => {
+    const raw = `B-CHCK-main|2026-09-01|5000|Checking
 D|2026-04-25,R3M|500|John Deere Finance|0|1200|15`;
-		const [entries, accounts] = parseEntries(raw, 12, balanceFlags, {
-			useFederalHolidays: false,
-			balanceIncludesSameDay: true,
-		});
-		const debt = entries?.['0'] ?? [];
-		expect(accounts?.['0']?.startingBal).toBe(1200);
-		expect(debt.filter((row) => row.subAccountRunningBal !== undefined).length).toBeGreaterThan(0);
-	});
+    const [entries, accounts] = parseEntries(raw, 12, balanceFlags, {
+      useFederalHolidays: false,
+      balanceIncludesSameDay: true,
+    });
+    const debt = entries?.['0'] ?? [];
+    expect(accounts?.['0']?.startingBal).toBe(1200);
+    expect(debt.filter((row) => row.subAccountRunningBal !== undefined).length).toBeGreaterThan(0);
+  });
 
-	it('uses this line’s starting balance when account 0 was already created empty', () => {
-		const raw = `B-CHCK-main|2026-09-01|5000|Checking
+  it('uses this line’s starting balance when account 0 was already created empty', () => {
+    const raw = `B-CHCK-main|2026-09-01|5000|Checking
 D|2026-01-15,R|10|Other|0
 D|2026-04-25,R3M|500|John Deere Finance|0|1200|15`;
-		const [entries, accounts] = parseEntries(raw, 12, balanceFlags, {
-			useFederalHolidays: false,
-			balanceIncludesSameDay: true,
-		});
-		expect(accounts?.['0']?.startingBal).toBe(1200);
-		const debt = entries?.['0'] ?? [];
-		expect(debt.some((row) => row.desc?.includes('John Deere') && row.subAccountRunningBal !== undefined)).toBe(true);
-	});
+    const [entries, accounts] = parseEntries(raw, 12, balanceFlags, {
+      useFederalHolidays: false,
+      balanceIncludesSameDay: true,
+    });
+    expect(accounts?.['0']?.startingBal).toBe(1200);
+    const debt = entries?.['0'] ?? [];
+    expect(debt.some((row) => row.desc?.includes('John Deere') && row.subAccountRunningBal !== undefined)).toBe(true);
+  });
 });
 
 describe('parseRecur', () => {
-	it('parses monthly default', () => {
-		expect(parseRecur('R')).toEqual({
-			freq: 'M',
-			multiple: 1,
-			count: null,
-			recurRaw: 'R',
-		});
-	});
+  it('parses monthly default', () => {
+    expect(parseRecur('R')).toEqual({
+      freq: 'M',
+      multiple: 1,
+      count: null,
+      recurRaw: 'R',
+    });
+  });
 
-	it('parses biweekly with count', () => {
-		expect(parseRecur('R2W5')).toEqual({
-			freq: 'W',
-			multiple: 2,
-			count: 5,
-			recurRaw: 'R2W5',
-		});
-	});
+  it('parses biweekly with count', () => {
+    expect(parseRecur('R2W5')).toEqual({
+      freq: 'W',
+      multiple: 2,
+      count: 5,
+      recurRaw: 'R2W5',
+    });
+  });
 
-	it('reads a bare number as a monthly count, and a number before the letter as the interval', () => {
-		expect(parseRecur('R3')).toMatchObject({ freq: 'M', multiple: 1, count: 3 });
-		expect(parseRecur('R3M')).toMatchObject({ freq: 'M', multiple: 3, count: null });
-		expect(parseRecur('R3M3')).toMatchObject({ freq: 'M', multiple: 3, count: 3 });
-		expect(parseRecur('RW3')).toMatchObject({ freq: 'W', multiple: 1, count: 3 });
-		expect(parseRecur('R3W')).toMatchObject({ freq: 'W', multiple: 3, count: null });
-		expect(parseRecur('R3W3')).toMatchObject({ freq: 'W', multiple: 3, count: 3 });
-	});
+  it('reads a bare number as a monthly count, and a number before the letter as the interval', () => {
+    expect(parseRecur('R3')).toMatchObject({ freq: 'M', multiple: 1, count: 3 });
+    expect(parseRecur('R3M')).toMatchObject({ freq: 'M', multiple: 3, count: null });
+    expect(parseRecur('R3M3')).toMatchObject({ freq: 'M', multiple: 3, count: 3 });
+    expect(parseRecur('RW3')).toMatchObject({ freq: 'W', multiple: 1, count: 3 });
+    expect(parseRecur('R3W')).toMatchObject({ freq: 'W', multiple: 3, count: null });
+    expect(parseRecur('R3W3')).toMatchObject({ freq: 'W', multiple: 3, count: 3 });
+  });
 });
 
 describe('parseDate', () => {
-	it('parses single date', () => {
-		const result = parseDate('2026-04-01');
-		expect(result?.startDate).toEqual(new Date(2026, 3, 1));
-		expect(result?.recur).toBeNull();
-	});
+  it('parses single date', () => {
+    const result = parseDate('2026-04-01');
+    expect(result?.startDate).toEqual(new Date(2026, 3, 1));
+    expect(result?.recur).toBeNull();
+  });
 
-	it('parses recurring date', () => {
-		const result = parseDate('2026-04-01,R2W');
-		expect(result?.recur?.freq).toBe('W');
-		expect(result?.recur?.multiple).toBe(2);
-	});
+  it('parses recurring date', () => {
+    const result = parseDate('2026-04-01,R2W');
+    expect(result?.recur?.freq).toBe('W');
+    expect(result?.recur?.multiple).toBe(2);
+  });
 
-	it('parses last-day-of-month token', () => {
-		const result = parseDate('2026-01-L,RML');
-		expect(result?.startDate?.getDate()).toBe(31);
-		expect(result?.recur?.lastDayOfMonth).toBe(true);
-	});
+  it('parses last-day-of-month token', () => {
+    const result = parseDate('2026-01-L,RML');
+    expect(result?.startDate?.getDate()).toBe(31);
+    expect(result?.recur?.lastDayOfMonth).toBe(true);
+  });
 
-	it('parses business-day shift on recur', () => {
-		const result = parseDate('2026-09-01,R<');
-		expect(result?.businessDayShift).toBe('prev');
-		expect(result?.recur?.freq).toBe('M');
-	});
+  it('parses business-day shift on recur', () => {
+    const result = parseDate('2026-09-01,R<');
+    expect(result?.businessDayShift).toBe('prev');
+    expect(result?.recur?.freq).toBe('M');
+  });
 });
 
 describe('sortEntries', () => {
-	it('sorts by date then type (B, C, D) then entry order', () => {
-		const entries = [
-			{ date: new Date(2026, 0, 15), type: 'D', entryOrder: 1 },
-			{ date: new Date(2026, 0, 15), type: 'C', entryOrder: 0 },
-			{ date: new Date(2026, 0, 1), type: 'B', entryOrder: 2 },
-		];
-		const sorted = sortEntries(entries);
-		expect(sorted[0].type).toBe('B');
-		expect(sorted[1].type).toBe('C');
-		expect(sorted[2].type).toBe('D');
-	});
+  it('sorts by date then type (B, C, D) then entry order', () => {
+    const entries = [
+      { date: new Date(2026, 0, 15), type: 'D', entryOrder: 1 },
+      { date: new Date(2026, 0, 15), type: 'C', entryOrder: 0 },
+      { date: new Date(2026, 0, 1), type: 'B', entryOrder: 2 },
+    ];
+    const sorted = sortEntries(entries);
+    expect(sorted[0].type).toBe('B');
+    expect(sorted[1].type).toBe('C');
+    expect(sorted[2].type).toBe('D');
+  });
 });
 
 describe('parseEntries', () => {
-	it('returns null for invalid entries', () => {
-		expect(parseEntries('', 6, balanceFlags)).toEqual([null, null]);
-	});
+  it('returns null for invalid entries', () => {
+    expect(parseEntries('', 6, balanceFlags)).toEqual([null, null]);
+  });
 
-	it('projects balance from a simple forecast', () => {
-		const raw = `B-CHCK-main|2026-01-01|1000|Starting balance
+  it('projects balance from a simple forecast', () => {
+    const raw = `B-CHCK-main|2026-01-01|1000|Starting balance
 C|2026-01-15|500|Paycheck
 D|2026-01-20|200|Rent`;
 
-		const [accountEntries, accounts] = parseEntries(raw, 3, balanceFlags);
-		expect(accounts).not.toBeNull();
-		expect(accountEntries).not.toBeNull();
+    const [accountEntries, accounts] = parseEntries(raw, 3, balanceFlags);
+    expect(accounts).not.toBeNull();
+    expect(accountEntries).not.toBeNull();
 
-		const mainId = Object.values(accounts!).find((a) => a.isMain)!.id;
-		const rows = accountEntries![mainId];
-		expect(rows.length).toBeGreaterThan(0);
-		expect(rows.at(-1)?.mainBalance).toBe(1300);
-	});
+    const mainId = Object.values(accounts!).find((a) => a.isMain)!.id;
+    const rows = accountEntries![mainId];
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.at(-1)?.mainBalance).toBe(1300);
+  });
 
-	it('names debt accounts from DESCRIPTION and tracks remaining balance', () => {
-		const raw = `B-CHCK-main|2026-01-01|5000|Balance Checking 1775
+  it('names debt accounts from DESCRIPTION and tracks remaining balance', () => {
+    const raw = `B-CHCK-main|2026-01-01|5000|Balance Checking 1775
 D-CO|2026-01-15,R|150|Capital One-4321|CO|2800|19.99`;
 
-		const [, accounts] = parseEntries(raw, 3, balanceFlags);
-		const debt = accounts!.CO;
-		expect(debt.name).toBe('Capital One');
-		expect(debt.lastFour).toBe('4321');
-		expect(debt.startingBal).toBe(2800);
-		expect(debt.interestRate).toBe(19.99);
-		expect(debt.runningBal).toBeLessThan(debt.startingBal);
-	});
+    const [, accounts] = parseEntries(raw, 3, balanceFlags);
+    const debt = accounts!.CO;
+    expect(debt.name).toBe('Capital One');
+    expect(debt.lastFour).toBe('4321');
+    expect(debt.startingBal).toBe(2800);
+    expect(debt.interestRate).toBe(19.99);
+    expect(debt.runningBal).toBeLessThan(debt.startingBal);
+  });
 
-	it('expands recurring debits within forecast window', () => {
-		const raw = `B-CHCK-main|2026-01-01|5000|Balance
+  it('expands recurring debits within forecast window', () => {
+    const raw = `B-CHCK-main|2026-01-01|5000|Balance
 D|2026-01-01,R|1000|Rent`;
 
-		const [accountEntries] = parseEntries(raw, 3, balanceFlags);
-		const mainId = Object.keys(accountEntries!)[0];
-		const rentRows = accountEntries![mainId].filter((e) => e.desc?.includes('Rent'));
-		expect(rentRows.length).toBe(3);
-	});
+    const [accountEntries] = parseEntries(raw, 3, balanceFlags);
+    const mainId = Object.keys(accountEntries!)[0];
+    const rentRows = accountEntries![mainId].filter((e) => e.desc?.includes('Rent'));
+    expect(rentRows.length).toBe(3);
+  });
 
-	it('treats same-day lines as already in B by default', () => {
-		const raw = `B-CHCK-main|2026-09-15|2000|Balance
+  it('treats same-day lines as already in B by default', () => {
+    const raw = `B-CHCK-main|2026-09-15|2000|Balance
 D|2026-09-15,R|500|Rent
 C|2026-09-15|100|Deposit
 D|2026-09-16|50|Gas`;
 
-		const [accountEntries] = parseEntries(raw, 2, balanceFlags);
-		const mainId = Object.keys(accountEntries!)[0];
-		const rows = accountEntries![mainId];
-		expect(
-			rows.map(
-				(e) =>
-					`${e.desc?.split(' ')[0]}#${e.occurrenceIndex}:${e.mainBalance}:${e.inBalance ? 'in' : 'post'}`,
-			),
-		).toEqual([
-			'Balance#1:2000:post',
-			'Deposit#1:2000:in',
-			'Rent#1:2000:in',
-			'Gas#1:1950:post',
-			'Rent#2:1450:post',
-		]);
-	});
+    const [accountEntries] = parseEntries(raw, 2, balanceFlags);
+    const mainId = Object.keys(accountEntries!)[0];
+    const rows = accountEntries![mainId];
+    expect(rows.map((e) => `${e.desc?.split(' ')[0]}#${e.occurrenceIndex}:${e.mainBalance}:${e.inBalance ? 'in' : 'post'}`)).toEqual([
+      'Balance#1:2000:post',
+      'Deposit#1:2000:in',
+      'Rent#1:2000:in',
+      'Gas#1:1950:post',
+      'Rent#2:1450:post',
+    ]);
+  });
 
-	it('still posts same-day lines when the setting is off', () => {
-		const raw = `B-CHCK-main|2026-09-15|2000|Balance
+  it('still posts same-day lines when the setting is off', () => {
+    const raw = `B-CHCK-main|2026-09-15|2000|Balance
 D|2026-09-15,R|500|Rent
 C|2026-09-15|100|Deposit`;
 
-		const [accountEntries] = parseEntries(raw, 1, balanceFlags, {
-			balanceIncludesSameDay: false,
-		});
-		const mainId = Object.keys(accountEntries!)[0];
-		const rows = accountEntries![mainId];
-		expect(rows.map((e) => `${e.desc?.split(' ')[0]}:${e.mainBalance}`)).toEqual([
-			'Balance:2000',
-			'Deposit:2100',
-			'Rent:1600',
-		]);
-		expect(rows.some((e) => e.inBalance)).toBe(false);
-	});
+    const [accountEntries] = parseEntries(raw, 1, balanceFlags, {
+      balanceIncludesSameDay: false,
+    });
+    const mainId = Object.keys(accountEntries!)[0];
+    const rows = accountEntries![mainId];
+    expect(rows.map((e) => `${e.desc?.split(' ')[0]}:${e.mainBalance}`)).toEqual(['Balance:2000', 'Deposit:2100', 'Rent:1600']);
+    expect(rows.some((e) => e.inBalance)).toBe(false);
+  });
 
-	it('posts a same-day occurrence marked pending', () => {
-		const raw = `B-CHCK-main|2026-09-15|2000|Balance
+  it('posts a same-day occurrence marked pending', () => {
+    const raw = `B-CHCK-main|2026-09-15|2000|Balance
 D|2026-09-15,R|500|Rent|#1=pending
 C|2026-09-15|100|Deposit`;
 
-		const [accountEntries] = parseEntries(raw, 2, balanceFlags);
-		const mainId = Object.keys(accountEntries!)[0];
-		const rows = accountEntries![mainId];
-		expect(
-			rows.map(
-				(e) =>
-					`${e.desc?.split(' ')[0]}#${e.occurrenceIndex}:${e.mainBalance}:${e.inBalance ? 'in' : 'post'}`,
-			),
-		).toEqual([
-			'Balance#1:2000:post',
-			'Deposit#1:2000:in',
-			'Rent#1:1500:post',
-			'Rent#2:1000:post',
-		]);
-		expect(rows[2]?.pending).toBe(true);
-		expect(rows[2]?.inBalanceEligible).toBe(true);
-	});
+    const [accountEntries] = parseEntries(raw, 2, balanceFlags);
+    const mainId = Object.keys(accountEntries!)[0];
+    const rows = accountEntries![mainId];
+    expect(rows.map((e) => `${e.desc?.split(' ')[0]}#${e.occurrenceIndex}:${e.mainBalance}:${e.inBalance ? 'in' : 'post'}`)).toEqual([
+      'Balance#1:2000:post',
+      'Deposit#1:2000:in',
+      'Rent#1:1500:post',
+      'Rent#2:1000:post',
+    ]);
+    expect(rows[2]?.pending).toBe(true);
+    expect(rows[2]?.inBalanceEligible).toBe(true);
+  });
 
-	it('does not touch a debt balance for an in-balance payment', () => {
-		const raw = `B-CHCK-main|2026-09-15|2000|Balance
+  it('does not touch a debt balance for an in-balance payment', () => {
+    const raw = `B-CHCK-main|2026-09-15|2000|Balance
 D-CO|2026-09-15,R|150|Capital One|CO|1000|0`;
 
-		const [accountEntries, accounts] = parseEntries(raw, 2, balanceFlags);
-		const mainId = Object.values(accounts!).find((a) => a.isMain)!.id;
-		const rows = accountEntries![mainId];
-		expect(rows[1]?.inBalance).toBe(true);
-		expect(rows[1]?.subAccountRunningBal).toBeUndefined();
-		expect(rows[2]?.subAccountRunningBal).toBe(850);
-		expect(accounts!.CO.runningBal).toBe(850);
-	});
+    const [accountEntries, accounts] = parseEntries(raw, 2, balanceFlags);
+    const mainId = Object.values(accounts!).find((a) => a.isMain)!.id;
+    const rows = accountEntries![mainId];
+    expect(rows[1]?.inBalance).toBe(true);
+    expect(rows[1]?.subAccountRunningBal).toBeUndefined();
+    expect(rows[2]?.subAccountRunningBal).toBe(850);
+    expect(accounts!.CO.runningBal).toBe(850);
+  });
 });
 
 describe('starter templates', () => {
-	it('terminates when a single debt is paid off with an overpayment', () => {
-		const raw = `B-CHK-main|2026-01-01|5000|Balance
+  it('terminates when a single debt is paid off with an overpayment', () => {
+    const raw = `B-CHK-main|2026-01-01|5000|Balance
 C|2026-01-01,R|3000|Pay
 D-CAR|2026-01-05,R|900|Car loan|CAR|1000|5`;
-		const start = Date.now();
-		const [entries] = parseEntries(raw, 6, balanceFlags);
-		expect(Date.now() - start).toBeLessThan(2000);
-		expect(entries).not.toBeNull();
-	});
+    const start = Date.now();
+    const [entries] = parseEntries(raw, 6, balanceFlags);
+    expect(Date.now() - start).toBeLessThan(2000);
+    expect(entries).not.toBeNull();
+  });
 
-	it('starts an old unbounded series at the balance date and keeps its occurrence number', () => {
-		const raw = `B-CHCK-main|2026-09-01|5000|Checking
+  it('starts an old unbounded series at the balance date and keeps its occurrence number', () => {
+    const raw = `B-CHCK-main|2026-09-01|5000|Checking
 D|2020-09-01,R|15|Spotify`;
-		const [entries] = parseEntries(raw, 2, balanceFlags);
-		const rows = Object.values(entries ?? {}).flat().filter((row) => row.desc?.includes('Spotify'));
-		expect(rows[0]?.occurrenceIndex).toBeGreaterThan(1);
-		expect(rows[0]?.date?.getFullYear()).toBe(2026);
-		expect(rows.some((row) => row.date && row.date.getFullYear() < 2026)).toBe(false);
-	});
+    const [entries] = parseEntries(raw, 2, balanceFlags);
+    const rows = Object.values(entries ?? {})
+      .flat()
+      .filter((row) => row.desc?.includes('Spotify'));
+    expect(rows[0]?.occurrenceIndex).toBeGreaterThan(1);
+    expect(rows[0]?.date?.getFullYear()).toBe(2026);
+    expect(rows.some((row) => row.date && row.date.getFullYear() < 2026)).toBe(false);
+  });
 
-	it('raises a recurring amount by the yearly percent', () => {
-		const raw = `B-CHCK-main|2026-01-01|5000|Checking
+  it('raises a recurring amount by the yearly percent', () => {
+    const raw = `B-CHCK-main|2026-01-01|5000|Checking
 D|2024-01-15,R,+10%Y|100|Rent`;
-		const [entries] = parseEntries(raw, 2, balanceFlags);
-		const rent = Object.values(entries ?? {})
-			.flat()
-			.find((row) => row.desc?.includes('Rent') && row.date?.getMonth() === 0 && row.date?.getFullYear() === 2026);
-		expect(rent?.amount).toBe(121);
-	});
+    const [entries] = parseEntries(raw, 2, balanceFlags);
+    const rent = Object.values(entries ?? {})
+      .flat()
+      .find((row) => row.desc?.includes('Rent') && row.date?.getMonth() === 0 && row.date?.getFullYear() === 2026);
+    expect(rent?.amount).toBe(121);
+  });
 
-	it('parses all built-in starter profiles', async () => {
-		const { entryTemplates } = await import('../data/entryTemplates');
-		for (const template of entryTemplates) {
-			const [accountEntries, accounts] = parseEntries(template.build('2026-09-'), 3, balanceFlags);
-			expect(accounts, template.name).not.toBeNull();
-			expect(accountEntries, template.name).not.toBeNull();
-			const main = Object.values(accounts!).find((a) => a.isMain);
-			expect(main, template.name).toBeTruthy();
-			expect(accountEntries![main!.id].length, template.name).toBeGreaterThan(3);
-		}
-	});
+  it('parses all built-in starter profiles', async () => {
+    const { entryTemplates } = await import('../data/entryTemplates');
+    for (const template of entryTemplates) {
+      const [accountEntries, accounts] = parseEntries(template.build('2026-09-'), 3, balanceFlags);
+      expect(accounts, template.name).not.toBeNull();
+      expect(accountEntries, template.name).not.toBeNull();
+      const main = Object.values(accounts!).find((a) => a.isMain);
+      expect(main, template.name).toBeTruthy();
+      expect(accountEntries![main!.id].length, template.name).toBeGreaterThan(3);
+    }
+  });
 });
 
 describe('updateDateRecur', () => {
-	it('advances monthly', () => {
-		const recur = parseRecur('R')!;
-		const next = updateDateRecur(new Date(2026, 0, 15), recur);
-		expect(next.getMonth()).toBe(1);
-	});
+  it('advances monthly', () => {
+    const recur = parseRecur('R')!;
+    const next = updateDateRecur(new Date(2026, 0, 15), recur);
+    expect(next.getMonth()).toBe(1);
+  });
 });

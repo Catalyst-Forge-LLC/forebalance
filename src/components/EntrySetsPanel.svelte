@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { modal } from '$lib/ui/modal';
   import {
     addSetFromTemplate,
     deleteEntrySet,
@@ -23,7 +24,7 @@
   let forkDescription = '';
 
   $: canDelete = $entrySetsStore.sets.length > 1;
-  $: templates = listTemplates();
+  const templates = listTemplates();
   $: activeName = getActiveSet($entrySetsStore)?.name ?? 'this scenario';
 
   function onClone() {
@@ -63,25 +64,14 @@
 
   function downloadCurrentSet() {
     const slug = activeName.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    downloadTextFile(
-      `forebalance-${fmt.date3()}-${slug}.psv`,
-      ensureCurrencyHeader($rawEntriesStore, $settingsStore.currencyIsoCode),
-    );
+    downloadTextFile(`forebalance-${fmt.date3()}-${slug}.psv`, ensureCurrencyHeader($rawEntriesStore, $settingsStore.currencyIsoCode));
   }
 </script>
 
 <div class="sets-shell">
   <SetSwitcher>
     <div slot="extra" class="tools">
-      <slot
-        name="tools"
-        {onClone}
-        {onDelete}
-        {canDelete}
-        {templates}
-        {onAddStarter}
-        onExport={downloadCurrentSet}
-      />
+      <slot name="tools" {onClone} {onDelete} {canDelete} {templates} {onAddStarter} onExport={downloadCurrentSet} />
     </div>
   </SetSwitcher>
 
@@ -100,22 +90,23 @@
 </ConfirmModal>
 
 {#if forkOpen}
-  <div class="fork-backdrop" role="presentation" on:click={() => (forkOpen = false)}></div>
-  <form class="fork-dialog" role="dialog" aria-label="Fork what-if" on:submit|preventDefault={confirmFork}>
-    <h3>Fork what-if</h3>
-    <label>
-      Name
-      <input bind:value={forkName} required />
-    </label>
-    <label>
-      Description
-      <input bind:value={forkDescription} placeholder="if I pay extra on the card" />
-    </label>
-    <div class="fork-actions">
-      <button type="button" on:click={() => (forkOpen = false)}>Cancel</button>
-      <button type="submit" class="button-action">Fork</button>
-    </div>
-  </form>
+  <dialog class="fork-dialog" aria-label="Fork what-if" use:modal on:cancel={() => (forkOpen = false)}>
+    <form on:submit|preventDefault={confirmFork}>
+      <h3>Fork what-if</h3>
+      <label>
+        Name
+        <input bind:value={forkName} required />
+      </label>
+      <label>
+        Description
+        <input bind:value={forkDescription} placeholder="if I pay extra on the card" />
+      </label>
+      <div class="fork-actions">
+        <button type="button" on:click={() => (forkOpen = false)}>Cancel</button>
+        <button type="submit" class="button-action">Fork</button>
+      </div>
+    </form>
+  </dialog>
 {/if}
 
 <style lang="scss">
@@ -133,7 +124,7 @@
     gap: 0.35rem;
   }
 
-  .fork-backdrop {
+  .fork-dialog::backdrop {
     position: fixed;
     inset: 0;
     background: rgba(28, 33, 28, 0.35);
@@ -141,6 +132,7 @@
   }
 
   .fork-dialog {
+    margin: 0;
     position: fixed;
     z-index: 21;
     left: 50%;
@@ -155,9 +147,25 @@
     gap: 0.55rem;
     text-align: left;
 
-    h3 { margin: 0; }
-    label { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.85rem; }
-    input { font: inherit; padding: 0.35rem 0.45rem; }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+
+    h3 {
+      margin: 0;
+    }
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+      font-size: 0.85rem;
+    }
+    input {
+      font: inherit;
+      padding: 0.35rem 0.45rem;
+    }
   }
 
   .fork-actions {

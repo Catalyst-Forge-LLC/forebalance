@@ -1,10 +1,6 @@
 <script lang="ts">
   import { fmt } from '$lib/formatters/fmt';
-  import {
-    answerCardQuestion,
-    chipsForLine,
-    type CardAnswer,
-  } from '$lib/labs/cardAsk';
+  import { answerCardQuestion, chipsForLine, type CardAnswer } from '$lib/labs/cardAsk';
   import type { SourceLine } from '$lib/parser/sourceLines';
   import type { Settings } from '$lib/parser/types';
 
@@ -41,13 +37,11 @@
 
 <fieldset class="group ask">
   <div class="ask-chips">
-    {#each chips as chip}
+    {#each chips as chip (chip)}
       <button type="button" on:click={() => ask(chip.label)}>{chip.label}</button>
     {/each}
   </div>
-  <form
-    on:submit|preventDefault={() => ask()}
-  >
+  <form on:submit|preventDefault={() => ask()}>
     <label>
       Question
       <input bind:value={prompt} placeholder="Ask about this entry" />
@@ -86,8 +80,13 @@
     gap: 0.45rem;
     align-items: end;
 
-    label { flex: 1; }
-    input { width: 100%; box-sizing: border-box; }
+    label {
+      flex: 1;
+    }
+    input {
+      width: 100%;
+      box-sizing: border-box;
+    }
   }
 
   .ask-headline {
@@ -96,7 +95,9 @@
     font-weight: 700;
   }
 
-  .ask-answer p { margin: 0.15rem 0; }
+  .ask-answer p {
+    margin: 0.15rem 0;
+  }
 
   .ask-equation {
     color: $clr-muted;

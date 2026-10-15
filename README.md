@@ -30,6 +30,9 @@ Open the URL Vite prints (typically `http://127.0.0.1:46000`).
 | `pnpm preview` | Preview production build locally |
 | `pnpm ship` | Build and deploy to Cloudflare Pages via Wrangler |
 | `pnpm lint` | Prettier + ESLint |
+| `pnpm check` | Strict TypeScript and Svelte diagnostics |
+| `pnpm test:e2e` | Production-browser regressions (build first; install Playwright browsers) |
+| `pnpm bench` | Repeatable 24-month forecast benchmarks |
 | `pnpm format` | Prettier write |
 
 ## Entry format
@@ -61,6 +64,8 @@ See the in-app **Help** tab or `docs/forebalance-spec.md` for the rest of the fo
 [MIT](LICENSE). Copyright © 2020–2026 Catalyst Forge, LLC. Fork it, run it locally, or ship your own build. That is the point. See [CONTRIBUTING.md](CONTRIBUTING.md) if you want to send a change.
 
 ## Stack
+
+Use Node 22.17+ and the pnpm version pinned in `package.json`. CI installs dependencies with the frozen lockfile, checks formatting/lint/types, runs unit tests, builds, and tests Chromium, Firefox, and WebKit. See [the modernization delivery record](docs/modernization-2026-10-13.md).
 
 - SvelteKit 2 + Svelte 5
 - TypeScript

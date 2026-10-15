@@ -5,3 +5,5 @@ node_modules
 /functions
 /.svelte-kit
 .wrangler
+/playwright-report
+/test-results
