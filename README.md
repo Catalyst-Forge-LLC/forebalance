@@ -67,8 +67,8 @@ See the in-app **Help** tab or `docs/forebalance-spec.md` for the rest of the fo
 
 Use Node 22.17+ and the pnpm version pinned in `package.json`. CI installs dependencies with the frozen lockfile, checks formatting/lint/types, runs unit tests, builds, and tests Chromium, Firefox, and WebKit. See [the modernization delivery record](docs/modernization-2026-10-13.md).
 
-- SvelteKit 2 + Svelte 5
-- TypeScript
+- SvelteKit 3 + Svelte 5
+- TypeScript 6
 - `adapter-static` → Cloudflare Pages (`wrangler.jsonc`)
 - LocalSlip for dev port · LocalHelm for fleet · ForgeTrail for lifecycle
 
