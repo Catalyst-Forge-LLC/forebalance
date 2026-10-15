@@ -188,3 +188,51 @@ test('legacy query shares are consumed once and leave navigation usable', async 
   await page.reload();
   await expect(page.locator('table')).toBeVisible();
 });
+
+test('forecast scrolls months while scenario controls remain fixed', async ({ page }) => {
+  await page.goto('/#forecast');
+  const region = page.getByRole('region', { name: 'Forecast months' });
+  await expect(region).toBeVisible();
+  const bar = page.getByRole('combobox', { name: 'Scenario', exact: true });
+  const before = await bar.boundingBox();
+  await region.focus();
+  await page.keyboard.press('PageDown');
+  await expect.poll(() => region.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+  expect((await bar.boundingBox())!.y).toBe(before!.y);
+  expect(await page.locator('.tab-panel').evaluate((node) => node.scrollTop)).toBe(0);
+});
+
+test('settings sections expose all options and retain changes', async ({ page }) => {
+  await page.goto('/#settings');
+  await page.getByRole('button', { name: 'Forecast thresholds', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Forecast thresholds' })).toBeVisible();
+  const months = page.getByRole('spinbutton', { name: 'Months to forecast' });
+  await months.fill('9');
+  await months.press('Tab');
+  await page.getByRole('button', { name: 'Categories', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Forecast thresholds' })).toHaveCount(0);
+  await page.getByRole('textbox', { name: 'New category', exact: true }).fill('Travel');
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: 'Rename Travel' })).toBeVisible();
+  await page.reload();
+  await page.getByRole('button', { name: 'Forecast thresholds', exact: true }).click();
+  await expect(months).toHaveValue('9');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('combobox', { name: 'Settings section' }).selectOption('reset');
+  await expect(page.getByRole('heading', { name: 'Reset', exact: true })).toBeVisible();
+});
+
+test('help topics and Labs tasks use the shared section navigation', async ({ page }) => {
+  await page.goto('/#when');
+  await expect(page.getByRole('heading', { name: 'WHEN', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Scenarios', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Scenarios', exact: true })).toBeVisible();
+  await page.goto('/#labs');
+  await page.getByRole('button', { name: 'Draft entries', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: 'Draft entries from a description' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Go to model setup' })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('combobox', { name: 'Labs section' }).selectOption('question');
+  await expect(page.getByRole('textbox', { name: 'A format question, or your own' })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

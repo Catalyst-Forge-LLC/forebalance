@@ -1,4 +1,13 @@
 <script lang="ts">
+  import SectionWorkspace from './SectionWorkspace.svelte';
+  let section = 'setup';
+  let resultLabel = '';
+  const sections = [
+    { id: 'setup', label: 'Model setup' },
+    { id: 'forecast', label: 'Explore forecast' },
+    { id: 'draft', label: 'Draft entries' },
+    { id: 'question', label: 'Ask a question' },
+  ];
   import { onDestroy, onMount } from 'svelte';
   import { buildForecastBrief, buildWhyTight, splitModelReply } from '#lib/labs/context.ts';
   import { localIsoDate } from '#lib/formatters/dates.ts';
@@ -79,6 +88,7 @@
         progress = percent;
         progressText = text;
       });
+      section = 'forecast';
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     } finally {
@@ -97,6 +107,7 @@
   async function runRouted(ask: string, extra = '') {
     if (!session || !ask.trim()) return;
     error = '';
+    resultLabel = sections.find((item) => item.id === section)?.label ?? 'Question';
     running = true;
     output = '';
     thinking = '';
@@ -157,131 +168,179 @@
   }
 </script>
 
-<article class="labs">
-  <header class="hero">
-    <p class="badge">Labs</p>
-    <h2>On-device helper</h2>
-    <p>
-      Experimental and on this device. <strong>Load a model first</strong>, then ask. Prompts stay in the tab. Nothing is sent to ForeBalance.
-    </p>
-  </header>
-
-  <section class="status" aria-live="polite">
-    <p>
-      Chrome Nano:
-      <strong>{nanoStatus}</strong>
-      · WebGPU:
-      <strong>{webgpu ? 'yes' : 'no'}</strong>
-    </p>
-    {#if preferred === 'none'}
-      <p class="warn">Need Google Chrome 148+ (Nano) or a desktop browser with WebGPU (Brave and Edge usually).</p>
-    {/if}
-  </section>
-
-  {#if preferred !== 'none'}
-    <section class="engine">
-      <h3>1. Load a model</h3>
-      {#if bothEngines}
-        <fieldset>
-          <legend>Engine</legend>
-          <label>
-            <input type="radio" bind:group={selected} value="nano" disabled={loading || running} />
-            Gemini Nano — already in Chrome, smaller, starts faster
-          </label>
-          <label>
-            <input type="radio" bind:group={selected} value="webllm" disabled={loading || running} />
-            Qwen3 1.7B — larger download, works in Brave
-          </label>
-        </fieldset>
-      {:else if preferred === 'nano'}
-        <p>This Chrome can use <strong>Gemini Nano</strong>. Load it before you ask.</p>
-      {:else}
+<SectionWorkspace
+  title="Labs"
+  description="An experimental helper on this device. Review its answers before using them."
+  items={sections}
+  bind:active={section}
+>
+  <article class="labs">
+    <div class="session-bar">
+      <strong>{session ? session.label + ' ready' : loading ? 'Loading model…' : 'Model not loaded'}</strong><span>Scenario: {activeName}</span>
+    </div>
+    {#if section === 'setup'}
+      <header class="hero">
+        <h2>On-device helper</h2>
         <p>
-          This browser can run <strong>Qwen3 1.7B</strong> (~1&nbsp;GB from Hugging Face, then cached). Load it before you ask.
+          Experimental and on this device. <strong>Load a model first</strong>, then ask. Prompts stay in the tab. Nothing is sent to ForeBalance.
         </p>
-      {/if}
+      </header>
 
-      <button type="button" class="primary" disabled={!selected || loading || running} on:click={loadEngine}>
-        {session ? `Reload ${session.label}` : selected === 'nano' ? 'Load Gemini Nano' : 'Load Qwen3 1.7B'}
-      </button>
-      {#if loading || session}
-        <label class="progress">
-          <span>{progressText || (session ? session.label : '')}</span>
-          <progress max="100" value={progress}></progress>
-        </label>
-      {/if}
-    </section>
-  {/if}
-
-  {#if preferred !== 'none'}
-    <section class="actions">
-      <h3>2. Ask</h3>
-      {#if !session}
-        <p class="hint">Questions stay disabled until the model is loaded. First click is a download; later visits use the cache.</p>
-      {:else}
-        <p class="hint">Each question is answered in two steps, so the reply stays on your forecast.</p>
-      {/if}
-      <button type="button" disabled={!session || running || !forecastReady} on:click={explainForecast}> Why is this tight? </button>
-      <button type="button" disabled={!session || running || !forecastReady} on:click={upcomingHits}> What hits next? </button>
-      <button type="button" disabled={!session || running || !forecastReady} on:click={moneyDrains}> Where does the money go? </button>
-      {#if !forecastReady}
-        <p class="hint">Open a scenario with a forecast first.</p>
-      {/if}
-
-      <label>
-        Can I afford this?
-        <textarea bind:value={affordAsk} rows="2" placeholder={affordPlaceholder}></textarea>
-      </label>
-      <button type="button" disabled={!session || running || !forecastReady || !affordAsk.trim()} on:click={affordCheck}> Check </button>
-
-      <label>
-        Draft entries from a description
-        <textarea bind:value={draftAsk} rows="3" placeholder={draftPlaceholder}></textarea>
-      </label>
-      <button type="button" disabled={!session || running || !draftAsk.trim()} on:click={draftEntries}> Draft entries </button>
-
-      <label>
-        A format question, or your own
-        <textarea bind:value={freeAsk} rows="2" placeholder="What does R2W mean?"></textarea>
-      </label>
-      <button type="button" disabled={!session || running || !freeAsk.trim()} on:click={freePrompt}>Ask</button>
-    </section>
-
-    {#if running}
-      <p class="hint">{progressText || 'Working…'}</p>
-    {/if}
-    {#if output}
-      <section class="output">
-        <div class="output-bar">
-          <h3>Result</h3>
-          <button type="button" on:click={copyOutput}>Copy</button>
-        </div>
-        {#if routedIds}
-          <p class="hint">Router: {routedIds}</p>
+      <details class="status" open={preferred === 'none'}>
+        <summary>Browser compatibility</summary>
+        <p>
+          Chrome Nano:
+          <strong>{nanoStatus}</strong>
+          · WebGPU:
+          <strong>{webgpu ? 'yes' : 'no'}</strong>
+        </p>
+        {#if preferred === 'none'}
+          <p class="warn">No compatible local model is available in this browser. Try a browser with built-in AI or WebGPU support, then check again.</p>
         {/if}
-        <pre>{output}</pre>
-        {#if thinking}
-          <details>
-            <summary>How it reasoned</summary>
-            <pre class="think">{thinking}</pre>
-          </details>
+        <button type="button" disabled={loading || running} on:click={refreshProbe}>Check compatibility again</button>
+      </details>
+
+      {#if preferred !== 'none'}
+        <section class="engine">
+          <h3>Choose and load a model</h3>
+          {#if bothEngines}
+            <fieldset>
+              <legend>Engine</legend>
+              <label>
+                <input type="radio" bind:group={selected} value="nano" disabled={loading || running} />
+                Gemini Nano — browser-managed model; a download may be needed
+              </label>
+              <label>
+                <input type="radio" bind:group={selected} value="webllm" disabled={loading || running} />
+                Qwen3 1.7B — about 1 GB from Hugging Face, then cached
+              </label>
+            </fieldset>
+          {:else if preferred === 'nano'}
+            <p>This Chrome can use <strong>Gemini Nano</strong>. Load it before you ask.</p>
+          {:else}
+            <p>
+              This browser can run <strong>Qwen3 1.7B</strong> (~1&nbsp;GB from Hugging Face, then cached). Load it before you ask.
+            </p>
+          {/if}
+
+          <button type="button" class="primary" disabled={!selected || loading || running} on:click={loadEngine}>
+            {session ? `Reload ${session.label}` : selected === 'nano' ? 'Load Gemini Nano' : 'Load Qwen3 1.7B'}
+          </button>
+          {#if loading || session}
+            <label class="progress">
+              <span>{progressText || (session ? session.label : '')}</span>
+              <progress max="100" value={progress}></progress>
+            </label>
+          {/if}
+        </section>
+      {/if}
+    {/if}
+
+    {#if section !== 'setup'}
+      {#if !session}<div class="setup-prompt">
+          <p>Load a local model before asking. Your text stays on this device; the model may need a download.</p>
+          <button type="button" on:click={() => (section = 'setup')}>Go to model setup</button>
+        </div>{/if}
+      <section class="actions">
+        <h3>{sections.find((item) => item.id === section)?.label}</h3>
+        {#if !session}
+          <p class="hint">Questions stay disabled until the model is loaded. First click is a download; later visits use the cache.</p>
+        {/if}
+        {#if section === 'forecast'}
+          <p class="hint">Explore the current scenario. These answers are experimental, not financial advice.</p>
+          <button type="button" disabled={!session || running || !forecastReady} on:click={explainForecast}> Why is this tight? </button>
+          <button type="button" disabled={!session || running || !forecastReady} on:click={upcomingHits}> What hits next? </button>
+          <button type="button" disabled={!session || running || !forecastReady} on:click={moneyDrains}> Where does the money go? </button>
+          {#if !forecastReady}
+            <p class="hint">Open a scenario with a forecast first.</p>
+          {/if}
+
+          <label>
+            Can I afford this?
+            <textarea bind:value={affordAsk} rows="2" placeholder={affordPlaceholder}></textarea>
+          </label>
+          <button type="button" disabled={!session || running || !forecastReady || !affordAsk.trim()} on:click={affordCheck}> Check </button>
+        {/if}
+        {#if section === 'draft'}
+          <p class="hint">Describe your bills and paydays. Review the draft before copying it into Entries.</p>
+          <label>
+            Draft entries from a description
+            <textarea bind:value={draftAsk} rows="3" placeholder={draftPlaceholder}></textarea>
+          </label>
+          <button type="button" disabled={!session || running || !draftAsk.trim()} on:click={draftEntries}> Draft entries </button>
+        {/if}
+        {#if section === 'question'}
+          <label>
+            A format question, or your own
+            <textarea bind:value={freeAsk} rows="2" placeholder="What does R2W mean?"></textarea>
+          </label>
+          <button type="button" disabled={!session || running || !freeAsk.trim()} on:click={freePrompt}>Ask</button>
         {/if}
       </section>
-    {/if}
-  {/if}
 
-  {#if error}
-    <p class="err">{error}</p>
-  {/if}
-</article>
+      {#if running}
+        <p class="hint" role="status">{progressText || 'Working…'}</p>
+      {/if}
+      {#if output}
+        <section class="output">
+          <div class="output-bar">
+            <h3>Result · {resultLabel}</h3>
+            <button type="button" on:click={copyOutput}>Copy</button>
+          </div>
+          {#if routedIds}
+            <details>
+              <summary>Technical details</summary>
+              <p class="hint">Matched types: {routedIds}</p>
+            </details>
+          {/if}
+          <pre>{output}</pre>
+          {#if thinking}
+            <details>
+              <summary>How it reasoned</summary>
+              <pre class="think">{thinking}</pre>
+            </details>
+          {/if}
+        </section>
+      {/if}
+    {/if}
+
+    {#if error}
+      <p class="err" role="alert">{error}</p>
+    {/if}
+  </article>
+</SectionWorkspace>
 
 <style lang="scss">
+  .session-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+    justify-content: space-between;
+    border: 1px solid #ccd5c9;
+    border-radius: 0.35rem;
+    background: #edf2e9;
+    padding: 0.65rem;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+    color: #163f2b;
+  }
+  .setup-prompt {
+    background: #fff8e6;
+    border-left: 3px solid #a37c24;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .setup-prompt p {
+    padding: 0;
+    margin: 0 0 0.5rem;
+    font-size: 0.85rem;
+  }
   .labs {
     width: 100%;
     max-width: none;
     box-sizing: border-box;
     margin: 0;
-    padding: 0.75rem 1rem 2rem;
+    padding: 0;
     text-align: left;
     color: #222;
   }
@@ -290,22 +349,9 @@
   .engine h3,
   .actions h3,
   .output h3 {
-    margin: 0 0 0.4rem;
-    color: #006600;
-  }
-
-  .badge {
-    display: inline-block;
-    margin: 0 0 0.35rem;
-    padding: 0.1rem 0.45rem;
-    background: #fff3cd;
-    border: 1px solid #cc8800;
-    border-radius: 0.3rem;
-    color: #664400;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+    margin: 0 0 0.6rem;
+    font-size: 1.1rem;
+    color: #163f2b;
   }
 
   .hero p,
@@ -361,7 +407,7 @@
   }
 
   .primary {
-    background: #009900;
+    background: #163f2b;
     color: #fff;
     font-weight: 700;
   }

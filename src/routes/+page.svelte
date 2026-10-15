@@ -189,28 +189,14 @@
                 {$settingsStore.currencyIsoCode}
               </a>
               {#if forecastReady && accountList.length > 1}
-                {#if accountList.length > 4}
-                  <label class="account-select">
-                    <span class="sr-only">Account</span>
-                    <select
-                      value={selectedAccountId}
-                      title={selectedAccountHelp(selectedAccount)}
-                      on:change={(e) => (selectedAccountId = e.currentTarget.value)}
-                    >
-                      {#each accountList as account (account)}
-                        <option value={account.id}>{formatAccountOption(account)}</option>
-                      {/each}
-                    </select>
-                  </label>
-                {:else}
-                  <div class="account-buttons" title={selectedAccountHelp(selectedAccount)}>
+                <label class="account-select">
+                  <span class="sr-only">Account</span>
+                  <select value={selectedAccountId} title={selectedAccountHelp(selectedAccount)} on:change={(e) => (selectedAccountId = e.currentTarget.value)}>
                     {#each accountList as account (account)}
-                      <button type="button" class:selected={selectedAccountId === account.id} on:click={() => (selectedAccountId = account.id)}>
-                        {formatAccountOption(account)}
-                      </button>
+                      <option value={account.id}>{formatAccountOption(account)}</option>
                     {/each}
-                  </div>
-                {/if}
+                  </select>
+                </label>
               {/if}
               <ForecastMenu
                 ready={forecastReady}
@@ -314,7 +300,7 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    padding-bottom: 0.75rem;
+    padding-bottom: 0;
   }
 
   .labs-boot {
@@ -349,9 +335,15 @@
 
   .forecast-column {
     box-sizing: border-box;
-    width: calc(100% - 2rem);
-    max-width: 64em;
-    margin: 0.35rem auto 0;
+    width: 100%;
+    max-width: 55em;
+    margin: 0 auto;
+    padding: 0.5rem 1rem 0.75rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
 
     :global(.bar.compact) {
       box-sizing: border-box;
@@ -373,6 +365,8 @@
     align-items: center;
     gap: 0.4rem;
     margin-left: auto;
+    min-width: 0;
+    max-width: 100%;
   }
 
   .currency-mark {
@@ -394,35 +388,23 @@
     background: #efe6c8;
   }
 
+  .account-select {
+    min-width: 0;
+    flex: 1;
+  }
+
   .account-select select {
     font-size: 0.85rem;
     padding: 0.25rem 0.4rem;
     border: 1px solid #d5d9d3;
     border-radius: 0.35rem;
-    max-width: 18em;
+    max-width: 100%;
+    width: 100%;
   }
 
-  .account-buttons {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
-  .account-buttons button {
-    background: #fff;
-    border: 1px solid #d5d9d3;
-    border-radius: 0.35rem;
-    color: #0d5c14;
-    cursor: pointer;
-    font-size: 0.75rem;
-    padding: 0.2rem 0.5rem;
-
-    &.selected {
-      background: #e8f2e8;
-      border-color: #009900;
-      color: #0d5c14;
-      font-weight: 700;
-    }
+  .forecast-column > :global(.bar),
+  .forecast-glance {
+    flex-shrink: 0;
   }
 
   .forecast-glance {
@@ -443,6 +425,8 @@
   @media (max-width: 40em) {
     .forecast-glance {
       grid-template-columns: 1fr;
+      max-height: 22vh;
+      overflow: auto;
     }
 
     .account-slot {

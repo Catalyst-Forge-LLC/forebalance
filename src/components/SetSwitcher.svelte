@@ -117,7 +117,9 @@
     align-items: center;
     gap: 0.35rem;
     margin-left: auto;
-    flex-shrink: 0;
+    flex-shrink: 1;
+    min-width: 0;
+    max-width: 100%;
   }
 
   select,
