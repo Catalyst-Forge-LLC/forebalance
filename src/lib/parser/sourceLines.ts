@@ -1,6 +1,6 @@
-import { formatLineExtras, parseLineExtras, type LineExtras } from '$lib/parser/lineExtras';
-import { splitLineFields, writeLine } from '$lib/parser/occurrenceEdit';
-import type { EntryType, OccurrenceOverride } from '$lib/parser/types';
+import { formatLineExtras, parseLineExtras, type LineExtras } from '#lib/parser/lineExtras.ts';
+import { splitLineFields, writeLine } from '#lib/parser/occurrenceEdit.ts';
+import type { EntryType, OccurrenceOverride } from '#lib/parser/types.ts';
 
 export interface SourceLine {
   index: number;

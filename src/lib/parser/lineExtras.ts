@@ -1,4 +1,4 @@
-import { DEFAULT_MIN_RATE, type PaymentStrategy } from '$lib/parser/types';
+import { DEFAULT_MIN_RATE, type PaymentStrategy } from '#lib/parser/types.ts';
 
 export interface LineExtras {
   accountSlot?: string;

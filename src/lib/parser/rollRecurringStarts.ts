@@ -1,9 +1,9 @@
 import dayjs from 'dayjs';
-import { isLastDayToken, localIsoDate } from '$lib/formatters/dates';
-import { setWhenStart, splitLineFields, writeLine } from '$lib/parser/occurrenceEdit';
-import { dayKey, parseDate, updateDateRecur } from '$lib/parser/recurrence';
-import type { OccurrenceOverride, Recur } from '$lib/parser/types';
-import { isEntryLineDisabled, stripDisabledPrefix } from '$lib/parser/validateEntries';
+import { isLastDayToken, localIsoDate } from '#lib/formatters/dates.ts';
+import { setWhenStart, splitLineFields, writeLine } from '#lib/parser/occurrenceEdit.ts';
+import { dayKey, parseDate, updateDateRecur } from '#lib/parser/recurrence.ts';
+import type { OccurrenceOverride, Recur } from '#lib/parser/types.ts';
+import { isEntryLineDisabled, stripDisabledPrefix } from '#lib/parser/validateEntries.ts';
 
 const MAX_WALK = 20_000;
 

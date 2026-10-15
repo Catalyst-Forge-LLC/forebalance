@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { everyUnit, type WhenForm, type RepeatKind } from '$lib/parser/whenForm';
+  import { everyUnit, type WhenForm, type RepeatKind } from '#lib/parser/whenForm.ts';
   export let whenForm: WhenForm;
   export let seriesIsEarly = false;
   export let onWhenChange: () => void;

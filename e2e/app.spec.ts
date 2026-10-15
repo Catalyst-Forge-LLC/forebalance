@@ -132,3 +132,59 @@ test('scenario account names render as text in tooltips', async ({ page }) => {
   await expect(tooltip.locator('img')).toHaveCount(0);
   await expect(tooltip).toContainText('<img');
 });
+
+test('static document routes refresh and return through reactive section links', async ({ page }) => {
+  for (const path of ['/about', '/privacy']) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(200);
+    await page.reload();
+    const entries = page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: 'Entries', exact: true });
+    await expect(entries).toHaveAttribute('href', '/#entries');
+    await entries.click();
+    await expect(page).toHaveURL(/\/#entries$/);
+    await expect(entries).toHaveAttribute('href', '#entries');
+    await expect(page.getByRole('button', { name: 'Raw', exact: true })).toBeVisible();
+    await page.goBack();
+    await expect(page).toHaveURL(new RegExp(path + '$'));
+    await expect(entries).toHaveAttribute('href', '/#entries');
+    await page.goForward();
+    await expect(page).toHaveURL(/\/#entries$/);
+    await expect(entries).toHaveAttribute('href', '#entries');
+  }
+});
+
+test('document dialogs and repeated tab selection retain drafts and router history', async ({ page }) => {
+  await seed(page);
+  await page.getByRole('button', { name: 'Raw', exact: true }).click();
+  const editor = page.locator('.cm-content');
+  await editor.fill(raw.replace('2500', '7300'));
+  await page.getByRole('button', { name: 'Site menu', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'About', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'About', exact: true })).toBeVisible();
+  const routerState = await page.evaluate(() => history.state);
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page).toHaveURL(/#entries$/);
+  await expect(editor).toContainText('7300');
+  // Tab replacements must retain Kit's history bookkeeping.
+  await page.getByRole('link', { name: 'Forecast', exact: true }).click();
+  await page.getByRole('link', { name: 'Forecast', exact: true }).click();
+  const state = await page.evaluate(() => history.state);
+  expect(state).toEqual(expect.objectContaining(routerState));
+  await page.getByRole('navigation', { name: 'Sections' }).getByRole('link', { name: 'Entries', exact: true }).click();
+  await expect(editor).toContainText('7300');
+  await page.reload();
+  await page.getByRole('button', { name: 'Raw', exact: true }).click();
+  await expect(page.locator('.cm-content')).toContainText('7300');
+});
+
+test('legacy query shares are consumed once and leave navigation usable', async ({ page }) => {
+  page.on('dialog', (dialog) => dialog.accept());
+  await page.goto('/?' + new URLSearchParams({ share: raw }));
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('rawEntries'))).toBe(raw);
+  await expect(page).toHaveURL(/\/#entries$/);
+  await page.getByRole('link', { name: 'Forecast', exact: true }).click();
+  await expect(page.locator('table')).toBeVisible();
+  await page.reload();
+  await expect(page.locator('table')).toBeVisible();
+});

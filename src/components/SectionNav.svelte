@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { page } from '$app/stores';
-  import { activeTabId } from '$lib/nav/activeTab';
-  import { TAB_IDS, type TabId } from '$lib/nav/hashes';
+  import { page } from '$app/state';
+  import { activeTabId } from '#lib/nav/activeTab.ts';
+  import { TAB_IDS, type TabId } from '#lib/nav/hashes.ts';
   import Icon from './Icon.svelte';
+
+  const pathname = $derived(page.url.pathname);
 
   const labels: Record<TabId, string> = {
     welcome: 'Welcome',
@@ -14,22 +16,22 @@
   };
 
   function hrefFor(id: TabId): string {
-    return $page.url.pathname === '/' ? `#${id}` : `/#${id}`;
+    return pathname === '/' ? `#${id}` : `/#${id}`;
   }
 
   function onClick(event: MouseEvent, id: TabId) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    if ($page.url.pathname !== '/') return;
+    if (pathname !== '/') return;
     event.preventDefault();
     const next = `#${id}`;
-    if (location.hash !== next) history.replaceState(null, '', next);
+    if (location.hash !== next) history.replaceState(history.state, '', next);
     window.dispatchEvent(new HashChangeEvent('hashchange'));
   }
 </script>
 
 <nav class="sections" aria-label="Sections">
   {#each TAB_IDS as id (id)}
-    <a href={hrefFor(id)} aria-current={$activeTabId === id ? 'page' : undefined} on:click={(event) => onClick(event, id)}>
+    <a href={hrefFor(id)} aria-current={$activeTabId === id ? 'page' : undefined} onclick={(event) => onClick(event, id)}>
       <Icon name={id} />
       <span>{labels[id]}</span>
     </a>

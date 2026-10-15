@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
-  import { buildForecastBrief, buildWhyTight, splitModelReply } from '$lib/labs/context';
-  import { localIsoDate } from '$lib/formatters/dates';
+  import { buildForecastBrief, buildWhyTight, splitModelReply } from '#lib/labs/context.ts';
+  import { localIsoDate } from '#lib/formatters/dates.ts';
   import {
     currencyPromptNote,
     describeMatches,
@@ -12,14 +12,14 @@
     specialistPrompt,
     typesById,
     type QueryType,
-  } from '$lib/labs/catalog';
-  import { keepPsvLines } from '$lib/labs/draft';
-  import { chooseBackend, hasWebGpu, probeNano, type LabsBackend, type NanoStatus } from '$lib/labs/detect';
-  import { WEBLLM_MODEL_ID, createLabsSession, type LabsSession } from '$lib/labs/session';
-  import { entrySetsStore } from '$lib/data/entrySets';
-  import { createFormatter } from '$lib/formatters/fmt';
-  import { settingsStore } from '$lib/stores/settings';
-  import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
+  } from '#lib/labs/catalog.ts';
+  import { keepPsvLines } from '#lib/labs/draft.ts';
+  import { chooseBackend, hasWebGpu, probeNano, type LabsBackend, type NanoStatus } from '#lib/labs/detect.ts';
+  import { WEBLLM_MODEL_ID, createLabsSession, type LabsSession } from '#lib/labs/session.ts';
+  import { entrySetsStore } from '#lib/data/entrySets.ts';
+  import { createFormatter } from '#lib/formatters/fmt.ts';
+  import { settingsStore } from '#lib/stores/settings.ts';
+  import type { BalanceFlags, ParsedEntry } from '#lib/parser/types.ts';
 
   export let entries: ParsedEntry[] = [];
   export let balanceFlags: BalanceFlags;

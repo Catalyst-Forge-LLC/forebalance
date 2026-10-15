@@ -1,4 +1,4 @@
-import { fmt } from '$lib/formatters/fmt';
+import { fmt } from '#lib/formatters/fmt.ts';
 import type { Account } from './types';
 
 export interface AccountDisplay {

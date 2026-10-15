@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Account, ParsedEntry } from '$lib/parser/types';
+import type { Account, ParsedEntry } from '#lib/parser/types.ts';
 import { csvEscape, fileSlug, forecastEntriesToCsv, forecastEntryCsvRow, forecastFilename, forecastSummaryText, formatSummaryStamp } from './exportCsv';
 
 function entry(partial: Partial<ParsedEntry> & Pick<ParsedEntry, 'type' | 'date'>): ParsedEntry {

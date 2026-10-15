@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { TocItem } from '$lib/md/toc';
+  import type { TocItem } from '#lib/md/toc.ts';
   import { onMount } from 'svelte';
-  import { dev } from '$app/environment';
+  import { dev } from '$app/env';
   import { marked } from 'marked';
-  import { githubSlug, tocFromMarkdown } from '$lib/md/toc';
+  import { githubSlug, tocFromMarkdown } from '#lib/md/toc.ts';
 
   export let filePath = '';
   /** Bundled markdown. When set, the text is in the first paint instead of a later fetch. */

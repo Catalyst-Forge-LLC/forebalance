@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DRAFT_SYSTEM, buildForecastBrief, buildWhyTight, splitModelReply } from './context';
-import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
+import type { BalanceFlags, ParsedEntry } from '#lib/parser/types.ts';
 
 const flags: BalanceFlags = {
   below: { negative: 0, low: 200, uncomfortable: 500 },

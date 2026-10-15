@@ -3,14 +3,14 @@
   import ImportedMarkdown from './ImportedMarkdown.svelte';
   import welcomeMd from '../../static/md/welcome.md?raw';
   import ForecastSparkline from './ForecastSparkline.svelte';
-  import { computeForecastSummary } from '$lib/parser/forecastSummary';
-  import { fmt } from '$lib/formatters/fmt';
-  import { addNamedSet, addSetFromTemplate, entrySetsStore, listTemplates, resolveStarterClick, switchEntrySet, updateActiveRaw } from '$lib/data/entrySets';
-  import { buildSimpleExample, SIMPLE_EXAMPLE_ID, SIMPLE_EXAMPLE_NAME } from '$lib/data/simpleExample';
-  import { getTemplate } from '$lib/data/entryTemplates';
-  import { activateEntrySet } from '$lib/data/entriesPersistence';
-  import { rawEntriesStore } from '$lib/stores/settings';
-  import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
+  import { computeForecastSummary } from '#lib/parser/forecastSummary.ts';
+  import { fmt } from '#lib/formatters/fmt.ts';
+  import { addNamedSet, addSetFromTemplate, entrySetsStore, listTemplates, resolveStarterClick, switchEntrySet, updateActiveRaw } from '#lib/data/entrySets.ts';
+  import { buildSimpleExample, SIMPLE_EXAMPLE_ID, SIMPLE_EXAMPLE_NAME } from '#lib/data/simpleExample.ts';
+  import { getTemplate } from '#lib/data/entryTemplates.ts';
+  import { activateEntrySet } from '#lib/data/entriesPersistence.ts';
+  import { rawEntriesStore } from '#lib/stores/settings.ts';
+  import type { BalanceFlags, ParsedEntry } from '#lib/parser/types.ts';
 
   export let entries: ParsedEntry[] = [];
   export let balanceFlags: BalanceFlags;

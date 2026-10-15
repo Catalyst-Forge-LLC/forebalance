@@ -1,10 +1,10 @@
 import { catalogPrompt } from './catalog';
-import { computeForecastSummary } from '$lib/parser/forecastSummary';
-import { localIsoDate } from '$lib/formatters/dates';
-import { fmt } from '$lib/formatters/fmt';
-import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
+import { computeForecastSummary } from '#lib/parser/forecastSummary.ts';
+import { localIsoDate } from '#lib/formatters/dates.ts';
+import { fmt } from '#lib/formatters/fmt.ts';
+import type { BalanceFlags, ParsedEntry } from '#lib/parser/types.ts';
 import { get } from 'svelte/store';
-import { settingsStore } from '$lib/stores/settings';
+import { settingsStore } from '#lib/stores/settings.ts';
 
 /** Full type catalog — the core Labs prompt. */
 export const LABS_SYSTEM = catalogPrompt();

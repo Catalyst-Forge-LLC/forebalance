@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { listedCurrencies } from '$lib/data/currencies';
-  import { ensureCurrencyHeader } from '$lib/data/currencyHeader';
-  import { defaultSettings } from '$lib/data/defaultSettings';
-  import { scaleThresholdSettings, thresholdSliderRange } from '$lib/data/thresholdScale';
-  import { resetAllData, setRawEntries } from '$lib/data/entriesPersistence';
-  import { persistSettings, rawEntriesStore, settingsStore } from '$lib/stores/settings';
-  import { categoriesStore, deleteCategory, loadCategories, persistCategories, uniqueCategoryId, UNFILED_ID, type Category } from '$lib/data/categories';
+  import { listedCurrencies } from '#lib/data/currencies.ts';
+  import { ensureCurrencyHeader } from '#lib/data/currencyHeader.ts';
+  import { defaultSettings } from '#lib/data/defaultSettings.ts';
+  import { scaleThresholdSettings, thresholdSliderRange } from '#lib/data/thresholdScale.ts';
+  import { resetAllData, setRawEntries } from '#lib/data/entriesPersistence.ts';
+  import { persistSettings, rawEntriesStore, settingsStore } from '#lib/stores/settings.ts';
+  import { categoriesStore, deleteCategory, loadCategories, persistCategories, uniqueCategoryId, UNFILED_ID, type Category } from '#lib/data/categories.ts';
   import { onMount } from 'svelte';
   import ConfirmResetModal from './ConfirmResetModal.svelte';
   import Icon from './Icon.svelte';

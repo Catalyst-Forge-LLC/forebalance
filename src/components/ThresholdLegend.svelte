@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { THRESHOLD_MARKS } from '$lib/formatters/thresholdMarks';
+  import { THRESHOLD_MARKS } from '#lib/formatters/thresholdMarks.ts';
 
   export let compact = false;
 </script>

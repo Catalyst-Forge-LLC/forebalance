@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { compareScenarios, diffScenarioLines } from '$lib/forecast/scenarioCompare';
-import type { BalanceFlags } from '$lib/parser/types';
+import { compareScenarios, diffScenarioLines } from '#lib/forecast/scenarioCompare.ts';
+import type { BalanceFlags } from '#lib/parser/types.ts';
 
 const flags: BalanceFlags = {
   below: { negative: 0, low: 0, uncomfortable: 0 },

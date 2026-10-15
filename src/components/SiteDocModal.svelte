@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import About from './About.svelte';
   import Privacy from './Privacy.svelte';
-  import { docIdFromHash, idFromHash, tabIdFromHash, type DocId } from '$lib/nav/hashes';
+  import { docIdFromHash, idFromHash, tabIdFromHash, type DocId } from '#lib/nav/hashes.ts';
 
   let doc: DocId | null = null;
   let returnHash = '#welcome';
@@ -27,7 +27,7 @@
   function dismiss() {
     const dest = returnHash || '#welcome';
     if (docIdFromHash()) {
-      history.replaceState(null, '', dest);
+      history.replaceState(history.state, '', dest);
     }
     doc = null;
   }

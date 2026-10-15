@@ -1,5 +1,5 @@
-import { parseRecur } from '$lib/parser/recurrence';
-import type { BusinessDayShift } from '$lib/parser/businessDays';
+import { parseRecur } from '#lib/parser/recurrence.ts';
+import type { BusinessDayShift } from '#lib/parser/businessDays.ts';
 
 /** Keep aligned with static/md/help.md — short enough for a 1.7B context. */
 export const FORMAT_CARD = `ForeBalance .psv (pipe-separated). One line:

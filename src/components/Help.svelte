@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { TocItem } from '$lib/md/toc';
+  import type { TocItem } from '#lib/md/toc.ts';
   import { onDestroy, tick } from 'svelte';
   import ImportedMarkdown from './ImportedMarkdown.svelte';
 

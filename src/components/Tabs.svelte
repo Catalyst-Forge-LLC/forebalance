@@ -6,13 +6,13 @@
     showLoader: boolean;
   }
   export const TABS = {};
-  export { TAB_IDS, tabIdFromHash } from '$lib/nav/hashes';
+  export { TAB_IDS, tabIdFromHash } from '#lib/nav/hashes.ts';
 </script>
 
 <script lang="ts">
-  import { activeTabId } from '$lib/nav/activeTab';
-  import { appStateStore } from '$lib/stores/settings';
-  import { tabIdFromHash } from '$lib/nav/hashes';
+  import { activeTabId } from '#lib/nav/activeTab.ts';
+  import { appStateStore } from '#lib/stores/settings.ts';
+  import { tabIdFromHash } from '#lib/nav/hashes.ts';
   import { setContext, onDestroy, onMount } from 'svelte';
   import { writable } from 'svelte/store';
 
@@ -27,7 +27,7 @@
     if (!tab) return;
     currentIndex = i;
     selectedTab.set(tab);
-    if (tab.id) activeTabId.set(tab.id as import('$lib/nav/hashes').TabId);
+    if (tab.id) activeTabId.set(tab.id as import('#lib/nav/hashes.ts').TabId);
     if (withLoader && panels[i]?.showLoader) {
       $appStateStore.showLoader = true;
       setTimeout(() => selectedPanel.set(panels[i]), 200);
@@ -63,7 +63,7 @@
       if (i < 0) return;
       applyIndex(i, true);
       if (tabText) {
-        history.replaceState(null, '', `#${tabText}`);
+        history.replaceState(history.state, '', `#${tabText}`);
       }
     },
 
@@ -90,7 +90,7 @@
     event.preventDefault();
     applyIndex(index, true);
     const id = tabs[index]?.id;
-    if (id) history.replaceState(null, '', `#${id}`);
+    if (id) history.replaceState(history.state, '', `#${id}`);
   }
 
   function onHashChange() {

@@ -1,4 +1,4 @@
-import type { SourceLine } from '$lib/parser/sourceLines';
+import type { SourceLine } from '#lib/parser/sourceLines.ts';
 
 /** Stable account id for a debt line that has a balance or APR but no account yet. */
 export function debtAccountId(desc: string): string {

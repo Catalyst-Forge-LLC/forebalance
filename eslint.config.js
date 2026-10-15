@@ -4,7 +4,6 @@ import svelte from 'eslint-plugin-svelte';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
-/** @type {import('eslint').Linter.Config[]} */
 export default tseslint.config(
   { ignores: ['build/**', '.svelte-kit/**', 'node_modules/**', 'static/**', 'playwright-report/**', 'test-results/**'] },
   eslint.configs.recommended,

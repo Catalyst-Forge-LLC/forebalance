@@ -1,13 +1,13 @@
 import dayjs from 'dayjs';
-import { fmt } from '$lib/formatters/fmt';
-import { applyBusinessDayShift } from '$lib/parser/businessDays';
-import { applyOverrideToEntry, splitLineFields } from '$lib/parser/occurrenceEdit';
-import { dayKey, getBalanceFlag, getRandomId, parseDate, sortEntries, raisedAmount, updateDateRecur, updateDescRecur } from '$lib/parser/recurrence';
-import { parseAccountDisplay } from '$lib/parser/accountLabel';
-import { parseLineExtras, resolvePayment } from '$lib/parser/lineExtras';
-import { earliestBalanceDate, occurrenceIndexOnOrBefore } from '$lib/parser/rollRecurringStarts';
-import { isEntryLineDisabled } from '$lib/parser/validateEntries';
-import type { Account, AccountEntries, Accounts, BalanceFlags, ParsedEntry, ParseOptions, ParseResult } from '$lib/parser/types';
+import { fmt } from '#lib/formatters/fmt.ts';
+import { applyBusinessDayShift } from '#lib/parser/businessDays.ts';
+import { applyOverrideToEntry, splitLineFields } from '#lib/parser/occurrenceEdit.ts';
+import { dayKey, getBalanceFlag, getRandomId, parseDate, sortEntries, raisedAmount, updateDateRecur, updateDescRecur } from '#lib/parser/recurrence.ts';
+import { parseAccountDisplay } from '#lib/parser/accountLabel.ts';
+import { parseLineExtras, resolvePayment } from '#lib/parser/lineExtras.ts';
+import { earliestBalanceDate, occurrenceIndexOnOrBefore } from '#lib/parser/rollRecurringStarts.ts';
+import { isEntryLineDisabled } from '#lib/parser/validateEntries.ts';
+import type { Account, AccountEntries, Accounts, BalanceFlags, ParsedEntry, ParseOptions, ParseResult } from '#lib/parser/types.ts';
 
 function applyAccountDisplay(account: Account, desc: string | null | undefined): void {
   const display = parseAccountDisplay(desc, account.id);
@@ -163,7 +163,7 @@ function parseRawEntries(rawEntries: string, recurringEntries: Record<string, nu
   return { accounts, parsedEntries };
 }
 
-export { applyForecastEdit } from '$lib/parser/occurrenceEdit';
+export { applyForecastEdit } from '#lib/parser/occurrenceEdit.ts';
 
 export function parseEntries(rawEntries: string, monthsToForecast: number, balanceFlags: BalanceFlags, options: ParseOptions = {}): ParseResult {
   const useFederalHolidays = options.useFederalHolidays ?? true;

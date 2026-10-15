@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultSettings } from '$lib/data/defaultSettings';
+import { defaultSettings } from '#lib/data/defaultSettings.ts';
 import { createFormatter } from './fmt';
 
 describe('createFormatter', () => {

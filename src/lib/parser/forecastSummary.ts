@@ -1,4 +1,4 @@
-import { localIsoDate } from '$lib/formatters/dates';
+import { localIsoDate } from '#lib/formatters/dates.ts';
 import type { BalanceFlags, ParsedEntry } from './types';
 
 export interface SummaryPoint {

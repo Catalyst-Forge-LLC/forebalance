@@ -25,8 +25,8 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.64.0",
-    "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.70.3",
+    "@sveltejs/adapter-static": "^4.0.0",
+    "@sveltejs/kit": "^3.0.1",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
     "@types/node": "^22.20.5",
     "@types/wicg-file-system-access": "^2023.10.7",
@@ -41,7 +41,7 @@
     "sass": "^1.105.1",
     "svelte": "^5.57.2",
     "svelte-check": "^4.7.6",
-    "typescript": "^5.9.3",
+    "typescript": "~6.0.3",
     "typescript-eslint": "^8.71.2",
     "vite": "^8.3.4",
     "vitest": "^4.1.11",
@@ -76,5 +76,8 @@
       "brace-expansion@1": ">=1.1.18",
       "brace-expansion@5": ">=5.0.9"
     }
+  },
+  "imports": {
+    "#lib/*": "./src/lib/*"
   }
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { defaultSettings } from '$lib/data/defaultSettings';
-import { readSourceLine } from '$lib/parser/sourceLines';
+import { defaultSettings } from '#lib/data/defaultSettings.ts';
+import { readSourceLine } from '#lib/parser/sourceLines.ts';
 import { answerCardQuestion, cardLabsSystemPrompt, PAYOFF_CHIP } from './cardAsk';
 import { evaluateMathJson } from './mathjson';
 

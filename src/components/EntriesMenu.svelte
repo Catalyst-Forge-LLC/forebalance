@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type { EntryTemplate } from '$lib/data/entryTemplates';
-  import { formatHistoryLabel, historySnippet, type EntryVersion } from '$lib/data/entryHistory';
+  import type { EntryTemplate } from '#lib/data/entryTemplates.ts';
+  import { formatHistoryLabel, historySnippet, type EntryVersion } from '#lib/data/entryHistory.ts';
   import Icon from './Icon.svelte';
 
   export let canDelete = true;

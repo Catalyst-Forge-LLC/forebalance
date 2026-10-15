@@ -1,6 +1,6 @@
 import { defaultSettings } from './defaultSettings';
 import { normalizeCurrency } from './currencies';
-import type { Settings } from '$lib/parser/types';
+import type { Settings } from '#lib/parser/types.ts';
 
 /**
  * Household-buffer scale vs USD. Not a live FX rate — order-of-magnitude so

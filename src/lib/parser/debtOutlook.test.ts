@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { parseEntries } from '$lib/parser/parseEntries';
-import { debtOutlook } from '$lib/parser/debtOutlook';
-import type { BalanceFlags } from '$lib/parser/types';
+import { parseEntries } from '#lib/parser/parseEntries.ts';
+import { debtOutlook } from '#lib/parser/debtOutlook.ts';
+import type { BalanceFlags } from '#lib/parser/types.ts';
 
 const flags: BalanceFlags = {
   below: { negative: 0, low: 0, uncomfortable: 0 },

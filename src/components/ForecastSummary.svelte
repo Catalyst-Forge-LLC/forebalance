@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { computeForecastSummary } from '$lib/parser/forecastSummary';
-  import { fmt } from '$lib/formatters/fmt';
-  import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
+  import { computeForecastSummary } from '#lib/parser/forecastSummary.ts';
+  import { fmt } from '#lib/formatters/fmt.ts';
+  import type { BalanceFlags, ParsedEntry } from '#lib/parser/types.ts';
 
   export let entries: ParsedEntry[] = [];
   export let balanceFlags: BalanceFlags;

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { defaultSettings } from './defaultSettings';
 import { getTemplate } from './entryTemplates';
-import { parseEntries } from '$lib/parser/parseEntries';
-import { computeForecastSummary } from '$lib/parser/forecastSummary';
+import { parseEntries } from '#lib/parser/parseEntries.ts';
+import { computeForecastSummary } from '#lib/parser/forecastSummary.ts';
 
 const balanceFlags = {
   below: {

@@ -1,9 +1,9 @@
 import dayjs from 'dayjs';
-import { accountDisplayName } from '$lib/parser/accountLabel';
-import { debtOutlook } from '$lib/parser/debtOutlook';
-import { parseEntries } from '$lib/parser/parseEntries';
-import { computeForecastSummary } from '$lib/parser/forecastSummary';
-import type { Account, AccountEntries, BalanceFlags, ParseOptions } from '$lib/parser/types';
+import { accountDisplayName } from '#lib/parser/accountLabel.ts';
+import { debtOutlook } from '#lib/parser/debtOutlook.ts';
+import { parseEntries } from '#lib/parser/parseEntries.ts';
+import { computeForecastSummary } from '#lib/parser/forecastSummary.ts';
+import type { Account, AccountEntries, BalanceFlags, ParseOptions } from '#lib/parser/types.ts';
 
 export interface MonthBalance {
   month: string;

@@ -1,7 +1,7 @@
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 const file = vi.hoisted(() => ({ restoreLinkedFile: vi.fn(), writeLinkedPsvFile: vi.fn(), linkedFileGeneration: () => 4, unlinkPsvFile: vi.fn() }));
-vi.mock('$lib/persistence/psvPersistence', () => file);
+vi.mock('#lib/persistence/psvPersistence.ts', () => file);
 
 beforeEach(() => {
   vi.resetModules();

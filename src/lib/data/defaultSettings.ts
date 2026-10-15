@@ -1,4 +1,4 @@
-import type { Settings } from '$lib/parser/types';
+import type { Settings } from '#lib/parser/types.ts';
 
 export const defaultSettings: Settings = {
   thresholdGoalBalance: 2500,

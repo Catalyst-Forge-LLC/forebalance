@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { categoriesStore } from '$lib/data/categories';
-  import { exportAllSetsBackup } from '$lib/data/entrySets';
-  import { rawEntriesStore, settingsStore } from '$lib/stores/settings';
+  import { categoriesStore } from '#lib/data/categories.ts';
+  import { exportAllSetsBackup } from '#lib/data/entrySets.ts';
+  import { rawEntriesStore, settingsStore } from '#lib/stores/settings.ts';
   import Icon from './Icon.svelte';
 
   export let open = false;

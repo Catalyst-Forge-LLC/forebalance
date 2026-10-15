@@ -1,8 +1,8 @@
-import { storage } from '$lib/persistence/storage';
+import { storage } from '#lib/persistence/storage.ts';
 import { get, writable } from 'svelte/store';
-import type { Settings } from '$lib/parser/types';
-import { defaultSettings } from '$lib/data/defaultSettings';
-import { scaleThresholdSettings } from '$lib/data/thresholdScale';
+import type { Settings } from '#lib/parser/types.ts';
+import { defaultSettings } from '#lib/data/defaultSettings.ts';
+import { scaleThresholdSettings } from '#lib/data/thresholdScale.ts';
 
 export const settingsStore = writable<Settings>({ ...defaultSettings });
 export const rawEntriesStore = writable('');

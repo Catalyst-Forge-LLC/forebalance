@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { defaultSettings } from './defaultSettings';
 import { buildSimpleExample } from './simpleExample';
-import { parseEntries } from '$lib/parser/parseEntries';
+import { parseEntries } from '#lib/parser/parseEntries.ts';
 
 const balanceFlags = {
   below: {

@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
-import { isLastDayToken, localIsoDate } from '$lib/formatters/dates';
-import { getDate } from '$lib/parser/recurrence';
-import type { OccurrenceOverride, ParsedEntry } from '$lib/parser/types';
+import { isLastDayToken, localIsoDate } from '#lib/formatters/dates.ts';
+import { getDate } from '#lib/parser/recurrence.ts';
+import type { OccurrenceOverride, ParsedEntry } from '#lib/parser/types.ts';
 
 export type ForecastEditScope = 'occurrence' | 'series';
 

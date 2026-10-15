@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { modal } from '$lib/ui/modal';
+  import { modal } from '#lib/ui/modal.ts';
   import {
     addSetFromTemplate,
     deleteEntrySet,
@@ -10,11 +10,11 @@
     listTemplates,
     uniqueSetName,
     updateActiveRaw,
-  } from '$lib/data/entrySets';
-  import { ensureCurrencyHeader } from '$lib/data/currencyHeader';
-  import { activateEntrySet } from '$lib/data/entriesPersistence';
-  import { rawEntriesStore, settingsStore } from '$lib/stores/settings';
-  import { fmt } from '$lib/formatters/fmt';
+  } from '#lib/data/entrySets.ts';
+  import { ensureCurrencyHeader } from '#lib/data/currencyHeader.ts';
+  import { activateEntrySet } from '#lib/data/entriesPersistence.ts';
+  import { rawEntriesStore, settingsStore } from '#lib/stores/settings.ts';
+  import { fmt } from '#lib/formatters/fmt.ts';
   import ConfirmModal from './ConfirmModal.svelte';
   import SetSwitcher from './SetSwitcher.svelte';
 

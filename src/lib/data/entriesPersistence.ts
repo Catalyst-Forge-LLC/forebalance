@@ -1,12 +1,20 @@
-import { storage, readJson } from '$lib/persistence/storage';
+import { storage, readJson } from '#lib/persistence/storage.ts';
 import { readSettings } from './readSettings';
 import { get } from 'svelte/store';
-import { defaultSettings } from '$lib/data/defaultSettings';
-import { entrySetsStore, getActiveSet, loadEntrySets, migrateLegacyEntries, persistEntrySets, resetToStarterSets, updateActiveRaw } from '$lib/data/entrySets';
-import { clearEntryHistory, loadEntryHistory, recordEntryVersion } from '$lib/data/entryHistory';
-import { restoreLinkedFile, writeLinkedPsvFile, linkedFileGeneration, unlinkPsvFile } from '$lib/persistence/psvPersistence';
-import { extractCurrency } from '$lib/data/currencyHeader';
-import { applyDisplayCurrency, persistSettings, rawEntriesStore } from '$lib/stores/settings';
+import { defaultSettings } from '#lib/data/defaultSettings.ts';
+import {
+  entrySetsStore,
+  getActiveSet,
+  loadEntrySets,
+  migrateLegacyEntries,
+  persistEntrySets,
+  resetToStarterSets,
+  updateActiveRaw,
+} from '#lib/data/entrySets.ts';
+import { clearEntryHistory, loadEntryHistory, recordEntryVersion } from '#lib/data/entryHistory.ts';
+import { restoreLinkedFile, writeLinkedPsvFile, linkedFileGeneration, unlinkPsvFile } from '#lib/persistence/psvPersistence.ts';
+import { extractCurrency } from '#lib/data/currencyHeader.ts';
+import { applyDisplayCurrency, persistSettings, rawEntriesStore } from '#lib/stores/settings.ts';
 
 const USER_ENTRIES_KEY = 'userEntries';
 const PERSIST_DELAY_MS = 800;

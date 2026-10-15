@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
-import { settingsStore } from '$lib/stores/settings';
-import type { Settings } from '$lib/parser/types';
+import { settingsStore } from '#lib/stores/settings.ts';
+import type { Settings } from '#lib/parser/types.ts';
 import { localIsoDate } from './dates';
 
 function getSettings(): Settings {

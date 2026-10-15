@@ -2,7 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { EditorView, basicSetup } from 'codemirror';
   import { EditorState } from '@codemirror/state';
-  import { psvLinter, psvTheme } from '$lib/editor/psvExtensions';
+  import { psvLinter, psvTheme } from '#lib/editor/psvExtensions.ts';
 
   export let value = '';
   export let scenarioId = '';

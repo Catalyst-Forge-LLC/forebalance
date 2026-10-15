@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { AccountEntries, Accounts } from '$lib/parser/types';
-  import { appStateStore, settingsStore, rawEntriesStore } from '$lib/stores/settings';
+  import type { AccountEntries, Accounts } from '#lib/parser/types.ts';
+  import { appStateStore, settingsStore, rawEntriesStore } from '#lib/stores/settings.ts';
   import { Tabs, TabList, TabPanel, Tab } from './../components/tabs';
-  import { parseEntries } from '$lib/parser/parseEntries';
-  import { currencyLabel } from '$lib/data/currencies';
-  import { accountDisplayName, formatAccountOption } from '$lib/parser/accountLabel';
-  import { fmt } from '$lib/formatters/fmt';
+  import { parseEntries } from '#lib/parser/parseEntries.ts';
+  import { currencyLabel } from '#lib/data/currencies.ts';
+  import { accountDisplayName, formatAccountOption } from '#lib/parser/accountLabel.ts';
+  import { fmt } from '#lib/formatters/fmt.ts';
 
   import ForecastTable from '../components/ForecastTable.svelte';
   import ForecastSummary from '../components/ForecastSummary.svelte';
@@ -15,16 +15,16 @@
   import Help from '../components/Help.svelte';
   import Welcome from '../components/Welcome.svelte';
 
-  import { loadCategories } from '$lib/data/categories';
-  import { initializeData } from '$lib/data/initializeData';
-  import { downloadTextFile, entrySetsStore, getActiveSet, switchEntrySet } from '$lib/data/entrySets';
-  import { shareUrl, takeSharePayload } from '$lib/data/shareLink';
-  import { activateEntrySet, setRawEntries } from '$lib/data/entriesPersistence';
-  import { compareScenarios } from '$lib/forecast/scenarioCompare';
-  import { forecastAllAccountsToCsv, forecastEntriesToCsv, forecastFilename, forecastSummaryText } from '$lib/forecast/exportCsv';
-  import { forecastBlockReason } from '$lib/parser/forecastReady';
+  import { loadCategories } from '#lib/data/categories.ts';
+  import { initializeData } from '#lib/data/initializeData.ts';
+  import { downloadTextFile, entrySetsStore, getActiveSet, switchEntrySet } from '#lib/data/entrySets.ts';
+  import { shareUrl, takeSharePayload } from '#lib/data/shareLink.ts';
+  import { activateEntrySet, setRawEntries } from '#lib/data/entriesPersistence.ts';
+  import { compareScenarios } from '#lib/forecast/scenarioCompare.ts';
+  import { forecastAllAccountsToCsv, forecastEntriesToCsv, forecastFilename, forecastSummaryText } from '#lib/forecast/exportCsv.ts';
+  import { forecastBlockReason } from '#lib/parser/forecastReady.ts';
   import { onMount } from 'svelte';
-  import { logd } from '$lib/util/log';
+  import { logd } from '#lib/util/log.ts';
   import Icon from '../components/Icon.svelte';
   import SetSwitcher from '../components/SetSwitcher.svelte';
   import ForecastMenu from '../components/ForecastMenu.svelte';

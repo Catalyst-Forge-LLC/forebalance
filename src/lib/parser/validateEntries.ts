@@ -1,4 +1,4 @@
-import { parseOverrideField } from '$lib/parser/occurrenceEdit';
+import { parseOverrideField } from '#lib/parser/occurrenceEdit.ts';
 
 export interface EntryValidation {
   line: number;

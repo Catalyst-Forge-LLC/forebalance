@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { fmt } from '$lib/formatters/fmt';
-  import { answerCardQuestion, chipsForLine, type CardAnswer } from '$lib/labs/cardAsk';
-  import type { SourceLine } from '$lib/parser/sourceLines';
-  import type { Settings } from '$lib/parser/types';
+  import { fmt } from '#lib/formatters/fmt.ts';
+  import { answerCardQuestion, chipsForLine, type CardAnswer } from '#lib/labs/cardAsk.ts';
+  import type { SourceLine } from '#lib/parser/sourceLines.ts';
+  import type { Settings } from '#lib/parser/types.ts';
 
   export let raw = '';
   export let line: SourceLine;

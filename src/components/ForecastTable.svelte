@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { appStateStore, rawEntriesStore } from '$lib/stores/settings';
-  import { cardEditRequest } from '$lib/stores/cardEdit';
-  import { setRawEntries } from '$lib/data/entriesPersistence';
-  import { applyForecastEdit, type ForecastEditScope } from '$lib/parser/occurrenceEdit';
+  import { appStateStore, rawEntriesStore } from '#lib/stores/settings.ts';
+  import { cardEditRequest } from '#lib/stores/cardEdit.ts';
+  import { setRawEntries } from '#lib/data/entriesPersistence.ts';
+  import { applyForecastEdit, type ForecastEditScope } from '#lib/parser/occurrenceEdit.ts';
   import { onMount } from 'svelte';
-  import { fmt } from '$lib/formatters/fmt';
-  import { flagIndicator, flagLabel } from '$lib/formatters/thresholdMarks';
-  import { accountDisplayName } from '$lib/parser/accountLabel';
-  import type { ParsedEntry, Accounts } from '$lib/parser/types';
+  import { fmt } from '#lib/formatters/fmt.ts';
+  import { flagIndicator, flagLabel } from '#lib/formatters/thresholdMarks.ts';
+  import { accountDisplayName } from '#lib/parser/accountLabel.ts';
+  import type { ParsedEntry, Accounts } from '#lib/parser/types.ts';
   import Tooltip from './Tooltip.svelte';
   import ThresholdLegend from './ThresholdLegend.svelte';
   import Icon from './Icon.svelte';

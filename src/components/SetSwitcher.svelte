@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { entrySetsStore, renameEntrySet, switchEntrySet } from '$lib/data/entrySets';
-  import { activateEntrySet } from '$lib/data/entriesPersistence';
-  import { rawEntriesStore } from '$lib/stores/settings';
+  import { entrySetsStore, renameEntrySet, switchEntrySet } from '#lib/data/entrySets.ts';
+  import { activateEntrySet } from '#lib/data/entriesPersistence.ts';
+  import { rawEntriesStore } from '#lib/stores/settings.ts';
 
   export let editable = true;
 

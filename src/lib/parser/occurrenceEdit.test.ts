@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { applyForecastEdit, parseOverrideField } from './occurrenceEdit';
 import { parseEntries } from './parseEntries';
-import { localIsoDate } from '$lib/formatters/dates';
+import { localIsoDate } from '#lib/formatters/dates.ts';
 import type { BalanceFlags, ParsedEntry } from './types';
 
 const balanceFlags: BalanceFlags = {

@@ -1,10 +1,10 @@
-import { storage, canUseBrowserStorage } from '$lib/persistence/storage';
+import { storage, canUseBrowserStorage } from '#lib/persistence/storage.ts';
 import { get, writable } from 'svelte/store';
-import { entrySetsStore, persistEntrySets } from '$lib/data/entrySets';
-import { formatLineExtras, parseLineExtras } from '$lib/parser/lineExtras';
-import { splitLineFields, writeLine } from '$lib/parser/occurrenceEdit';
-import { rawEntriesStore } from '$lib/stores/settings';
-import { setRawEntries } from '$lib/data/entriesPersistence';
+import { entrySetsStore, persistEntrySets } from '#lib/data/entrySets.ts';
+import { formatLineExtras, parseLineExtras } from '#lib/parser/lineExtras.ts';
+import { splitLineFields, writeLine } from '#lib/parser/occurrenceEdit.ts';
+import { rawEntriesStore } from '#lib/stores/settings.ts';
+import { setRawEntries } from '#lib/data/entriesPersistence.ts';
 
 export const CATEGORIES_KEY = 'forebalance.categories.v1';
 export const UNFILED_ID = 'unfiled';

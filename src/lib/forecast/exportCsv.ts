@@ -1,10 +1,10 @@
 import { get } from 'svelte/store';
-import { localFileStamp, localIsoDate } from '$lib/formatters/dates';
-import { fmt } from '$lib/formatters/fmt';
-import { accountDisplayName } from '$lib/parser/accountLabel';
-import { computeForecastSummary, type ForecastSummary } from '$lib/parser/forecastSummary';
-import type { Account, Accounts, BalanceFlags, ParsedEntry } from '$lib/parser/types';
-import { settingsStore } from '$lib/stores/settings';
+import { localFileStamp, localIsoDate } from '#lib/formatters/dates.ts';
+import { fmt } from '#lib/formatters/fmt.ts';
+import { accountDisplayName } from '#lib/parser/accountLabel.ts';
+import { computeForecastSummary, type ForecastSummary } from '#lib/parser/forecastSummary.ts';
+import type { Account, Accounts, BalanceFlags, ParsedEntry } from '#lib/parser/types.ts';
+import { settingsStore } from '#lib/stores/settings.ts';
 
 export const FORECAST_CSV_HEADERS = [
   'date',

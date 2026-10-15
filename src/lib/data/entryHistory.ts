@@ -1,5 +1,5 @@
 import { get, writable } from 'svelte/store';
-import { canUseBrowserStorage, storage } from '$lib/persistence/storage';
+import { canUseBrowserStorage, storage } from '#lib/persistence/storage.ts';
 
 export const HISTORY_LIMIT = 20;
 export const HISTORY_KEY = 'forebalance_entryHistory';

@@ -1,15 +1,15 @@
 <script lang="ts">
-  import { storage, canUseBrowserStorage } from '$lib/persistence/storage';
-  import { validateRawEntries } from '$lib/parser/validateEntries';
+  import { storage, canUseBrowserStorage } from '#lib/persistence/storage.ts';
+  import { validateRawEntries } from '#lib/parser/validateEntries.ts';
   import { onMount } from 'svelte';
-  import { logd } from '$lib/util/log';
-  import { formatHistoryLabel, listEntryVersions, type EntryVersion, entryHistoryStore } from '$lib/data/entryHistory';
-  import { listedCurrencies } from '$lib/data/currencies';
-  import { ensureCurrencyHeader, extractCurrency } from '$lib/data/currencyHeader';
-  import { categoriesStore, loadCategories } from '$lib/data/categories';
-  import { entrySetsStore } from '$lib/data/entrySets';
-  import { setRawEntries, setScenarioRaw } from '$lib/data/entriesPersistence';
-  import { applyDisplayCurrency, rawEntriesStore, settingsStore } from '$lib/stores/settings';
+  import { logd } from '#lib/util/log.ts';
+  import { formatHistoryLabel, listEntryVersions, type EntryVersion, entryHistoryStore } from '#lib/data/entryHistory.ts';
+  import { listedCurrencies } from '#lib/data/currencies.ts';
+  import { ensureCurrencyHeader, extractCurrency } from '#lib/data/currencyHeader.ts';
+  import { categoriesStore, loadCategories } from '#lib/data/categories.ts';
+  import { entrySetsStore } from '#lib/data/entrySets.ts';
+  import { setRawEntries, setScenarioRaw } from '#lib/data/entriesPersistence.ts';
+  import { applyDisplayCurrency, rawEntriesStore, settingsStore } from '#lib/stores/settings.ts';
   import {
     linkedFile,
     confirmPendingLink,
@@ -19,12 +19,12 @@
     linkPsvFile,
     readImportFile,
     unlinkPsvFile,
-  } from '$lib/persistence/psvPersistence';
+  } from '#lib/persistence/psvPersistence.ts';
   import Dropzone from 'svelte-file-dropzone';
-  import type { EntryValidation } from '$lib/parser/validateEntries';
-  import { rollRecurringStarts } from '$lib/parser/rollRecurringStarts';
-  import { readSourceLines } from '$lib/parser/sourceLines';
-  import { cardEditRequest } from '$lib/stores/cardEdit';
+  import type { EntryValidation } from '#lib/parser/validateEntries.ts';
+  import { rollRecurringStarts } from '#lib/parser/rollRecurringStarts.ts';
+  import { readSourceLines } from '#lib/parser/sourceLines.ts';
+  import { cardEditRequest } from '#lib/stores/cardEdit.ts';
   import ConfirmModal from './ConfirmModal.svelte';
   import EntriesMenu from './EntriesMenu.svelte';
   import EntrySetsPanel from './EntrySetsPanel.svelte';

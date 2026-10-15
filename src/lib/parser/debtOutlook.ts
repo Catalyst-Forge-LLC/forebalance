@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import type { ParsedEntry } from '$lib/parser/types';
+import type { ParsedEntry } from '#lib/parser/types.ts';
 
 export interface DebtPayment {
   date: Date;

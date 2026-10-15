@@ -1,10 +1,10 @@
-import { createFormatter } from '$lib/formatters/fmt';
-import { localIsoDate } from '$lib/formatters/dates';
-import { debtOutlook, type DebtOutlook } from '$lib/parser/debtOutlook';
-import { parseEntries } from '$lib/parser/parseEntries';
-import { replaceSourceLine, writeSourceLine, type SourceLine } from '$lib/parser/sourceLines';
-import { ensureDebtAccount } from '$lib/parser/debtAccount';
-import type { Account, BalanceFlags, ParsedEntry, Settings } from '$lib/parser/types';
+import { createFormatter } from '#lib/formatters/fmt.ts';
+import { localIsoDate } from '#lib/formatters/dates.ts';
+import { debtOutlook, type DebtOutlook } from '#lib/parser/debtOutlook.ts';
+import { parseEntries } from '#lib/parser/parseEntries.ts';
+import { replaceSourceLine, writeSourceLine, type SourceLine } from '#lib/parser/sourceLines.ts';
+import { ensureDebtAccount } from '#lib/parser/debtAccount.ts';
+import type { Account, BalanceFlags, ParsedEntry, Settings } from '#lib/parser/types.ts';
 import { evaluateMathJson, humanizeMathJson, MathJsonError } from './mathjson';
 
 export const PAYOFF_CHIP = 'When will this be paid off at my current rate?';

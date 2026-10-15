@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { fmt } from '$lib/formatters/fmt';
-  import type { BalanceFlags, ParsedEntry } from '$lib/parser/types';
+  import { fmt } from '#lib/formatters/fmt.ts';
+  import type { BalanceFlags, ParsedEntry } from '#lib/parser/types.ts';
 
   export let entries: ParsedEntry[] = [];
   export let balanceFlags: BalanceFlags;

@@ -1,8 +1,8 @@
-import { storage, storageError, canUseBrowserStorage } from '$lib/persistence/storage';
+import { storage, storageError, canUseBrowserStorage } from '#lib/persistence/storage.ts';
 import { get, writable } from 'svelte/store';
-import { pruneEntryHistory } from '$lib/data/entryHistory';
-import { ensureCurrencyHeader, extractCurrency } from '$lib/data/currencyHeader';
-import { getRandomId } from '$lib/parser/recurrence';
+import { pruneEntryHistory } from '#lib/data/entryHistory.ts';
+import { ensureCurrencyHeader, extractCurrency } from '#lib/data/currencyHeader.ts';
+import { getRandomId } from '#lib/parser/recurrence.ts';
 import { buildDefaultEntries, entryTemplates, getTemplate, type EntryTemplate } from './entryTemplates';
 
 export interface EntrySet {

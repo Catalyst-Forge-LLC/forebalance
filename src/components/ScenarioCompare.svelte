@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { fmt } from '$lib/formatters/fmt';
-  import type { LineChange, ScenarioSnapshot } from '$lib/forecast/scenarioCompare';
+  import { fmt } from '#lib/formatters/fmt.ts';
+  import type { LineChange, ScenarioSnapshot } from '#lib/forecast/scenarioCompare.ts';
 
   export let leftName = '';
   export let rightName = '';

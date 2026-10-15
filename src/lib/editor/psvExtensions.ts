@@ -2,7 +2,7 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 import { linter, type Diagnostic } from '@codemirror/lint';
 import { tags as t } from '@lezer/highlight';
 import { EditorView, Decoration, ViewPlugin, type DecorationSet } from '@codemirror/view';
-import { validateRawEntries } from '$lib/parser/validateEntries';
+import { validateRawEntries } from '#lib/parser/validateEntries.ts';
 
 const psvHighlightStyle = HighlightStyle.define([
   { tag: t.comment, color: '#888', fontStyle: 'italic' },

@@ -1,6 +1,6 @@
 <script>
-  import { storageError } from '$lib/persistence/storage';
-  import { fileStatus } from '$lib/persistence/psvPersistence';
+  import { storageError } from '#lib/persistence/storage.ts';
+  import { fileStatus } from '#lib/persistence/psvPersistence.ts';
   import Header from '../components/Header.svelte';
   import SiteDocModal from '../components/SiteDocModal.svelte';
   import '../app.scss';
