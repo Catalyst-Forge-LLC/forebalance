@@ -85,11 +85,12 @@
     <div class="intro-copy">
       <span class="eyebrow">Your cash flow, in perspective</span>
       <h1>See the balance ahead.</h1>
-      <p>Turn your paychecks, bills, and balances into a clearer picture of what’s coming.</p>
+      <p>See when bills land before payday and how low your balance may go. Start with the sample, then enter your own paychecks, bills, and balances.</p>
       <div class="intro-actions">
         <a class="primary-link" href="#entries">Edit your entries <span aria-hidden="true">→</span></a>
         <button type="button" class="sample-link" on:click={loadSimpleExample}>Try a simple example</button>
       </div>
+    <p class="intro-boundary">A browser cash-flow planner. Your working copy stays on this device.</p>
     </div>
     <img class="welcome-mark" src="/logo.png" width="150" height="150" alt="" />
   </header>
@@ -212,6 +213,7 @@
     color: #fff;
     border-bottom: 4px solid $clr-gold;
   }
+  .welcome-intro .intro-boundary { margin: 1rem 0 0; font-size: .875rem; line-height: 1.6; }
   .intro-copy {
     flex: 1;
     min-width: 0;
