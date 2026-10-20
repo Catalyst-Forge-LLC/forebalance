@@ -93,8 +93,8 @@ importers:
         specifier: ^3.23.1
         version: 3.23.1(eslint@10.12.0)(svelte@5.57.2(@typescript-eslint/types@8.71.2))
       globals:
-        specifier: ^16.5.0
-        version: 16.5.0
+        specifier: ^17.13.0
+        version: 17.13.0
       localslip:
         specifier: ^0.2.33
         version: 0.2.33
@@ -1261,6 +1261,10 @@ packages:
 
   globals@16.5.0:
     resolution: {integrity: sha512-c/c15i26VrJ4IRt5Z89DnIzCGDn9EcebibhAOjw5ibqEHsE1wLUgkPn9RDmNcUKyU87GeaL633nyJ+pplFR2ZQ==}
+    engines: {node: '>=18'}
+
+  globals@17.13.0:
+    resolution: {integrity: sha512-RwMTC61u7hrG3ZJMkZQOK4JLJrKS8QtoTii63EmWvFXHqycY9FObBJQCbsLxSO8kjKhWE5kV1GC+Vb1g3RI0Zg==}
     engines: {node: '>=18'}
 
   hashery@1.5.1:
@@ -2852,6 +2856,8 @@ snapshots:
       is-glob: 4.0.3
 
   globals@16.5.0: {}
+
+  globals@17.13.0: {}
 
   hashery@1.5.1:
     dependencies:
