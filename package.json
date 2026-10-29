@@ -37,7 +37,7 @@
     "globals": "^16.5.0",
     "localslip": "^0.2.38",
     "prettier": "^3.9.10",
-    "prettier-plugin-svelte": "^3.5.2",
+    "prettier-plugin-svelte": "^4.1.1",
     "sass": "^1.105.1",
     "svelte": "^5.57.2",
     "svelte-check": "^4.7.6",
