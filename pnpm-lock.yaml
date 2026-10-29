@@ -96,8 +96,8 @@ importers:
         specifier: ^16.5.0
         version: 16.5.0
       localslip:
-        specifier: ^0.2.33
-        version: 0.2.33
+        specifier: ^0.2.38
+        version: 0.2.38
       prettier:
         specifier: ^3.9.10
         version: 3.9.10
@@ -1400,8 +1400,8 @@ packages:
     resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}
     engines: {node: '>=10'}
 
-  localslip@0.2.33:
-    resolution: {integrity: sha512-/4q6yYRxxi7DV12/lqIS3cYtyheU4Q+8m2Rkt8CElEYwIigUSyFCk41B5kHeyOyNXD6CY3nWf5LuYFm2myEnEw==}
+  localslip@0.2.38:
+    resolution: {integrity: sha512-5p0o6iamBYEOc9ph/P63W1T0B4kWDjpahne3zK8v3AUjvsV10U5ecjpmjxA8easQZ9SP9k9HXaM707XIKJwjhA==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -2949,7 +2949,7 @@ snapshots:
 
   lilconfig@2.1.0: {}
 
-  localslip@0.2.33:
+  localslip@0.2.38:
     dependencies:
       '@fontsource/oxanium': 5.3.0
       '@fontsource/syne': 5.3.0

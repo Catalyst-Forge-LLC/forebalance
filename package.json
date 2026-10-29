@@ -35,7 +35,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-svelte": "^3.23.1",
     "globals": "^16.5.0",
-    "localslip": "^0.2.33",
+    "localslip": "^0.2.38",
     "prettier": "^3.9.10",
     "prettier-plugin-svelte": "^3.5.2",
     "sass": "^1.105.1",
