@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeCategories, reassignCategoryInRaw, slugifyCategoryName, uniqueCategoryId, UNFILED_ID } from './categories';
+import {
+  defaultCategories,
+  withCreditCards,
+  normalizeCategories,
+  reassignCategoryInRaw,
+  slugifyCategoryName,
+  uniqueCategoryId,
+  UNFILED_ID,
+} from './categories';
 
 describe('categories', () => {
   it('keeps Unfiled first and undeletable in the normalized list', () => {
@@ -28,4 +36,16 @@ describe('categories', () => {
     expect(next).toContain('Groceries');
     expect(reassignCategoryInRaw(next, 'food', 'unfiled')).toBe(next);
   });
+});
+
+it('includes Credit cards by default and upgrades existing profiles without duplicating or renaming their categories', () => {
+  const debt = { id: 'debt', name: 'Loans', order: 1 };
+  expect(defaultCategories().filter((c) => c.id === 'credit-cards')).toHaveLength(1);
+  expect(withCreditCards([debt]).map((c) => c.name)).toEqual(['Unfiled', 'Loans', 'Credit cards']);
+  for (const category of [
+    { id: 'my-cards', name: 'Credit Cards', order: 2 },
+    { id: 'credit-cards', name: 'My cards', order: 2 },
+  ]) {
+    expect(withCreditCards([debt, category])).toEqual(normalizeCategories([debt, category]));
+  }
 });

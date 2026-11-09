@@ -3,6 +3,19 @@
   export let size = 16;
 
   const paths: Record<string, string> = {
+    play: 'M7 4l13 8-13 8z',
+    folder: 'M3 6a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z',
+    wallet: 'M20 7V5H5a2 2 0 0 0 0 4h16v11H5a2 2 0 0 1-2-2V7m18 6h-5v4h5',
+    home: 'M2 11l10-8 10 8M5 9v12h5v-7h4v7h5V9',
+    plug: 'M8 3v5m8-5v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v5',
+    car: 'M3 12l3-7h12l3 7v6H3zM3 12h18M6 18v2m12-2v2M6 15h2m8 0h2',
+    utensils: 'M4 3v6a3 3 0 0 0 6 0V3M7 3v18M18 3q-5 6-4 10h4m0-10v18',
+    repeat: 'M4 10a7 7 0 0 1 12-5l3 3M19 3v5h-5M20 14a7 7 0 0 1-12 5l-3-3M5 21v-5h5',
+    income: 'M12 2v11m-4-4 4 4 4-4M4 14v6h16v-6',
+    ledger: 'M5 3h14v18l-3-2-4 2-4-2-3 2zM8 8h8M8 12h8',
+    ticket: 'M3 6h18v4a2 2 0 0 0 0 4v4H3v-4a2 2 0 0 0 0-4zM15 7v2m0 2v2m0 2v2',
+    medical: 'M9 3h6v6h6v6h-6v6H9v-6H3V9h6z',
+    card: 'M3 5h18v14H3zM3 10h18M6 15h4',
     welcome: 'M3 12a9 9 0 1 0 18 0 9 9 0 1 0-18 0M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01',
     entries: 'M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01',
     forecast: 'M3 17 9 11l4 4 8-8M13 7h8v8',
@@ -11,6 +24,8 @@
     help: 'M12 17h.01M9.1 9a3 3 0 1 1 5.8 1c-.7.8-2 1.2-2.9 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18',
     about: 'M12 8h.01M11 12h1v4h1M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18',
     privacy: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+    tag: 'M3 3h8l10 10-8 8L3 11ZM7.5 7.5h.01',
+    pause: 'M8 5v14M16 5v14',
     clone: 'M8 8h12v12H8zM4 16V4h12',
     trash: 'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14',
     import: 'M12 3v12M7 10l5 5 5-5M5 21h14',

@@ -192,6 +192,7 @@
 
 <style lang="scss">
   @use '../scss/colors' as *;
+  @use '../scss/action-menu' as actions;
 
   .menu {
     position: relative;
@@ -218,16 +219,7 @@
 
   .panel,
   .submenu {
-    position: absolute;
-    z-index: 24;
-    box-sizing: border-box;
-    min-width: 14.5em;
-    padding: 0.35rem;
-    background: #fff;
-    border: 1px solid $clr-border-strong;
-    border-radius: 0.45rem;
-    box-shadow: 0 0.45rem 1.2rem rgba(28, 33, 28, 0.14);
-    text-align: left;
+    @include actions.surface;
   }
 
   .panel {
@@ -251,19 +243,7 @@
   }
 
   button[role='menuitem'] {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    width: 100%;
-    margin: 0;
-    padding: 0.4rem 0.5rem;
-    border: 0;
-    border-radius: 0.3rem;
-    background: none;
-    color: $clr-text;
-    font-size: 0.85rem;
-    text-align: left;
-    cursor: pointer;
+    @include actions.item;
   }
 
   button[role='menuitem']:hover,
@@ -283,9 +263,7 @@
   }
 
   hr {
-    margin: 0.3rem 0.25rem;
-    border: 0;
-    border-top: 1px solid $clr-border;
+    @include actions.separator;
   }
 
   .when {

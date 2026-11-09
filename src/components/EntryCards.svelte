@@ -1,11 +1,25 @@
 <script lang="ts">
+  import { SvelteMap } from 'svelte/reactivity';
+  import CategoryIcon from './CategoryIcon.svelte';
+  import Icon from './Icon.svelte';
+  import BulkPayments from './BulkPayments.svelte';
+  import { entrySetsStore } from '#lib/data/entrySets.ts';
+  let bulkOpen = false;
   import EntryWhen from './EntryWhen.svelte';
   import { modal } from '#lib/ui/modal.ts';
   import { tick } from 'svelte';
   import { categoryName, type Category, UNFILED_ID } from '#lib/data/categories.ts';
   import { localIsoDate } from '#lib/formatters/dates.ts';
-  import { isHttpUrl } from '#lib/parser/lineExtras.ts';
-  import { insertSourceLine, readSourceLines, removeSourceLine, replaceSourceLine, writeSourceLine, type SourceLine } from '#lib/parser/sourceLines.ts';
+  import { isHttpUrl, latestDated } from '#lib/parser/lineExtras.ts';
+  import {
+    insertSourceLine,
+    readSourceLine,
+    readSourceLines,
+    removeSourceLine,
+    replaceSourceLine,
+    writeSourceLine,
+    type SourceLine,
+  } from '#lib/parser/sourceLines.ts';
   import { settingsStore } from '#lib/stores/settings.ts';
   import { parseEntries } from '#lib/parser/parseEntries.ts';
   import { debtOutlook, type DebtOutlook } from '#lib/parser/debtOutlook.ts';
@@ -35,6 +49,9 @@
   let openedHadAutopay = false;
   let error = '';
   let removeIndex: number | null = null;
+  let pickingCategory = false;
+  let groupSelect: HTMLSelectElement;
+  let menuTrigger: HTMLButtonElement;
   let menuFor: number | null = null;
   let whenForm: WhenForm = readWhenForm('');
   let consumedOpen: number | null = null;
@@ -112,14 +129,20 @@
     onOpenLine();
   }
   $: entries = lines.filter((line) => line.kind === 'entry');
-  $: visible = entries.filter((line) => {
-    if (typeFilter !== 'all' && line.type !== typeFilter) return false;
-    if (groupFilter === 'all') return true;
-    if (line.type === 'B') return false;
-    const id = line.extras.categoryId || UNFILED_ID;
-    return id === groupFilter;
-  });
-  $: unfiledCount = entries.filter((line) => line.type !== 'B' && (!line.extras.categoryId || line.extras.categoryId === UNFILED_ID)).length;
+  $: typeEntries = entries.filter((line) => typeFilter === 'all' || line.type === typeFilter);
+  function groupOf(line: SourceLine) {
+    return line.type === 'B' ? null : line.extras.categoryId || UNFILED_ID;
+  }
+  function countGroups(rows: SourceLine[]) {
+    const counts = new SvelteMap<string, number>();
+    for (const row of rows) {
+      const group = groupOf(row);
+      if (group !== null) counts.set(group, (counts.get(group) ?? 0) + 1);
+    }
+    return counts;
+  }
+  $: groupCounts = countGroups(typeEntries);
+  $: visible = groupFilter === 'all' ? typeEntries : typeEntries.filter((line) => groupOf(line) === groupFilter);
 
   function commit(next: string) {
     if (next === raw) return;
@@ -140,6 +163,21 @@
     menuFor = null;
     error = '';
     editorTab = 'entry';
+  }
+
+  function addEntry() {
+    const main = entries.find((line) => !line.disabled && line.type === 'B' && line.isMain);
+    const type = typeFilter !== 'all' ? typeFilter : !main && groupFilter === 'all' ? 'B' : 'D';
+    const line = readSourceLine(type + '|' + localIsoDate() + '||', -1);
+    if (type !== 'B' && groupFilter !== 'all' && groupFilter !== UNFILED_ID) line.extras.categoryId = groupFilter;
+    open(line);
+  }
+
+  function dismiss() {
+    if (draft?.index === -1) {
+      draft = null;
+      error = '';
+    } else close();
   }
 
   function pickType(next: EntryType) {
@@ -193,6 +231,15 @@
     if (!draft) {
       return;
     }
+    const creating = draft.index === -1;
+    if (creating && (!draft.desc.trim() || !draft.amount.trim() || !whenForm.date)) {
+      error = 'Enter a description, date, and amount.';
+      return;
+    }
+    if (creating && /[|\r\n]/.test(draft.desc + (draft.extras.notes ?? ''))) {
+      error = 'Use a single line without a | in the description and notes.';
+      return;
+    }
     const datePart = draft.when.split(',')[0] ?? '';
     if (datePart && !/^\d{4}-\d{1,2}-(?:\d{1,2}|L)$/i.test(datePart)) {
       error = 'Use a date like 2026-04-15.';
@@ -224,7 +271,18 @@
     draft.extras.startingBal = asNumber(draft.extras.startingBal);
     draft.extras.apr = asNumber(draft.extras.apr);
     if (!draft.extras.categoryId) draft.extras.categoryId = undefined;
+    if (creating && draft.type === 'B') {
+      draft.accountSuffix = entries.find((line) => !line.disabled && line.type === 'B' && line.isMain)?.accountSuffix || 'CHCK';
+      draft.isMain = true;
+    }
     const nextLine = writeSourceLine(draft);
+    if (creating) {
+      if (typeFilter !== 'all' && typeFilter !== draft.type) typeFilter = 'all';
+      if (groupFilter !== 'all' && (draft.type === 'B' || groupFilter !== (draft.extras.categoryId || UNFILED_ID))) groupFilter = 'all';
+      commit(raw + (raw && !raw.endsWith('\n') ? '\n' : '') + nextLine);
+      draft = null;
+      return;
+    }
     const index = draft.index;
     const unchanged = nextLine === openedSerialized;
 
@@ -235,20 +293,86 @@
 
   function onKey(event: KeyboardEvent) {
     if (event.key !== 'Escape') return;
-    if (draft) close();
+    if (draft) dismiss();
     else menuFor = null;
   }
 
-  async function toggleMenu(index: number) {
+  async function toggleMenu(index: number, trigger: HTMLButtonElement) {
+    menuTrigger = trigger;
+    pickingCategory = false;
     menuFor = menuFor === index ? null : index;
     if (menuFor === null) return;
     await tick();
     document.querySelector<HTMLButtonElement>('.cards .menu [role="menuitem"]')?.focus();
   }
 
+  let categoryTrigger: HTMLButtonElement;
+  let flyoutLeft = false;
+  function placeFlyout(node: HTMLDivElement) {
+    node.showPopover();
+    function place() {
+      const r = categoryTrigger.getBoundingClientRect(),
+        panel = node.getBoundingClientRect();
+      flyoutLeft = innerWidth - r.right < panel.width && r.left > innerWidth - r.right;
+      const x = flyoutLeft ? r.left - panel.width + 1 : r.right - 1;
+      node.style.left = Math.max(4, Math.min(x, innerWidth - panel.width - 4)) + 'px';
+      node.style.top = Math.max(4, Math.min(r.top, innerHeight - panel.height - 4)) + 'px';
+    }
+    place();
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return {
+      destroy() {
+        window.removeEventListener('resize', place);
+        window.removeEventListener('scroll', place, true);
+      },
+    };
+  }
+  async function showCategories(focus = false) {
+    pickingCategory = true;
+    await tick();
+    if (focus)
+      (
+        document.querySelector<HTMLButtonElement>('.category-flyout [aria-checked="true"]') ??
+        document.querySelector<HTMLButtonElement>('.category-flyout button')
+      )?.focus();
+  }
+  async function closeMenu() {
+    menuFor = null;
+    await tick();
+    (menuTrigger?.isConnected ? menuTrigger : groupSelect)?.focus();
+  }
+  function assignCategory(line: SourceLine, id: string) {
+    if ((line.extras.categoryId || UNFILED_ID) !== id) {
+      const updated = { ...line, extras: { ...line.extras, categoryId: id === UNFILED_ID ? undefined : id } };
+      commit(replaceSourceLine(raw, line.index, writeSourceLine(updated)));
+    }
+    void closeMenu();
+  }
   function onMenuKey(event: KeyboardEvent) {
-    const items = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('[role="menuitem"]')];
+    const items = [...(event.currentTarget as HTMLElement).querySelectorAll<HTMLButtonElement>('button')].filter(
+      (item) => item.closest('[role=menu]') === event.currentTarget,
+    );
     const index = items.findIndex((item) => item === document.activeElement);
+    const inside = (event.currentTarget as HTMLElement).classList.contains('category-flyout');
+    if (inside && (event.key === 'ArrowLeft' || event.key === 'Escape')) {
+      event.preventDefault();
+      event.stopPropagation();
+      pickingCategory = false;
+      categoryTrigger.focus();
+      return;
+    }
+    if (!inside && event.target === categoryTrigger && event.key === 'ArrowRight') {
+      event.preventDefault();
+      void showCategories(true);
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      void closeMenu();
+      return;
+    }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       const step = event.key === 'ArrowDown' ? 1 : -1;
@@ -319,9 +443,9 @@
     else draft.extras.autopay = openedHadAutopay ? false : undefined;
   }
 
-  function disable(line: SourceLine) {
-    const next = { ...line, disabled: !line.disabled };
-    commit(replaceSourceLine(raw, line.index, writeSourceLine(next)));
+  function toggleEnabled(line: SourceLine) {
+    const next = line.disabled ? line.raw.replace(/^(\s*)[!#]/, '$1') : line.raw.replace(/^(\s*)/, '$1!');
+    commit(replaceSourceLine(raw, line.index, next));
   }
 
   function clone(line: SourceLine) {
@@ -369,73 +493,140 @@
 
 <div class="cards">
   <div class="command">
+    <slot />
     <div class="segments" role="toolbar" tabindex="-1" aria-label="Entry type" on:keydown={onFilterKey}>
       {#each [['all', 'All', entries.length], ['C', 'Credits', entries.filter((line) => line.type === 'C').length], ['D', 'Debits', entries.filter((line) => line.type === 'D').length]] as [id, label, count] (id)}
-        <button type="button" class:selected={typeFilter === id} on:click={() => (typeFilter = id as typeof typeFilter)}>
+        <button type="button" aria-pressed={typeFilter === id} class:selected={typeFilter === id} on:click={() => (typeFilter = id as typeof typeFilter)}>
           {label} ({count})
         </button>
       {/each}
     </div>
     <label>
-      Group
-      <select bind:value={groupFilter}>
-        <option value="all">All groups</option>
+      <CategoryIcon id={groupFilter} /> Group
+      <select bind:this={groupSelect} bind:value={groupFilter}>
+        <option value="all">All groups{typeEntries.length ? ` (${typeEntries.length})` : ''}</option>
         {#each categories as category (category)}
           <option value={category.id}>
-            {category.name}{category.id === UNFILED_ID && unfiledCount > 0 ? ` (${unfiledCount})` : ''}
+            {category.name}{groupCounts.has(category.id) ? ` (${groupCounts.get(category.id)})` : ''}
           </option>
         {/each}
       </select>
     </label>
+    <button type="button" class="bulk-button" on:click={() => (bulkOpen = true)}>Bulk update</button>
+    <button type="button" class="add-entry" on:click={addEntry}>Add entry</button>
   </div>
 
   <ul class="list">
-    {#each visible as line (line)}
+    {#each visible as line (line.index)}
+      {@const typeLabel = line.type === 'B' ? 'Balance' : line.type === 'C' ? 'Credit' : 'Debit'}
+      {@const categoryLabel = line.type === 'B' ? 'Balance' : categoryName(line.extras.categoryId, categories)}
+      {@const snapshot = latestDated(line.extras.dated, 'debt', localIsoDate())}
+      {@const payment = latestDated(line.extras.dated, 'pay', localIsoDate())?.value ?? (+line.amount || 0)}
       <li class="type-{line.type.toLowerCase()}" class:disabled={line.disabled} class:menu-open={menuFor === line.index}>
         <span class="sheen" aria-hidden="true"></span>
-        <button type="button" class="body" on:click={() => open(line)}>
-          <span class="chip">{line.type}</span>
+        <button type="button" class="body" title={line.type === 'B' ? typeLabel : typeLabel + ' · ' + categoryLabel} on:click={() => open(line)}>
+          <span class="type-for-reader">{typeLabel}{line.type === 'B' ? '' : ' · ' + categoryLabel}:</span>
+          <span class="leading-icon" aria-hidden="true"
+            >{#if line.type === 'B'}<Icon name="wallet" size={24} />{:else}<CategoryIcon id={line.extras.categoryId} size={24} />{/if}</span
+          >
           <span class="desc">{line.desc || 'Untitled'}</span>
           <span class="meta">
             {whenLabel(line.when)}
-            {#if line.type !== 'B'}
-              · {categoryName(line.extras.categoryId, categories)}
-            {/if}
-            {#if line.extras.startingBal !== undefined}
+            {#if snapshot}
+              · {fmt.curr(snapshot.value)} owed as of {snapshot.date}
+            {:else if line.extras.startingBal !== undefined}
               · starts at {fmt.curr(line.extras.startingBal)}
             {/if}
           </span>
-          <span class="amount">{fmt.curr(+line.amount || 0)}</span>
+          <span class="amount">{line.extras.strategy === 'pct' ? payment + '%' : fmt.curr(payment)}</span>
         </button>
-        <button
-          type="button"
-          class="kebab-btn"
-          aria-label="Entry actions"
-          aria-expanded={menuFor === line.index}
-          aria-haspopup="menu"
-          on:click|stopPropagation={() => toggleMenu(line.index)}
-        >
-          <span></span><span></span><span></span>
-        </button>
+        <div class="tile-actions">
+          <button
+            type="button"
+            class="kebab-btn"
+            aria-label="Entry actions"
+            aria-expanded={menuFor === line.index}
+            aria-haspopup="menu"
+            on:click|stopPropagation={(event) => toggleMenu(line.index, event.currentTarget)}
+          >
+            <Icon name="kebab" />
+          </button>
+          <button
+            type="button"
+            class="quick-toggle"
+            title={line.disabled ? 'Enable entry' : 'Disable entry'}
+            aria-label={(line.disabled ? 'Enable ' : 'Disable ') + (line.desc || 'entry')}
+            on:click={() => toggleEnabled(line)}><Icon name={line.disabled ? 'play' : 'pause'} size={15} /></button
+          >
+        </div>
         {#if menuFor === line.index}
-          <div class="menu" role="menu" tabindex="-1" on:click|stopPropagation on:keydown={onMenuKey}>
-            <button type="button" role="menuitem" on:click={() => open(line)}>Edit</button>
+          <div class="menu" role="menu" aria-label="Entry actions" tabindex="-1" on:click|stopPropagation on:keydown={onMenuKey}>
+            <button type="button" role="menuitem" on:click={() => open(line)}><Icon name="edit" /> Edit</button>
+            {#if line.type !== 'B'}
+              <div
+                role="presentation"
+                on:pointerenter={(e) => {
+                  if (e.pointerType !== 'touch') void showCategories();
+                }}
+                on:pointerleave={(e) => {
+                  if (e.pointerType !== 'touch' && !e.currentTarget.contains(document.activeElement)) pickingCategory = false;
+                }}
+                on:focusout={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) pickingCategory = false;
+                }}
+              >
+                <button
+                  bind:this={categoryTrigger}
+                  type="button"
+                  role="menuitem"
+                  aria-haspopup="menu"
+                  aria-expanded={pickingCategory}
+                  on:click={() => showCategories(true)}
+                >
+                  <Icon name="tag" /> Change category <span class="flyout-arrow" aria-hidden="true">{pickingCategory && flyoutLeft ? '◂' : '▸'}</span>
+                </button>
+                {#if pickingCategory}
+                  <div
+                    class="category-flyout"
+                    popover="manual"
+                    use:placeFlyout
+                    role="menu"
+                    aria-label="Choose category"
+                    tabindex="-1"
+                    on:keydown|stopPropagation={onMenuKey}
+                  >
+                    {#each categories as category (category.id)}
+                      <button
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={(line.extras.categoryId || UNFILED_ID) === category.id}
+                        on:click={() => assignCategory(line, category.id)}
+                      >
+                        <CategoryIcon id={category.id} />{category.name}
+                        {#if (line.extras.categoryId || UNFILED_ID) === category.id}<span class="category-check"><Icon name="check" size={14} /></span>{/if}
+                      </button>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+            {/if}
             <button
               type="button"
               role="menuitem"
               on:click={() => {
                 menuFor = null;
                 clone(line);
-              }}>Clone</button
+              }}><Icon name="clone" /> Clone</button
             >
             <button
               type="button"
               role="menuitem"
               on:click={() => {
                 menuFor = null;
-                disable(line);
-              }}>{line.disabled ? 'Enable' : 'Delete'}</button
+                toggleEnabled(line);
+              }}><Icon name={line.disabled ? 'play' : 'pause'} /> {line.disabled ? 'Enable' : 'Disable'}</button
             >
+            <hr />
             <button
               type="button"
               role="menuitem"
@@ -443,7 +634,7 @@
               on:click={() => {
                 menuFor = null;
                 removeIndex = line.index;
-              }}>Hard delete</button
+              }}><Icon name="trash" /> Delete</button
             >
           </div>
         {/if}
@@ -454,12 +645,22 @@
   </ul>
 </div>
 
+{#if bulkOpen}<BulkPayments
+    {raw}
+    {categories}
+    currency={$settingsStore.currencyIsoCode}
+    scenarioId={$entrySetsStore.activeId}
+    initialGroup={groupFilter}
+    onSave={commit}
+    onClose={() => (bulkOpen = false)}
+  />{/if}
+
 {#if draft}
-  <dialog class="editor" aria-label="Edit entry" use:modal on:cancel|preventDefault={close}>
+  <dialog class="editor" aria-label={draft.index === -1 ? 'Add entry' : 'Edit entry'} use:modal on:cancel|preventDefault={dismiss}>
     <form style="display: contents" on:submit|preventDefault={close}>
       <header>
-        <h3>{draft.desc.trim() || 'Edit entry'}</h3>
-        <button type="button" on:click={close} aria-label="Close and save">×</button>
+        <h3>{draft.index === -1 ? 'Add entry' : draft.desc.trim() || 'Edit entry'}</h3>
+        <button type="button" on:click={dismiss} aria-label={draft.index === -1 ? 'Cancel' : 'Close and save'}>×</button>
       </header>
       <div class="editor-tabs" role="tablist" aria-label="Entry sections">
         <button type="button" role="tab" aria-selected={editorTab === 'entry'} class:selected={editorTab === 'entry'} on:click={() => (editorTab = 'entry')}
@@ -513,12 +714,15 @@
               {/if}
             </div>
             {#if draft.type === 'B'}
-              <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
+              <label
+                >{draft.extras.dated?.some((v) => v.kind === 'pay') ? 'Original payment' : 'Amount'}
+                <input bind:value={draft.amount} inputmode="decimal" /></label
+              >
             {:else}
               <div class="pair">
                 <label>Amount <input bind:value={draft.amount} inputmode="decimal" /></label>
                 <label
-                  >Category
+                  ><span><CategoryIcon id={draft.extras.categoryId} /> Category</span>
                   <select
                     value={draft.extras.categoryId ?? ''}
                     on:change={(event) => {
@@ -636,22 +840,34 @@
         {/if}
       </div>
       <footer class="editor-foot">
-        <button type="submit" class="button-action">Save and close</button>
+        <button type="submit" class="button-action">{draft.index === -1 ? 'Save entry' : 'Save and close'}</button>
       </footer>
     </form>
   </dialog>
 {/if}
 
 {#if removeIndex !== null}
-  <dialog class="editor confirm" aria-label="Remove line" use:modal on:cancel={() => (removeIndex = null)}>
-    <p>Hard delete removes this line. Delete keeps it in the file and turns it off.</p>
-    <button type="button" on:click={() => (removeIndex = null)}>Cancel</button>
-    <button type="button" class="danger" on:click={confirmRemove}>Hard delete</button>
+  <dialog
+    class="delete-dialog"
+    aria-labelledby="delete-entry-title"
+    aria-describedby="delete-entry-description"
+    use:modal
+    on:cancel={() => (removeIndex = null)}
+  >
+    <h3 id="delete-entry-title">Delete entry?</h3>
+    <p id="delete-entry-description">
+      This removes <strong>{lines[removeIndex]?.desc || 'this entry'}</strong> and its scheduled occurrences from this scenario.
+    </p>
+    <footer>
+      <button type="button" on:click={() => (removeIndex = null)}>Cancel</button>
+      <button type="button" class="delete-action" on:click={confirmRemove}><Icon name="trash" /> Delete</button>
+    </footer>
   </dialog>
 {/if}
 
 <style lang="scss">
   @use '../scss/colors' as *;
+  @use '../scss/action-menu' as actions;
 
   .cards {
     display: flex;
@@ -664,10 +880,43 @@
   .command {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    align-items: end;
-    margin-bottom: 0.75rem;
+    gap: 0.35rem 0.75rem;
+    align-items: center;
+    margin-bottom: 0.4rem;
     flex: none;
+  }
+  .bulk-button {
+    margin-left: auto;
+    padding: 0.3rem 0.55rem;
+    border: 1px solid #aebdaf;
+    border-radius: 0.35rem;
+    background: white;
+    color: #163f2b;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+  .add-entry {
+    border: 1px solid #163f2b;
+    border-radius: 0.35rem;
+    padding: 0.3rem 0.7rem;
+    background: #163f2b;
+    color: white;
+    font-size: 0.82rem;
+    font-weight: 650;
+    cursor: pointer;
+  }
+  .command label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    margin: 0;
+  }
+  .command select {
+    min-width: 0;
+    max-width: 12rem;
+    padding: 0.25rem;
+    font: inherit;
   }
   .segments {
     display: flex;
@@ -682,6 +931,10 @@
     padding: 0.35rem 0.6rem;
     cursor: pointer;
   }
+  .segments button {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.82rem;
+  }
   .segments button.selected {
     background: $clr-accent-soft;
     font-weight: 700;
@@ -691,19 +944,26 @@
     margin: 0;
     padding: 0.25rem 0.35rem 0.5rem;
     scrollbar-gutter: stable;
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+    align-content: start;
+    gap: 0.5rem;
     flex: 1;
     min-width: 0;
     min-height: 0;
     overflow-x: hidden;
     overflow-y: auto;
   }
-  li {
+  .empty {
+    grid-column: 1 / -1;
+  }
+  .list > li {
     position: relative;
-    display: flex;
-    gap: 0.35rem;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 0 0.35rem;
+    padding-block: 0.22rem;
     align-items: stretch;
     box-sizing: border-box;
     width: 100%;
@@ -725,8 +985,8 @@
     &.type-d {
       background: #f8efe8;
     }
-    &.disabled {
-      opacity: 0.55;
+    &.disabled .body {
+      opacity: 0.6;
     }
     &.menu-open {
       z-index: 4;
@@ -806,31 +1066,38 @@
   .body {
     flex: 1;
     min-width: 0;
-    display: flex;
+    display: grid;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    grid-template-rows: subgrid;
+    grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+    grid-template-areas: 'symbol name amount' 'symbol meta meta';
     align-items: center;
-    gap: 0.65rem;
+    gap: 0 0.45rem;
     text-align: left;
     border: 0;
     background: transparent;
-    padding: 0.35rem 0.55rem 0.35rem 0.7rem;
+    padding: 0 0 0 0.6rem;
     cursor: pointer;
   }
+  .leading-icon {
+    grid-area: symbol;
+    display: grid;
+    place-items: center;
+    color: #485a4c;
+  }
   .desc {
-    flex: 0 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    grid-area: name;
+    overflow-wrap: anywhere;
     font-weight: 650;
+    line-height: 1.25;
   }
   .meta {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    grid-area: meta;
     color: $clr-muted;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
   }
   .hint-line {
     margin: 0;
@@ -884,23 +1151,77 @@
       display: none;
     }
   }
-  .chip {
-    flex: none;
-    font-weight: 700;
-    color: $clr-accent-ink;
+  .type-for-reader {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   .amount {
-    flex: none;
+    grid-area: amount;
+    font-weight: 650;
     margin-left: auto;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
+  .tile-actions {
+    --action-width: max(1.8rem, 28px);
+    display: grid;
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    grid-template-rows: subgrid;
+    align-items: center;
+    justify-items: center;
+    padding-right: 0.3rem;
+  }
+  .category-check {
+    margin-left: auto;
+    display: inline-flex;
+  }
+  .quick-toggle {
+    display: inline-grid;
+    place-items: center;
+    box-sizing: border-box;
+    width: var(--action-width);
+    position: relative;
+    z-index: 1;
+    border: 1px solid #aebdaf;
+    border-radius: 0.3rem;
+    color: #163f2b;
+    background: #fff;
+    padding: 0.2rem 0.35rem;
+    min-height: 24px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .quick-toggle:focus-visible {
+    outline: 2px solid #163f2b;
+    outline-offset: 1px;
+  }
+  .list > li:not(.disabled) .quick-toggle {
+    visibility: hidden;
+  }
+  @media (any-hover: hover) {
+    .list > li:not(.disabled):hover .quick-toggle {
+      visibility: visible;
+    }
+  }
+  @media (any-pointer: coarse) {
+    .quick-toggle {
+      min-height: 32px;
+    }
+  }
   .kebab-btn {
     align-self: center;
     flex: none;
-    width: 2.25rem;
-    height: 2.25rem;
-    margin-right: 0.35rem;
+    box-sizing: border-box;
+    width: var(--action-width);
+    height: 1.8rem;
+    margin: 0;
+    padding: 0;
     border: 0;
     border-radius: 0.35rem;
     background: transparent;
@@ -911,45 +1232,58 @@
     gap: 3px;
     cursor: pointer;
 
-    span {
-      width: 4px;
-      height: 4px;
-      border-radius: 50%;
-      background: $clr-text;
+    &:hover {
+      background: $clr-accent-soft;
     }
-
-    &:hover,
     &[aria-expanded='true'] {
-      background: rgba(28, 33, 28, 0.08);
+      background: $clr-accent;
+      color: white;
+    }
+    &:focus-visible {
+      outline: 2px solid $clr-accent-ink;
     }
   }
   .menu {
-    position: absolute;
-    z-index: 5;
+    @include actions.surface;
     top: 2.5rem;
     right: 0.35rem;
-    min-width: 9.5rem;
-    padding: 0.3rem;
-    background: #fff;
-    border: 1px solid $clr-border;
-    border-radius: 0.4rem;
-    box-shadow: 0 8px 22px rgba(28, 33, 28, 0.16);
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-
+    min-width: min(12rem, 100%);
+    max-width: 100%;
+    max-height: min(18rem, 45dvh);
+    overflow: auto;
     button {
-      border: 0;
-      background: transparent;
-      border-radius: 0.3rem;
-      padding: 0.45rem 0.6rem;
-      text-align: left;
-      cursor: pointer;
-
-      &:hover {
+      @include actions.item;
+      &:hover,
+      &:focus-visible,
+      &[aria-checked='true'] {
+        color: $clr-accent-ink;
         background: $clr-accent-soft;
       }
+      &:focus-visible {
+        outline: 2px solid $clr-accent-ink;
+        outline-offset: -2px;
+      }
+      &.danger {
+        color: #8a1f1f;
+      }
     }
+    hr {
+      @include actions.separator;
+    }
+  }
+  .flyout-arrow {
+    margin-left: auto;
+    color: $clr-muted;
+  }
+  .category-flyout {
+    @include actions.surface;
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    min-width: 0;
+    width: min(11rem, 80vw);
+    max-height: min(21rem, 65dvh);
+    overflow: auto;
   }
   .editor .group {
     margin: 0;
@@ -1136,9 +1470,63 @@
     color: #8a1f1f;
     margin: 0;
   }
-  .confirm {
-    gap: 0.6rem;
-    padding: 0.9rem 1rem;
+  .delete-dialog {
+    box-sizing: border-box;
+    width: min(24rem, calc(100vw - 2rem));
+    max-height: 90dvh;
     overflow: auto;
+    margin: auto;
+    padding: 1.1rem;
+    border: 1px solid $clr-border-strong;
+    border-radius: 0.55rem;
+    color: $clr-text;
+    background: white;
+    text-align: left;
+    box-shadow: 0 0.6rem 2rem #14251a30;
+    &::backdrop {
+      background: #14251a66;
+    }
+    h3 {
+      margin: 0;
+      font-size: 1.15rem;
+    }
+    p {
+      margin: 0.5rem 0 1rem;
+      padding: 0;
+      font-size: 0.9rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    footer {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      min-height: 2.25rem;
+      margin: 0;
+      padding: 0.35rem 0.75rem;
+      font: inherit;
+      font-size: 0.85rem;
+      border: 1px solid $clr-border-strong;
+      border-radius: 0.35rem;
+      background: white;
+      color: $clr-text;
+      cursor: pointer;
+    }
+    .delete-action {
+      background: #912626;
+      border-color: #912626;
+      color: white;
+    }
+    button:focus-visible {
+      outline: 2px solid #163f2b;
+      outline-offset: 2px;
+    }
   }
 </style>

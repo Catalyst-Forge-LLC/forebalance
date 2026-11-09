@@ -6,7 +6,10 @@ import { splitLineFields, writeLine } from '#lib/parser/occurrenceEdit.ts';
 import { rawEntriesStore } from '#lib/stores/settings.ts';
 import { setRawEntries } from '#lib/data/entriesPersistence.ts';
 
-export const CATEGORIES_KEY = 'forebalance.categories.v1';
+const LEGACY_CATEGORIES_KEY = 'forebalance.categories.v1';
+const V2_KEY = 'forebalance.categories.v2';
+export const CATEGORIES_KEY = 'forebalance.categories.v3';
+const CREDIT_CARDS = { id: 'credit-cards', name: 'Credit cards' };
 export const UNFILED_ID = 'unfiled';
 
 export interface Category {
@@ -18,15 +21,23 @@ export interface Category {
 
 export const CATEGORY_COLORS = ['#0d5c14', '#1d6f8a', '#6b5420', '#8a3d3d', '#3d4a8a', '#5c4d7a', '#3f6b4a', '#6a5a3a'] as const;
 
+const NEW_DEFAULTS = [
+  { id: 'entertainment', name: 'Entertainment' },
+  { id: 'health-medical', name: 'Health & medical' },
+  { id: 'insurance', name: 'Insurance' },
+];
+
 const DEFAULTS: Omit<Category, 'order'>[] = [
   { id: UNFILED_ID, name: 'Unfiled' },
   { id: 'utilities', name: 'Utilities' },
   { id: 'housing', name: 'Housing' },
   { id: 'transportation', name: 'Transportation' },
   { id: 'food', name: 'Food' },
+  ...NEW_DEFAULTS,
   { id: 'subscriptions', name: 'Subscriptions' },
   { id: 'income', name: 'Income' },
-  { id: 'debt', name: 'Debt' },
+  { id: 'debt', name: 'Debt payments' },
+  CREDIT_CARDS,
   { id: 'other', name: 'Other' },
 ];
 
@@ -59,23 +70,47 @@ export function uniqueCategoryId(name: string, categories: Category[]): string {
 
 export function loadCategories(): Category[] {
   if (!canStore()) return defaultCategories();
-  const raw = storage.getItem(CATEGORIES_KEY);
-  if (!raw) {
-    const next = defaultCategories();
-    storage.setItem(CATEGORIES_KEY, JSON.stringify(next));
-    categoriesStore.set(next);
-    return next;
-  }
+  const current = storage.getItem(CATEGORIES_KEY);
   try {
-    const parsed = JSON.parse(raw) as Category[];
-    const next = normalizeCategories(parsed);
-    categoriesStore.set(next);
+    if (current !== null) {
+      const next = normalizeCategories(JSON.parse(current));
+      categoriesStore.set(next);
+      return next;
+    }
+    const v2 = storage.getItem(V2_KEY);
+    if (v2 !== null) {
+      const next = withCreditCards(JSON.parse(v2));
+      persistCategories(next);
+      return next;
+    }
+    const previous = storage.getItem(LEGACY_CATEGORIES_KEY);
+    const next = previous === null ? defaultCategories() : migrateCategories(JSON.parse(previous));
+    persistCategories(next);
     return next;
   } catch {
     const next = defaultCategories();
     categoriesStore.set(next);
     return next;
   }
+}
+
+export function migrateCategories(previous: Category[]): Category[] {
+  const list = normalizeCategories(previous);
+  const debt = list.find((c) => c.id === 'debt');
+  if (debt?.name === 'Debt' && !list.some((c) => c.name.trim().toLowerCase() === 'debt payments')) debt.name = 'Debt payments';
+  for (const item of NEW_DEFAULTS) {
+    if (!list.some((c) => c.id === item.id || c.name.trim().toLowerCase() === item.name.toLowerCase())) list.push({ ...item, order: list.length });
+  }
+  return withCreditCards(list);
+}
+
+// A renamed default or an existing custom category keeps its ID (and all entry assignments).
+export function withCreditCards(previous: Category[]): Category[] {
+  const list = normalizeCategories(previous);
+  if (list.some((c) => c.id === CREDIT_CARDS.id || c.name.trim().toLowerCase() === 'credit cards')) return list;
+  const debt = list.findIndex((c) => c.id === 'debt');
+  list.splice(debt < 0 ? list.length : debt + 1, 0, { ...CREDIT_CARDS, order: 0 });
+  return normalizeCategories(list);
 }
 
 export function normalizeCategories(input: Category[] | undefined): Category[] {

@@ -6,7 +6,7 @@ One line per transaction. Fields are separated by `|`:
 TYPE|WHEN|AMOUNT|DESCRIPTION
 ```
 
-An amount may be arithmetic, such as `1000+250`. The card stores the result.
+An amount may be arithmetic, such as `1000+250`. The entry stores the result.
 
 Example:
 
@@ -58,11 +58,15 @@ Or split name and last-four across pipes:
 D|2026-04-15,R|150|Capital One|4321|2800|19.99
 ```
 
+Choose categories by purpose: a streaming service can go under **Entertainment**, while a software plan can stay under **Subscriptions**. To update cards separately from other loans, assign card payment entries to the built-in **Credit cards** category. Keep other loans under **Debt payments**.
+
+In **Entries → Visual → Bulk update**, choose a category and enter the balances owed at the end of today and any changes to future payments. A blank balance leaves the existing projection alone. A dated balance reset affects only that debt, not checking. Payments through today retain the old schedule. The file keeps dated fields such as `debt@2026-11-08=2700` and `pay@2026-11-08=500`; later updates retain earlier history. **Save changes** applies the whole category batch to this scenario. Percentage payments stay percentages, and minimum-payment fields are floors. Shared-account balances must be edited separately.
+
 ForeBalance starts from `STARTING_BAL`, adds monthly interest from APR, then subtracts payments. Remaining balance goes down as you pay, though interest can slow that.
 
 Interest is the APR divided by 12, times the remaining balance, added on each payment date before that payment is subtracted. It is not daily compounding. Lenders may use a different method. Change the APR or remaining balance on the line if your statement uses other figures.
 
-A debt card shows when that balance would be paid off, and how much interest falls inside the forecast. If it is still open at the end of the forecast, the card says so. That date uses the same monthly math. It is not a lender payoff quote.
+A debt entry shows when that balance would be paid off, and how much interest falls inside the forecast. If it is still open at the end of the forecast, the entry says so. That date uses the same monthly math. It is not a lender payoff quote.
 
 Optional fields can follow the APR. Empty spots are fine, and you can leave off the ones you do not use:
 
@@ -70,7 +74,7 @@ Optional fields can follow the APR. Empty spots are fine, and you can leave off 
 STRATEGY|MIN_RATE|PAY_URL|CATEGORY|NOTES|autopay
 ```
 
-`extra=50` adds $50 on top of each scheduled payment. The card slider previews that until you apply it. `fixed` pays the dollar amount on the line. `min` pays at least 10% of what is still owed, unless MIN_RATE says otherwise (`0.02` is 2%). `pct` treats the amount as a percent of what is still owed, so `5` means 5%, not $5. PAY_URL is only a bookmark (`https://` or `http://`). CATEGORY is a short id such as `debt`. Add `autopay` at the end when the payment goes out on its own.
+`extra=50` adds $50 on top of each scheduled payment. The payment slider previews that until you apply it. `fixed` pays the dollar amount on the line. `min` pays at least 10% of what is still owed, unless MIN_RATE says otherwise (`0.02` is 2%). `pct` treats the amount as a percent of what is still owed, so `5` means 5%, not $5. PAY_URL is only a bookmark (`https://` or `http://`). CATEGORY is a short id such as `debt`. Add `autopay` at the end when the payment goes out on its own.
 
 ## WHEN
 
@@ -133,6 +137,8 @@ You can stack them: `|#5=65|#8=2026-05-29`. This is not a disable prefix. `#` at
 
 ## Disable a line
 
+In **Entries → Visual**, hover over an active entry to see **Disable** at its lower right. Without hover, use **⋮ → Disable**. **Disable** excludes it from the forecast but keeps it in the scenario. Disabled entries always show **Enable** to include them again. The **⋮** menu also has these actions. For credits and debits, choose **⋮ → Change category…** and pick a category to save it immediately. Choose **Unfiled** to clear it. **Delete** removes the entry and its scheduled occurrences after you confirm.
+
 Prefix `!` or `#` to skip a line without deleting it:
 
 ```
@@ -167,12 +173,12 @@ Broken lines are skipped and listed as warnings under the editor.
 On **Entries** you can keep more than one forecast (a tight month, a what-if, another household). Each one is a **scenario**.
 
 - Switch and rename on the Entries toolbar
-- **Raw** has **Edit this line** for the cursor. **Forecast** row editing has **Edit entry**. Both open the card dialog.
+- **Raw** has **Edit this line** for the cursor. **Forecast** row editing has **Edit entry**. Both open the entry editor used in **Visual** mode.
 - The **menu** (☰) has **Fork what-if…**, delete, import, export, drop a file, link, roll recurring starts, add a starter, and previous versions
 - **Fork what-if…** copies this scenario under a new name and remembers which one it came from. The original is left as it is. A note under the name shows the parent and an optional description.
 - **Previous versions** keeps the last 20 edits of *this* scenario (full text, in this browser)
 - **Forecast** has the same scenario picker, and always uses the one you selected
-- An expanded card has **Ask** chips. Payoff, interest, and “add $50” use the forecast math on this device. They do not load a model and they do not use `eval`. A free-form question that is not one of those chips waits until you open **Labs**.
+- The entry editor has **Ask** chips. Payoff, interest, and “add $50” use the forecast math on this device. They do not load a model and they do not use `eval`. A free-form question that is not one of those chips waits until you open **Labs**.
 - The Forecast **menu** (⋮) exports this table as CSV, copies CSV, copies the glance summary, can export every account when more than one is in the file, and **Compare with…** puts month-ending balances, the lowest point, and debt payoff beside another scenario. That view is read-only. **Open this scenario** switches to the one you compared.
 - **Settings → Reset** can export every scenario as one JSON copy first
 - Exports stamp a comment like `--- currency USD` (whatever you picked under Settings). That line is a comment only. Import asks which currency to use if the file has no stamp.

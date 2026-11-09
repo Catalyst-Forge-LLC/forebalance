@@ -271,6 +271,16 @@
   }
 </script>
 
+{#snippet editorMode()}
+  <div class="view-toggle" role="group" aria-label="Editor view">
+    <button type="button" aria-pressed={viewMode === 'cards'} class:selected={viewMode === 'cards'} on:click={() => rememberView('cards')}>Visual</button>
+    <button type="button" aria-pressed={viewMode === 'raw'} class:selected={viewMode === 'raw'} on:click={() => rememberView('raw')}>Raw</button>
+    {#if viewMode === 'raw'}
+      <button type="button" on:click={editCursorLine}>Edit this line</button>
+    {/if}
+  </div>
+{/snippet}
+
 <div class="entries-page">
   <EntrySetsPanel>
     <div slot="tools" class="tools-slot" let:onClone let:onDelete let:canDelete let:templates let:onAddStarter let:onExport>
@@ -303,13 +313,6 @@
     <input bind:this={importInput} type="file" accept=".psv,.txt,text/plain" class="sr-only" on:change={onImportSelected} />
 
     <div class="editor-pane">
-      <div class="view-toggle" role="group" aria-label="Editor view">
-        <button type="button" class:selected={viewMode === 'cards'} on:click={() => rememberView('cards')}>Cards</button>
-        <button type="button" class:selected={viewMode === 'raw'} on:click={() => rememberView('raw')}>Raw</button>
-        {#if viewMode === 'raw'}
-          <button type="button" on:click={editCursorLine}>Edit this line</button>
-        {/if}
-      </div>
       {#if lineHint}<p class="line-hint">{lineHint}</p>{/if}
       {#if viewMode === 'cards'}
         <EntryCards
@@ -317,9 +320,10 @@
           categories={$categoriesStore}
           openLine={$cardEditRequest}
           onOpenLine={() => cardEditRequest.set(null)}
-          onCommit={(next) => handleEditorCommit(next, true)}
-        />
+          onCommit={(next) => handleEditorCommit(next, true)}>{@render editorMode()}</EntryCards
+        >
       {:else}
+        {@render editorMode()}
         {#key $entrySetsStore.activeId}
           {#await import('./PsvEditor.svelte') then editor}
             <svelte:component
@@ -475,18 +479,21 @@
   .view-toggle {
     display: flex;
     gap: 0.25rem;
-    margin: 0 0 0.5rem;
+    margin: 0;
+    align-items: center;
 
     button {
       border: 1px solid $clr-border;
       background: #fff;
       border-radius: 0.35rem;
-      padding: 0.35rem 0.7rem;
+      padding: 0.3rem 0.55rem;
+      font-size: 0.82rem;
       cursor: pointer;
     }
 
     button.selected {
-      background: $clr-accent-soft;
+      color: white;
+      background: #163f2b;
       font-weight: 700;
     }
   }

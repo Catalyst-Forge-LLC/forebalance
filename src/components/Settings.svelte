@@ -1,4 +1,5 @@
 <script lang="ts">
+  import CategoryIcon from './CategoryIcon.svelte';
   import SectionWorkspace from './SectionWorkspace.svelte';
   let section = 'currency';
   const sections = [
@@ -58,12 +59,12 @@
     deleteCategory(id);
   }
 
-  function addCategory() {
-    const name = newCategoryName.trim();
+  function addCategory(input: string) {
+    const name = input.trim();
     if (!name) return;
     const id = uniqueCategoryId(name, $categoriesStore);
     persistCategories([...$categoriesStore, { id, name, order: $categoriesStore.length }]);
-    newCategoryName = '';
+    if (input === newCategoryName) newCategoryName = '';
   }
 
   // Initialization can finish after this tab mounts; keep the full draft in sync.
@@ -192,14 +193,18 @@
         <ul class="category-list">
           {#each $categoriesStore.filter((category) => category.id !== UNFILED_ID) as category, index (index)}
             <li>
-              <input value={category.name} aria-label="Rename {category.name}" on:change={(event) => renameCategory(category, event.currentTarget.value)} />
+              <CategoryIcon id={category.id} /><input
+                value={category.name}
+                aria-label="Rename {category.name}"
+                on:change={(event) => renameCategory(category, event.currentTarget.value)}
+              />
               <button type="button" on:click={() => moveCategory(index, -1)} aria-label="Move up">Up</button>
               <button type="button" on:click={() => moveCategory(index, 1)} aria-label="Move down">Down</button>
               <button type="button" on:click={() => removeCategory(category.id)}>Delete</button>
             </li>
           {/each}
         </ul>
-        <form class="add-category" on:submit|preventDefault={addCategory}>
+        <form class="add-category" on:submit|preventDefault={() => addCategory(newCategoryName)}>
           <input bind:value={newCategoryName} placeholder="New category" aria-label="New category" />
           <button type="submit">Add</button>
         </form>
