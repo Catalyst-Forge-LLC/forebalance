@@ -17,7 +17,7 @@
 </script>
 
 {#if open}
-  <dialog class:danger use:show on:close={onCancel} on:cancel={onCancel}>
+  <dialog class:danger use:show on:cancel={onCancel}>
     <h2>{title}</h2>
     <div class="body">
       <slot />

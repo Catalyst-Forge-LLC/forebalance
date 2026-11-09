@@ -384,3 +384,29 @@ test('category upgrade preserves assignments, custom names and subsequent deleti
   await expect(rename('Insurance')).toHaveCount(0);
   await expect(rename('Credit cards')).toBeVisible();
 });
+
+test('link confirmation preserves the currency step, writes the file, and restores the handle', async ({ page, browserName }) => {
+  test.skip(browserName !== 'chromium', 'File System Access picker is a Chromium feature');
+  await seed(page);
+  await page.evaluate(async () => {
+    const handle = await (await navigator.storage.getDirectory()).getFileHandle('qa.psv', { create: true });
+    const writer = await handle.createWritable();
+    await writer.write('B-CH-main|2026-11-01|1220|Linked QA');
+    await writer.close();
+    window.showOpenFilePicker = async () => [handle];
+  });
+  await page.getByRole('button', { name: 'Scenario actions' }).click();
+  await page.getByRole('menuitem', { name: 'Link file…' }).click();
+  await page.getByRole('button', { name: 'Load entries' }).click();
+  await page.getByRole('button', { name: 'Use this currency' }).click();
+  await page.getByRole('button', { name: 'Raw', exact: true }).click();
+  const editor = page.locator('.cm-content');
+  await expect(editor).toContainText('Linked QA');
+  await editor.fill('B-CH-main|2026-11-01|1930|Linked revision');
+  await expect
+    .poll(() => page.evaluate(async () => (await (await (await navigator.storage.getDirectory()).getFileHandle('qa.psv')).getFile()).text()))
+    .toContain('1930');
+  await page.reload();
+  await page.getByRole('button', { name: 'Scenario actions' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Unlink qa.psv' })).toBeVisible();
+});
