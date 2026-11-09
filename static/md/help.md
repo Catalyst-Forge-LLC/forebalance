@@ -1,4 +1,10 @@
-# How to write entries
+# Read your first forecast
+
+1. Open [Entries](#entries) and choose **Visual → Add entry**. Enter your checking balance and its date.
+2. Add a credit for your next paycheck and a debit for a bill. Set each date and amount.
+3. Open [Forecast](#forecast) and select **Lowest** to jump to the day your balance reaches its lowest point.
+
+## How to write entries
 
 One line per transaction. Fields are separated by `|`:
 
@@ -60,7 +66,7 @@ D|2026-04-15,R|150|Capital One|4321|2800|19.99
 
 Choose categories by purpose: a streaming service can go under **Entertainment**, while a software plan can stay under **Subscriptions**. To update cards separately from other loans, assign card payment entries to the built-in **Credit cards** category. Keep other loans under **Debt payments**.
 
-In **Entries → Visual → Bulk update**, choose a category and enter the balances owed at the end of today and any changes to future payments. A blank balance leaves the existing projection alone. A dated balance reset affects only that debt, not checking. Payments through today retain the old schedule. The file keeps dated fields such as `debt@2026-11-08=2700` and `pay@2026-11-08=500`; later updates retain earlier history. **Save changes** applies the whole category batch to this scenario. Percentage payments stay percentages, and minimum-payment fields are floors. Shared-account balances must be edited separately.
+In **Entries → Visual → Balances & payments**, choose a category and enter the balances owed at the end of today and any changes to future payments. A blank balance leaves the existing projection alone. A dated balance reset affects only that debt, not checking. Payments through today retain the old schedule. The file keeps dated fields such as `debt@2026-11-08=2700` and `pay@2026-11-08=500`; later updates retain earlier history. **Save changes** applies the whole category batch to this scenario. Percentage payments stay percentages, and minimum-payment fields are floors. Shared-account balances must be edited separately.
 
 ForeBalance starts from `STARTING_BAL`, adds monthly interest from APR, then subtracts payments. Remaining balance goes down as you pay, though interest can slow that.
 

@@ -1,13 +1,20 @@
 <script lang="ts">
   import SectionWorkspace from './SectionWorkspace.svelte';
-  let section = 'setup';
+  let section = 'forecast';
+  let returnSection = 'forecast';
+  let resultScenario = '';
+  let resultSection = '';
+  $: if (section !== 'setup') returnSection = section;
+  function openSetup() {
+    section = 'setup';
+  }
   let resultLabel = '';
   let resultHeading: HTMLHeadingElement;
   const sections = [
-    { id: 'setup', label: 'Model setup' },
     { id: 'forecast', label: 'Explore forecast' },
     { id: 'draft', label: 'Draft entries' },
     { id: 'question', label: 'Ask a question' },
+    { id: 'setup', label: 'Model setup' },
   ];
   import { onDestroy, onMount, tick } from 'svelte';
   import { buildForecastBrief, buildUpcoming, buildWhyTight, splitModelReply } from '#lib/labs/context.ts';
@@ -89,7 +96,7 @@
         progress = percent;
         progressText = text;
       });
-      section = 'forecast';
+      if (section === 'setup') section = returnSection;
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     } finally {
@@ -108,6 +115,8 @@
   async function runRouted(ask: string, extra = '') {
     if (!session || !ask.trim()) return;
     error = '';
+    resultScenario = activeName;
+    resultSection = section;
     resultLabel = sections.find((item) => item.id === section)?.label ?? 'Question';
     running = true;
     output = '';
@@ -133,6 +142,8 @@
       }
       output = answer;
       thinking = reply.thinking;
+      await tick();
+      if (section === resultSection) resultHeading?.focus();
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     } finally {
@@ -146,6 +157,8 @@
 
   async function upcomingHits() {
     error = thinking = routedIds = '';
+    resultScenario = activeName;
+    resultSection = section;
     resultLabel = 'What hits next?';
     output = buildUpcoming(entries, useMainBalance);
     await tick();
@@ -242,23 +255,15 @@
     {/if}
 
     {#if section !== 'setup'}
-      {#if !session}<div class="setup-prompt">
-          <p>
-            {section === 'forecast'
-              ? 'What hits next? reads your forecast directly. Load a model for the other questions.'
-              : 'Load a local model before asking. Your text stays on this device; the model may need a download.'}
-          </p>
-          <button type="button" on:click={() => (section = 'setup')}>Go to model setup</button>
-        </div>{/if}
       <section class="actions">
         <h3>{sections.find((item) => item.id === section)?.label}</h3>
         {#if section === 'forecast'}
           <p class="hint">Explore the current scenario. These answers are experimental, not financial advice.</p>
-          <button type="button" disabled={!session || running || !forecastReady} on:click={explainForecast}> Why is this tight? </button>
           <button type="button" disabled={running || !forecastReady} on:click={upcomingHits}> What hits next? </button>
+          <button type="button" disabled={!session || running || !forecastReady} on:click={explainForecast}> Why is this tight? </button>
           <button type="button" disabled={!session || running || !forecastReady} on:click={moneyDrains}> Where does the money go? </button>
           {#if !forecastReady}
-            <p class="hint">Open a scenario with a forecast first.</p>
+            <p class="hint"><a href="#entries">Add a balance in Entries</a> to start a forecast.</p>
           {/if}
 
           <label>
@@ -284,15 +289,24 @@
         {/if}
       </section>
 
+      {#if !session}<div class="setup-prompt">
+          <p>
+            {section === 'forecast'
+              ? 'What hits next? reads your forecast directly. Load a model for the other questions.'
+              : 'Load a local model before asking. Your text stays on this device; the model may need a download.'}
+          </p>
+          <button type="button" on:click={openSetup}>Go to model setup</button>
+        </div>{/if}
       {#if running}
         <p class="hint" role="status">{progressText || 'Working…'}</p>
       {/if}
-      {#if output}
+      {#if output && resultSection === section}
         <section class="output">
           <div class="output-bar">
             <h3 bind:this={resultHeading} tabindex="-1">Result · {resultLabel}</h3>
             <button type="button" on:click={copyOutput}>Copy</button>
           </div>
+          <p>{resultScenario}</p>
           {#if routedIds}
             <details>
               <summary>Technical details</summary>

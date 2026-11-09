@@ -110,11 +110,7 @@
     {#if section === 'currency'}
       <section class="panel">
         <h2>Display currency</h2>
-        <p class="help">
-          How amounts look on Forecast, Welcome, Labs, and copied summaries. It does
-          <strong>not</strong> convert numbers in your entries. Threshold marks are rescaled to a similar household size (rounded, not a live exchange rate). Exports
-          include this code. An import without one will ask before using it.
-        </p>
+        <p class="help">Entry amounts keep their numeric values. Changing currency updates their display and rescales the forecast thresholds.</p>
         <label class="select-label">
           Currency
           <select value={$settingsStore.currencyIsoCode} on:change={(event) => changeCurrency(event.currentTarget.value)}>
@@ -219,8 +215,8 @@
           backup.
         </p>
         <p class="help">
-          Export the current scenario from Entries, or export every scenario from Reset below. A linked file, when your browser supports it, is also only on
-          this device.
+          Exports include the display currency. When importing a file without a currency, choose the currency for its amounts. Export the current scenario from
+          Entries, or export every scenario from Reset below. A linked file, when your browser supports it, is also only on this device.
         </p>
       </section>
     {/if}

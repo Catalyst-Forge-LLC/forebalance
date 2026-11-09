@@ -282,7 +282,7 @@ test('category bulk update saves both cards together and cancel leaves the scena
   page.on('dialog', (d) => d.accept());
   await page.goto('/#entries?' + new URLSearchParams({ share: source }));
   await expect.poll(() => page.evaluate(() => localStorage.getItem('rawEntries'))).toBe(source);
-  const open = page.getByRole('button', { name: 'Bulk update' });
+  const open = page.getByRole('button', { name: 'Balances & payments' });
   const dialog = page.getByRole('dialog', { name: 'Update balances and payments' });
   await open.click();
   const today = await page.evaluate(() => new Date().toLocaleDateString('sv-SE'));
@@ -335,9 +335,9 @@ test('Visual disables and enables reversibly and deletes only after confirmation
 
 test('group counts follow category changes, reloads, and the selected entry type', async ({ page }) => {
   await seed(page);
-  const group = page.getByRole('combobox', { name: 'Group', exact: true });
+  const group = page.getByRole('combobox', { name: 'Category', exact: true });
   const option = (value: string) => group.locator('option[value="' + value + '"]');
-  await expect(option('all')).toHaveText('All groups (2)');
+  await expect(option('all')).toHaveText('All categories (2)');
   await expect(option('unfiled')).toHaveText('Unfiled (1)');
   const rent = page.locator('.list > li').filter({ hasText: 'Rent' });
   await rent.getByRole('button', { name: 'Entry actions' }).click();
@@ -351,7 +351,7 @@ test('group counts follow category changes, reloads, and the selected entry type
   await expect(rent).toBeVisible();
   await page.getByRole('button', { name: /^Credits \(/ }).click();
   await expect(option('housing')).toHaveText('Housing');
-  await expect(option('all')).toHaveText('All groups');
+  await expect(option('all')).toHaveText('All categories');
   await expect(rent).toHaveCount(0);
 });
 
@@ -431,7 +431,7 @@ test('selectively merge a fork into its original without changing the fork', asy
   await page.getByRole('menuitem', { name: 'Merge into original…' }).click();
   const dialog = page.getByRole('dialog', { name: 'Merge into original' });
   await dialog.getByRole('checkbox', { name: /Update · Rent/ }).check();
-  await dialog.getByRole('button', { name: 'Apply 1 change' }).click();
+  await dialog.getByRole('button', { name: 'Apply 1 change to Primary' }).click();
   await page.getByRole('button', { name: 'Open original' }).click();
   await expect(select).toHaveValue('a');
   await expect

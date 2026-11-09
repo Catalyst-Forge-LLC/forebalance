@@ -1,5 +1,6 @@
 <script lang="ts">
   import { get } from 'svelte/store';
+  import { entryHistoryStore } from '#lib/data/entryHistory.ts';
   import ForecastSparkline from './ForecastSparkline.svelte';
   import { computeForecastSummary } from '#lib/parser/forecastSummary.ts';
   import { fmt } from '#lib/formatters/fmt.ts';
@@ -27,6 +28,11 @@
     const template = set.templateId ? getTemplate(set.templateId) : undefined;
     return !template || set.name !== template.name;
   });
+  $: personal =
+    active &&
+    (!active.templateId ||
+      active.name !== (active.templateId === SIMPLE_EXAMPLE_ID ? SIMPLE_EXAMPLE_NAME : getTemplate(active.templateId).name) ||
+      !!$entryHistoryStore[active.id]?.length);
   $: summary = forecastReady ? computeForecastSummary(entries, balanceFlags, useMainBalance) : null;
 
   const exampleRaw = buildSimpleExample();
@@ -81,19 +87,25 @@
 </script>
 
 <article class="welcome-page">
-  <header class="welcome-intro">
-    <div class="intro-copy">
-      <span class="eyebrow">Your cash flow, in perspective</span>
-      <h1>See the balance ahead.</h1>
-      <p>See when bills land before payday and how low your balance may go. Start with the sample, then enter your own paychecks, bills, and balances.</p>
-      <div class="intro-actions">
-        <a class="primary-link" href="#entries">Edit your entries <span aria-hidden="true">→</span></a>
-        <button type="button" class="sample-link" on:click={loadSimpleExample}>Try a simple example</button>
+  {#if !scenarioPending && personal && forecastReady}
+    <header class="resume">
+      <h1>Your forecast</h1>
+      <a href="#entries">Edit entries →</a>
+    </header>
+  {:else}
+    <header class="welcome-intro">
+      <div class="intro-copy">
+        <span class="eyebrow">Your cash flow, in perspective</span>
+        <h1>See the balance ahead.</h1>
+        <p>See when bills land before payday and how low your balance may go. Start with the sample, then enter your own paychecks, bills, and balances.</p>
+        <div class="intro-actions">
+          <a class="primary-link" href="#entries">Edit your entries <span aria-hidden="true">→</span></a>
+          <button type="button" class="sample-link" on:click={loadSimpleExample}>Try a simple example</button>
+        </div>
+        <p class="intro-boundary">A browser cash-flow planner. Your working copy stays on this device.</p>
       </div>
-      <p class="intro-boundary">A browser cash-flow planner. Your working copy stays on this device.</p>
-    </div>
-    <img class="welcome-mark" src="/logo.png" width="150" height="150" alt="" />
-  </header>
+      <img class="welcome-mark" src="/logo.png" width="150" height="150" alt="" />
+    </header>{/if}
 
   {#if forecastReady && summary?.lowest}
     <a
@@ -201,6 +213,15 @@
     margin: 0 auto;
     padding: 1.2rem 1rem 2rem;
     text-align: left;
+  }
+  .resume {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+  }
+  .resume h1 {
+    margin: 0;
   }
   .welcome-intro {
     display: flex;
