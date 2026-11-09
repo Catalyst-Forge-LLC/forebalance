@@ -2,7 +2,7 @@
 
 **Status:** Public MIT prototype at forebalance.app
 **Domain:** forebalance.app
-**Last updated:** 2026-09-15
+**Last updated:** 2026-11-09
 
 ---
 
@@ -32,6 +32,8 @@ The plaintext entry format is the core of the product, not an implementation det
 
 | Area | Feature |
 |---|---|
+| Entries | Visual tiles or Raw text; add, edit, clone, change category, disable/enable, or delete with confirmation |
+| Entries | Bulk update active debits by category. A debt balance reset takes effect at the end of the local date without moving checking; scheduled payment changes apply after that date. Either field can be changed independently. |
 | Entries | CodeMirror editor with syntax highlighting, line numbers, and inline warnings |
 | Entries | `--- Label` lines act as section comments/groupings |
 | Entries | Prefix `!` or `#` to disable a line without deleting it |
@@ -40,7 +42,7 @@ The plaintext entry format is the core of the product, not an implementation det
 | Entries | Last 20 full-text edits per scenario (restore with confirm) |
 | Entries | **Roll recurring starts** — confirm, then rewrite old `,R` dates to one period before the `B` line |
 | Forecast | Chronological ledger grouped by calendar month; sparkline + at-a-glance summary |
-| Forecast | Lowest / uncomfortable / low / negative crossings; jump to the row |
+| Forecast | Lowest balance, first goal reached, and uncomfortable / low / negative crossings; jump to the row |
 | Forecast | Click a row to change that date or amount (`|#5=…`) or rewrite the series |
 | Forecast | `|#N=pending` / “Not yet posted” still applies a same-day hit after `B` |
 | Forecast | Account selector when more than one account is in the file |
@@ -48,6 +50,7 @@ The plaintext entry format is the core of the product, not an implementation det
 | Settings | Display currency (rescales threshold marks to a rounded household size, not live FX); months (3–24) and three thresholds; Dates and balances (holiday shift, same-day `B` meaning) |
 | Settings | Reset (type RESET; optional export of every scenario first) |
 | Persistence | localStorage per scenario; optional Chromium file link; Download stays. Scenario `.psv` export and all-sets JSON include the display currency. Import without a currency asks before applying one. |
+| Labs | “What hits next?” reads dated transactions directly from the active forecast without loading a model. |
 | Labs | Local syntax answers; optional on-demand Chrome Nano / WebLLM (not loaded until asked) |
 | Help / About | Help is a tab. About and Privacy open as a large modal from the site menu. That menu also has GitHub, Catalyst Forge, and a flyout to ForgeTrail, LocalSlip, and LocalHelm |
 | Publish | App is `private: true` in git. npm `forebalance@0.0.1` is a name hold only. |
@@ -116,61 +119,20 @@ Examples:
 
 ---
 
-## 4. Remaining improvements
+## 4. Delivered features and open work
 
-Shipped (do not rebuild): Forecast summary + sparkline, File System Access + Import, `R<`/`R>`, `RML` / clamp, `!`/`#` disable, multi-account selector + Help, CodeMirror + warnings, `|#N=pending`, Labs on demand, public MIT + npm name hold, **roll recurring starts**.
+The editor supports amount arithmetic, annual escalators, debt payment strategies, extra payments, and dated debt/payment updates. Categories (including Credit cards) support filtering and quick reassignment. Forecast supports non-color threshold markers, monthly scrolling, print and CSV export. Alt+1–6 switches tabs; scenario sharing uses a URL fragment. Old non-debt recurrences can skip ahead; rolling recurring starts remains available. Turning off a forecast row disables its source line; re-enable it in Entries.
 
-### P2 — Accessibility and mobile
+**Scenario merging is the remaining product candidate.** Fork and Compare already work. Before implementing a merge, establish whether people need to copy selected changes back often enough to justify it. Any design must address concurrent edits in the original and fork, including deletions, without silently overwriting either scenario.
 
-- Threshold row coloring is still the loudest low-balance signal. Add a non-color mark (icon or weight) for color-blind users.
-- Forecast table and editor should stay usable on a phone.
+**Bank reconciliation is deferred.** A new checking balance entry already re-anchors the forecast. Matching projected transactions against a statement is a different feature; see [the reconciliation decision](forebalance-review-and-plan.md#13-reconciliation--what-it-means-deferred).
 
-### P2 — Engine skip (optional)
+## 5. Verification and remaining device check
 
-Rolling the text is the product fix. The parser could also skip expanding occurrences before the period prior to `B` so un-rolled 2020 starts stay cheap. Do not change occurrence numbers in the UI unless the text start moved.
+Checked on 2026-11-09 using disposable scenarios:
 
-### P3 — Nice to have
+- **Local model:** Qwen3 1.7B in Chrome explained a $400 rent debit from $500 to $100 against a $500 uncomfortable threshold. It also drafted the requested one-time $42 debit dated November 15 without inserting it. These fixtures verify the workflows; they do not establish general model accuracy.
+- **Linked file:** Windows Chrome opened an unmarked PSV through the native picker, accepted the currency and write prompts, and saved an edit verified on disk. The link was restored after a full browser restart. If Chrome revokes write access, relink to resume disk saves.
+- **Narrow screen:** At 390 CSS pixels and 4× CPU throttling, a 120-recurring-entry fixture rendered 739 forecast table rows. The month list scrolled, page width stayed at 390 pixels, and a Raw edit persisted.
 
-- Amount arithmetic in the AMOUNT field (`1000+250`).
-- Percentage or inflation escalators on recurring entries (`R,+3%Y`).
-- Print stylesheet for Forecast; export the table to CSV.
-- Keyboard shortcut to jump between tabs.
-- Forecast-tab checkboxes that write `!` / `#` back into the text.
-- URL-encoded share of a scenario — **only** if it stays client-side.
-- Deeper debt fixtures (interest, pay-off, extra payments) if the model grows.
-
----
-
-## 5. Known Issues
-
-| # | Severity | Issue |
-|---|---|---|
-| 1–5 | Copy | **Done** — starter copy, Welcome register, and Help dates were refreshed. |
-| 6 | Behavior | **Done** — malformed lines are skipped and listed as warnings under the editor. |
-| 7 | Behavior | `B` resets the running balance. Entries dated before it are dropped. Same-day items on a `B` date are *in balance* by default (`balanceIncludesSameDay`). `|#N=pending` still applies that occurrence. |
-| 8 | Behavior | Same-day sort is stable: date, then type (`B`, `C`, `D`), then entry order. |
-| 9 | Accessibility | Threshold row coloring is still the loudest low-balance signal. Add a non-color mark. |
-| 10 | Accessibility | **Done** — Settings thresholds have a number input next to the slider. |
-| 11 | Responsive | Layout is still desktop-first; verify Forecast + editor on a phone. |
-| 12 | Naming | **Done** — ForeBalance on product surfaces, title, and downloads. |
-| 13 | Behavior | Unbounded `,R` lines walk every occurrence from the text start to the forecast end, then slice at `B`. **Roll recurring starts** rewrites the text to one period before `B`. |
-
----
-
-## 6. Suggested Sequencing
-
-1. **Done** — rename, copy, documented `B` / same-day / pending, tests.
-2. **Done** — multi-account UI + Help, summary, file link, DSL P1, CodeMirror.
-3. **Done** — public MIT, npm name hold, CI + Dependabot, repo card.
-4. **This pass** — spec/tracking catch-up; roll recurring starts.
-5. **Done in the editor pack** — cards, debts, forks, Ask chips, extra payment (`extra=`), occurrence edit from payment history, keyboard for the card menu and Alt+1–6 tabs, non-color threshold marks, phone dialog width, skip of old non-debt occurrences, amount arithmetic, print stylesheet, client-side share link.
-6. **Done** — `,+3%Y` raises a recurring amount each year. A forecast checkbox writes `!` and turns that line off.
-7. Still open: merging forks. Forecast checkboxes do not re-enable a line; Entries → Enable does.
-
----
-
-## 7. Open Questions for the Owner
-
-- Is the forecast window capped at 24 months by the slider? **Yes — 24 is the cap for now.**
-- Should the tool ever reconcile against an actual bank balance? See **`forebalance-review-and-plan.md` §13**. **Deferred from v1** (manual `B` re-anchor is enough).
-- Public? **Yes** — MIT, `forebalance.app`, GitHub public. Accessibility and mobile still matter for visitors, not only the owner.
+**Still open:** run the large recurring scenario on a physical slower phone. Check month scrolling, opening an entry, and reaching Save with the software keyboard visible. Desktop emulation does not establish real touch or device performance.
