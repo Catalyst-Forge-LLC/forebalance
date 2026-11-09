@@ -236,3 +236,151 @@ test('help topics and Labs tasks use the shared section navigation', async ({ pa
   await expect(page.getByRole('textbox', { name: 'A format question, or your own' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+test('What hits next reads dated transactions without a model', async ({ page }) => {
+  page.on('dialog', (dialog) => dialog.accept());
+  const scenario = 'B-CHCK-main|2099-11-01|2500|Starting balance\nD|2099-11-02|300|Workshop rent\nC|2099-11-03|500|Client invoice';
+  await page.goto('/#entries?' + new URLSearchParams({ share: scenario }));
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('rawEntries'))).toBe(scenario);
+  await page.goto('/#labs');
+  await page.getByRole('button', { name: 'Explore forecast', exact: true }).click();
+  await page.getByRole('button', { name: 'What hits next?', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Result · What hits next?' })).toBeFocused();
+  await expect(page.locator('.output pre')).toContainText('Workshop rent · Debit $300 → projected balance $2,200');
+  await expect(page.locator('.output pre')).toContainText('Client invoice · Credit $500 → projected balance $2,700');
+});
+
+test('Visual can add a credit without changing existing entries or saving canceled drafts', async ({ page }) => {
+  await seed(page);
+  await page.getByRole('button', { name: /^Credits \(/ }).click();
+  const before = await page.evaluate(() => localStorage.getItem('rawEntries'));
+  const add = page.getByRole('button', { name: 'Add entry', exact: true });
+  await add.click();
+  const form = page.getByRole('dialog', { name: 'Add entry' });
+  await form.getByLabel('Description').fill('Canceled draft');
+  await page.keyboard.press('Escape');
+  await expect(form).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('rawEntries'))).toBe(before);
+  await add.click();
+  await expect(form.getByRole('radio', { name: 'Money in' })).toHaveAttribute('aria-checked', 'true');
+  await form.getByLabel('Description').fill('Referral bonus');
+  await form.getByLabel('Amount').fill('50+25');
+  await form.getByRole('button', { name: 'Save entry' }).click();
+  await expect(form).toHaveCount(0);
+  await expect(page.getByText('Referral bonus', { exact: true })).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Referral bonus', { exact: true })).toBeVisible();
+  const after = await page.evaluate(() => localStorage.getItem('rawEntries'));
+  expect(after).toContain(before + '\nC|');
+  expect(after).toContain('|75|Referral bonus');
+});
+
+test('category bulk update saves both cards together and cancel leaves the scenario unchanged', async ({ page }) => {
+  const card1 = 'D-VISA|2099-11-02,R|80|Visa|VISA|1200|20|fixed|||debt|keep|autopay|#2=75';
+  const card2 = 'D-MC|2099-11-03,R|5|Mastercard|MC|900|15|pct|||debt';
+  const source = ['B-main-main|2099-11-01|2500|Checking', card1, card2, 'D|2099-11-05|30|Food'].join('\n');
+  page.on('dialog', (d) => d.accept());
+  await page.goto('/#entries?' + new URLSearchParams({ share: source }));
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('rawEntries'))).toBe(source);
+  const open = page.getByRole('button', { name: 'Bulk update' });
+  const dialog = page.getByRole('dialog', { name: 'Update balances and payments' });
+  await open.click();
+  const today = await page.evaluate(() => new Date().toLocaleDateString('sv-SE'));
+  const visa = dialog.getByRole('row').filter({ has: page.getByRole('rowheader', { name: 'Visa', exact: true }) });
+  const mc = dialog.getByRole('row').filter({ has: page.getByRole('rowheader', { name: 'Mastercard', exact: true }) });
+  await expect(dialog.getByLabel('Category')).toHaveValue('debt');
+  await expect(dialog.getByText('Food', { exact: true })).toHaveCount(0);
+  await visa.getByLabel(/Balance today/).fill('950');
+  await dialog.getByRole('button', { name: 'Cancel' }).click();
+  expect(await page.evaluate(() => localStorage.getItem('rawEntries'))).toBe(source);
+  await open.click();
+  await visa.getByLabel(/Balance today/).fill('950');
+  await visa.getByLabel(/Scheduled payment/).fill('100');
+  await mc.getByLabel(/Payment rate/).fill('120');
+  await dialog.getByRole('button', { name: 'Save changes' }).click();
+  await expect(dialog.getByRole('alert')).toContainText('percentage');
+  expect(await page.evaluate(() => localStorage.getItem('rawEntries'))).toBe(source);
+  await mc.getByLabel(/Payment rate/).fill('6');
+  await dialog.getByRole('button', { name: 'Save changes' }).click();
+  await expect(dialog).toHaveCount(0);
+  await page.reload();
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('rawEntries')))
+    .toBe(source.replace(card1, card1 + '|debt@' + today + '=950|pay@' + today + '=100').replace(card2, card2 + '|pay@' + today + '=6'));
+});
+
+test('Visual disables and enables reversibly and deletes only after confirmation', async ({ page }) => {
+  await seed(page);
+  const rent = page.locator('.cards .list > li').filter({ hasText: 'Rent' });
+  async function choose(name: string) {
+    await rent.getByRole('button', { name: 'Entry actions' }).click();
+    await rent.getByRole('menuitem', { name, exact: true }).click();
+  }
+  const saved = () => page.evaluate(() => localStorage.getItem('rawEntries'));
+  await choose('Disable');
+  await expect.poll(saved).toBe(raw.replace('\nD|', '\n!D|'));
+  await choose('Enable');
+  await expect.poll(saved).toBe(raw);
+  await choose('Delete');
+  const dialog = page.getByRole('dialog', { name: 'Delete entry?' });
+  await expect(dialog).toContainText('Rent');
+  await dialog.getByRole('button', { name: 'Cancel' }).click();
+  expect(await saved()).toBe(raw);
+  await choose('Delete');
+  await dialog.getByRole('button', { name: 'Delete', exact: true }).click();
+  await page.reload();
+  await expect.poll(saved).toBe(raw.split('\n')[0]);
+  await expect(rent).toHaveCount(0);
+});
+
+test('group counts follow category changes, reloads, and the selected entry type', async ({ page }) => {
+  await seed(page);
+  const group = page.getByRole('combobox', { name: 'Group', exact: true });
+  const option = (value: string) => group.locator('option[value="' + value + '"]');
+  await expect(option('all')).toHaveText('All groups (2)');
+  await expect(option('unfiled')).toHaveText('Unfiled (1)');
+  const rent = page.locator('.list > li').filter({ hasText: 'Rent' });
+  await rent.getByRole('button', { name: 'Entry actions' }).click();
+  await rent.getByRole('menuitem', { name: 'Change category' }).hover();
+  await page.getByRole('menuitemradio', { name: 'Housing', exact: true }).click();
+  await expect(option('housing')).toHaveText('Housing (1)');
+  await expect(option('unfiled')).toHaveText('Unfiled');
+  await page.reload();
+  await expect(option('housing')).toHaveText('Housing (1)');
+  await group.selectOption('housing');
+  await expect(rent).toBeVisible();
+  await page.getByRole('button', { name: /^Credits \(/ }).click();
+  await expect(option('housing')).toHaveText('Housing');
+  await expect(option('all')).toHaveText('All groups');
+  await expect(rent).toHaveCount(0);
+});
+
+test('category upgrade preserves assignments, custom names and subsequent deletions', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => {
+    localStorage.removeItem('forebalance.categories.v3');
+    localStorage.removeItem('forebalance.categories.v2');
+    localStorage.setItem(
+      'forebalance.categories.v1',
+      JSON.stringify([
+        { id: 'debt', name: 'My loans' },
+        { id: 'shows', name: 'Entertainment' },
+      ]),
+    );
+  });
+  await page.goto('/#settings');
+  await page.reload();
+  await page.getByRole('button', { name: 'Categories', exact: true }).click();
+  const rename = (name: string) => page.getByRole('textbox', { name: 'Rename ' + name, exact: true });
+  await expect(rename('My loans')).toBeVisible();
+  await expect(rename('Entertainment')).toHaveCount(1);
+  await expect(rename('Health & medical')).toBeVisible();
+  await expect(rename('Utilities')).toHaveCount(0);
+  await expect(rename('Credit cards')).toBeVisible();
+  page.once('dialog', (d) => d.accept());
+  await rename('Insurance').locator('..').getByRole('button', { name: 'Delete' }).click();
+  await page.reload();
+  await page.getByRole('button', { name: 'Categories', exact: true }).click();
+  await expect(rename('Insurance')).toHaveCount(0);
+  await expect(rename('Credit cards')).toBeVisible();
+});
