@@ -1,4 +1,5 @@
 <script lang="ts">
+  import EntryDifference from './EntryDifference.svelte';
   import { get } from 'svelte/store';
   import { modal } from '#lib/ui/modal.ts';
   import { entrySetsStore, switchEntrySet, type EntrySet } from '#lib/data/entrySets.ts';
@@ -58,23 +59,26 @@
         </p>{/if}
       <div class="choices">
         {#each changes as change, i (i)}
-          <label>
-            <input type="checkbox" bind:group={selected} value={i} />
-            <span
-              ><strong
+          <div class="choice">
+            <label
+              ><input type="checkbox" bind:group={selected} value={i} />
+              <strong
                 >{change.original.length === 0 ? 'Add' : change.proposed.length === 0 ? 'Remove' : 'Update'} · {(
                   change.proposed[0] ?? change.original[0]
-                )?.split('|')[3] ||
-                  (change.proposed[0] ?? change.original[0]) ||
-                  'Blank line'}</strong
-              >
-              {#if change.conflict}<small class="notice"
-                  >{base === undefined ? 'Review difference' : 'Both scenarios changed here — selecting this uses the fork version.'}</small
-                >{/if}
-              {#if change.original.length}<small>Original</small><code>{change.original.map((l) => l || '⟨blank line⟩').join('\n')}</code>{/if}
-              {#if change.proposed.length}<small>Fork</small><code>{change.proposed.map((l) => l || '⟨blank line⟩').join('\n')}</code>{/if}
-            </span>
-          </label>
+                )?.split('|')[3] || 'Entry text'}</strong
+              ></label
+            >
+            {#if change.conflict}<small class="notice"
+                >{base === undefined ? 'Review difference' : 'Both scenarios changed here. Select to use the fork version.'}</small
+              >{/if}
+            <EntryDifference
+              before={change.original}
+              after={change.proposed}
+              starting={change.starting}
+              leftCurrency={extractCurrency(original.raw) ?? ''}
+              rightCurrency={extractCurrency(fork.raw) ?? ''}
+            />
+          </div>
         {/each}
       </div>
     {/if}
@@ -83,7 +87,7 @@
       <button on:click={onClose}>{changes.length ? 'Cancel' : 'Close'}</button>{#if changes.length}<button
           class="button-action"
           disabled={!count || stale}
-          on:click={apply}>Apply {count} {count === 1 ? 'change' : 'changes'}</button
+          on:click={apply}>Apply {count} {count === 1 ? 'change' : 'changes'} to {original.name}</button
         >{/if}
     </footer>
   {/if}
@@ -126,27 +130,25 @@
     padding: 0.65rem 0.3rem;
     text-align: left;
   }
-  label + label {
-    border-top: 1px solid #dee4df;
-  }
-  input {
-    flex: none;
-    width: 1.1rem;
-    height: 1.1rem;
-  }
-  label span {
-    min-width: 0;
+  .choice {
+    padding: 0.5rem 0.3rem;
     overflow-wrap: anywhere;
   }
-  small,
-  code {
-    display: block;
+  .choice + .choice {
+    border-top: 1px solid #dee4df;
   }
-  small {
-    margin-top: 0.25rem;
+  label {
+    padding: 0;
+    align-items: center;
   }
-  code {
-    white-space: pre-wrap;
+  input {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex: none;
+  }
+  footer button:disabled {
+    opacity: 0.45;
+    cursor: default;
   }
   .notice {
     color: #795000;

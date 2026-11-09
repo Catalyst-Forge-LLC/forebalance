@@ -1,5 +1,9 @@
 <script lang="ts">
-  import { fmt } from '#lib/formatters/fmt.ts';
+  import EntryDifference from './EntryDifference.svelte';
+  export let leftCurrency = '';
+  export let rightCurrency = '';
+  import { settingsStore } from '#lib/stores/settings.ts';
+  import { createFormatter, fmt } from '#lib/formatters/fmt.ts';
   import type { LineChange, ScenarioSnapshot } from '#lib/forecast/scenarioCompare.ts';
 
   export let leftName = '';
@@ -14,15 +18,15 @@
   export let onMerge: (() => void) | undefined = undefined;
   export let onClose: () => void = () => {};
 
-  function money(value: number | null): string {
-    return value === null ? '—' : fmt.curr(value);
-  }
+  $: leftFormat = createFormatter({ ...$settingsStore, currencyIsoCode: leftCurrency || $settingsStore.currencyIsoCode });
+  $: rightFormat = createFormatter({ ...$settingsStore, currencyIsoCode: rightCurrency || $settingsStore.currencyIsoCode });
 
   function when(date: Date | null, beyond: boolean): string {
     if (date) return fmt.date(date);
     return beyond ? 'After this forecast' : '—';
   }
 
+  $: debtIds = [...new Set([...(left?.debts ?? []), ...(right?.debts ?? [])].map((d) => d.id))];
   $: monthRows = [...new Set([...(left?.months ?? []).map((month) => month.month), ...(right?.months ?? []).map((month) => month.month)])]
     .sort()
     .map((month) => ({
@@ -60,31 +64,32 @@
       <tbody>
         <tr>
           <th>Ending balance</th>
-          <td>{money(left.endingBalance)}</td>
-          <td>{money(right.endingBalance)}</td>
+          <td>{left.endingBalance === null ? '—' : leftFormat.curr(left.endingBalance)}</td>
+          <td>{right.endingBalance === null ? '—' : rightFormat.curr(right.endingBalance)}</td>
         </tr>
         <tr>
           <th>Lowest balance</th>
-          <td>{money(left.lowestBalance)}</td>
-          <td>{money(right.lowestBalance)}</td>
+          <td>{left.lowestBalance === null ? '—' : leftFormat.curr(left.lowestBalance)}</td>
+          <td>{right.lowestBalance === null ? '—' : rightFormat.curr(right.lowestBalance)}</td>
         </tr>
         {#each monthRows as month (month)}
           <tr>
             <th>{month.month}</th>
-            <td>{money(month.left)}</td>
-            <td>{money(month.right)}</td>
+            <td>{month.left === null ? '—' : leftFormat.curr(month.left)}</td>
+            <td>{month.right === null ? '—' : rightFormat.curr(month.right)}</td>
           </tr>
         {/each}
-        {#each left.debts as debt (debt)}
-          {@const other = right.debts.find((item) => item.id === debt.id)}
+        {#each debtIds as id (id)}
+          {@const debt = left.debts.find((d) => d.id === id)}
+          {@const other = right.debts.find((item) => item.id === id)}
           <tr>
-            <th>{debt.name} left</th>
-            <td>{money(debt.remaining)}</td>
-            <td>{money(other?.remaining ?? null)}</td>
+            <th>{debt?.name ?? other?.name} left</th>
+            <td>{debt ? (debt.remaining === null ? '—' : leftFormat.curr(debt.remaining)) : 'No account'}</td>
+            <td>{other ? (other.remaining === null ? '—' : rightFormat.curr(other.remaining)) : 'No account'}</td>
           </tr>
           <tr>
-            <th>{debt.name} payoff</th>
-            <td>{when(debt.payoff, debt.beyond)}</td>
+            <th>{debt?.name ?? other?.name} payoff</th>
+            <td>{debt ? when(debt.payoff, debt.beyond) : '—'}</td>
             <td>{other ? when(other.payoff, other.beyond) : '—'}</td>
           </tr>
         {/each}
@@ -100,9 +105,18 @@
       <ul>
         {#each lines as line (line)}
           <li>
-            {#if line.kind === 'added'}Added {line.after}
-            {:else if line.kind === 'removed'}Removed {line.before}
-            {:else}Changed {line.before} → {line.after}{/if}
+            <strong
+              >{line.kind === 'added' ? 'Added' : line.kind === 'removed' ? 'Removed' : 'Changed'} · {(line.after ?? line.before)?.split('|')[3] ||
+                'Entry text'}</strong
+            >
+            <EntryDifference
+              before={line.before === undefined ? [] : [line.before]}
+              after={line.after === undefined ? [] : [line.after]}
+              {leftCurrency}
+              {rightCurrency}
+              leftLabel={leftName}
+              rightLabel={rightName}
+            />
           </li>
         {/each}
       </ul>

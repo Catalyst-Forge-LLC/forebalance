@@ -1,3 +1,4 @@
+import { alignedLineEdits } from '#lib/data/scenarioMerge.ts';
 import dayjs from 'dayjs';
 import { accountDisplayName } from '#lib/parser/accountLabel.ts';
 import { debtOutlook } from '#lib/parser/debtOutlook.ts';
@@ -42,12 +43,13 @@ export function diffScenarioLines(left: string, right: string): LineChange[] {
     .map((line) => line.trim())
     .filter(Boolean);
   const changes: LineChange[] = [];
-  const length = Math.max(a.length, b.length);
-  for (let index = 0; index < length; index += 1) {
-    if (a[index] === b[index]) continue;
-    if (a[index] === undefined) changes.push({ kind: 'added', after: b[index] });
-    else if (b[index] === undefined) changes.push({ kind: 'removed', before: a[index] });
-    else changes.push({ kind: 'changed', before: a[index], after: b[index] });
+  for (const edit of alignedLineEdits(a, b)) {
+    const before = a.slice(edit.start, edit.end);
+    for (let i = 0; i < Math.max(before.length, edit.lines.length); i++) {
+      if (before[i] === undefined) changes.push({ kind: 'added', after: edit.lines[i] });
+      else if (edit.lines[i] === undefined) changes.push({ kind: 'removed', before: before[i] });
+      else changes.push({ kind: 'changed', before: before[i], after: edit.lines[i] });
+    }
   }
   return changes;
 }

@@ -12,6 +12,11 @@ D-CO|2026-09-18,R|500|Capital One|CO|1000|0
 D|2026-09-05,R|40|Groceries`;
 
 describe('diffScenarioLines', () => {
+  it('keeps later entries aligned when a debt is inserted above them', () => {
+    const card = 'D-VISA|2026-09-02,R|50|Visa|VISA|900|18';
+    const [balance, ...bills] = base.split('\n');
+    expect(diffScenarioLines(base, [balance, card, ...bills].join('\n'))).toEqual([{ kind: 'added', after: card }]);
+  });
   it('reports added, removed, and changed lines', () => {
     expect(diffScenarioLines('A\nB', 'A\nC\nD')).toEqual([
       { kind: 'changed', before: 'B', after: 'C' },

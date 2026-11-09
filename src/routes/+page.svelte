@@ -30,6 +30,7 @@
   import ForecastMenu from '../components/ForecastMenu.svelte';
   import type { EntrySet } from '#lib/data/entrySets.ts';
   import ScenarioMerge from '../components/ScenarioMerge.svelte';
+  import { extractCurrency } from '#lib/data/currencyHeader.ts';
   import ScenarioCompare from '../components/ScenarioCompare.svelte';
 
   let accountEntries: AccountEntries | null = null;
@@ -225,6 +226,8 @@
           {#if compareOpen && compared && compareOther}
             <ScenarioCompare
               leftName={scenarioName}
+              leftCurrency={extractCurrency($rawEntriesStore) ?? ''}
+              rightCurrency={extractCurrency(compareOther.raw) ?? ''}
               rightName={compareOther.name}
               left={compared.left}
               right={compared.right}

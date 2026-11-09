@@ -3,7 +3,7 @@ type Edit = { start: number; end: number; lines: string[] };
 const linesOf = (text: string) => (text === '' ? [] : text.split(/\r?\n/));
 const same = (a: string[], b: string[]) => a.length === b.length && a.every((line, i) => line === b[i]);
 
-function edits(base: string[], next: string[]): Edit[] {
+export function alignedLineEdits(base: string[], next: string[]): Edit[] {
   let start = 0,
     end = base.length,
     stop = next.length;
@@ -81,12 +81,13 @@ export interface MergeChoice {
   original: string[];
   proposed: string[];
   conflict: boolean;
+  starting?: string[];
 }
 export function planMerge(ancestor: string | undefined, original: string, fork: string): MergeChoice[] {
   const base = linesOf(ancestor ?? original);
   const all = [
-    ...edits(base, linesOf(original)).map((e) => ({ ...e, source: 'parent' })),
-    ...edits(base, linesOf(fork)).map((e) => ({ ...e, source: 'fork' })),
+    ...alignedLineEdits(base, linesOf(original)).map((e) => ({ ...e, source: 'parent' })),
+    ...alignedLineEdits(base, linesOf(fork)).map((e) => ({ ...e, source: 'fork' })),
   ].sort((a, b) => a.start - b.start || a.end - b.end);
   const choices: MergeChoice[] = [];
   let pos = 0,
@@ -111,7 +112,15 @@ export function planMerge(ancestor: string | undefined, original: string, fork: 
       if (!conflict && before.length === 0) for (const line of after) choices.push({ start: pos, end: pos, original: [], proposed: [line], conflict });
       else if (!conflict && after.length === 0)
         before.forEach((line, i) => choices.push({ start: pos + i, end: pos + i + 1, original: [line], proposed: [], conflict }));
-      else choices.push({ start: pos, end: pos + before.length, original: before, proposed: after, conflict });
+      else
+        choices.push({
+          start: pos,
+          end: pos + before.length,
+          original: before,
+          proposed: after,
+          conflict,
+          starting: conflict && ancestor !== undefined ? base.slice(first.start, end) : undefined,
+        });
     }
     pos += before.length;
     cursor = end;
