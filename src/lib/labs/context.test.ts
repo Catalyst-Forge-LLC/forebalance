@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DRAFT_SYSTEM, buildForecastBrief, buildWhyTight, splitModelReply } from './context';
+import { DRAFT_SYSTEM, buildUpcoming, buildForecastBrief, buildWhyTight, splitModelReply } from './context';
 import type { BalanceFlags, ParsedEntry } from '#lib/parser/types.ts';
 
 const flags: BalanceFlags = {
@@ -97,5 +97,23 @@ describe('splitModelReply', () => {
     const reply = splitModelReply('<think>Okay, rent is probably a credit…');
     expect(reply.thinking).toContain('probably a credit');
     expect(reply.answer).toBe('');
+  });
+});
+
+describe('buildUpcoming', () => {
+  const today = new Date(2026, 10, 8, 14);
+  const past = row(0, '2026-11-07', 'D', 20, 60, 'Yesterday');
+  it('uses remaining forecast postings, including today, and identifies the lowest displayed balance', () => {
+    const bill = row(2, '2026-11-08', 'D', 30, 70, 'Groceries');
+    const pay = row(3, '2026-11-09', 'C', 200, 270, 'Payday');
+    const text = buildUpcoming([past, { ...bill, desc: 'Already posted', inBalance: true }, bill, pay], true, today);
+    expect(text).not.toMatch(/Yesterday|Already posted/);
+    expect(text).toContain('Groceries · Debit $30 → projected balance $70');
+    expect(text).toContain('Payday · Credit $200 → projected balance $270');
+    expect(text).toContain('Lowest balance among these entries: $70 after Groceries');
+    expect(buildUpcoming([{ ...bill, balance: 85 }], false, today)).toContain('projected balance $85');
+  });
+  it('never presents past transactions as next', () => {
+    expect(buildUpcoming([past], true, today)).toMatch(/^No upcoming/);
   });
 });

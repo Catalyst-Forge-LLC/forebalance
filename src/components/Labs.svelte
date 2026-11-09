@@ -2,14 +2,15 @@
   import SectionWorkspace from './SectionWorkspace.svelte';
   let section = 'setup';
   let resultLabel = '';
+  let resultHeading: HTMLHeadingElement;
   const sections = [
     { id: 'setup', label: 'Model setup' },
     { id: 'forecast', label: 'Explore forecast' },
     { id: 'draft', label: 'Draft entries' },
     { id: 'question', label: 'Ask a question' },
   ];
-  import { onDestroy, onMount } from 'svelte';
-  import { buildForecastBrief, buildWhyTight, splitModelReply } from '#lib/labs/context.ts';
+  import { onDestroy, onMount, tick } from 'svelte';
+  import { buildForecastBrief, buildUpcoming, buildWhyTight, splitModelReply } from '#lib/labs/context.ts';
   import { localIsoDate } from '#lib/formatters/dates.ts';
   import {
     currencyPromptNote,
@@ -143,8 +144,12 @@
     return runRouted('Why is this tight?', `${brief()}\n\nComputed:\n${buildWhyTight(entries, balanceFlags, useMainBalance, activeName)}`);
   }
 
-  function upcomingHits() {
-    return runRouted('What hits next?', brief());
+  async function upcomingHits() {
+    error = thinking = routedIds = '';
+    resultLabel = 'What hits next?';
+    output = buildUpcoming(entries, useMainBalance);
+    await tick();
+    resultHeading?.focus();
   }
 
   function moneyDrains() {
@@ -238,18 +243,19 @@
 
     {#if section !== 'setup'}
       {#if !session}<div class="setup-prompt">
-          <p>Load a local model before asking. Your text stays on this device; the model may need a download.</p>
+          <p>
+            {section === 'forecast'
+              ? 'What hits next? reads your forecast directly. Load a model for the other questions.'
+              : 'Load a local model before asking. Your text stays on this device; the model may need a download.'}
+          </p>
           <button type="button" on:click={() => (section = 'setup')}>Go to model setup</button>
         </div>{/if}
       <section class="actions">
         <h3>{sections.find((item) => item.id === section)?.label}</h3>
-        {#if !session}
-          <p class="hint">Questions stay disabled until the model is loaded. First click is a download; later visits use the cache.</p>
-        {/if}
         {#if section === 'forecast'}
           <p class="hint">Explore the current scenario. These answers are experimental, not financial advice.</p>
           <button type="button" disabled={!session || running || !forecastReady} on:click={explainForecast}> Why is this tight? </button>
-          <button type="button" disabled={!session || running || !forecastReady} on:click={upcomingHits}> What hits next? </button>
+          <button type="button" disabled={running || !forecastReady} on:click={upcomingHits}> What hits next? </button>
           <button type="button" disabled={!session || running || !forecastReady} on:click={moneyDrains}> Where does the money go? </button>
           {#if !forecastReady}
             <p class="hint">Open a scenario with a forecast first.</p>
@@ -284,7 +290,7 @@
       {#if output}
         <section class="output">
           <div class="output-bar">
-            <h3>Result · {resultLabel}</h3>
+            <h3 bind:this={resultHeading} tabindex="-1">Result · {resultLabel}</h3>
             <button type="button" on:click={copyOutput}>Copy</button>
           </div>
           {#if routedIds}

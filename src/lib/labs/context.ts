@@ -73,13 +73,40 @@ function topDebits(entries: ParsedEntry[]): string[] {
     .map(([name, stats]) => `${name}: ${fmt.curr(stats.total)} (${stats.count}× ${fmt.curr(stats.typical)})`);
 }
 
-function upcomingLines(entries: ParsedEntry[], useMainBalance: boolean): string[] {
-  const start = new Date();
+function upcomingRows(entries: ParsedEntry[], now: Date): ParsedEntry[] {
+  const start = new Date(now);
   start.setHours(0, 0, 0, 0);
-  const money = entries.filter((entry) => entry.date && (entry.type === 'C' || entry.type === 'D'));
-  const fromToday = money.filter((entry) => entry.date && entry.date >= start);
-  const window = (fromToday.length ? fromToday : money).slice(0, MAX_UPCOMING);
-  return window.map((entry) => formatMoneyLine(entry, useMainBalance));
+  // Forecast rows are already in posting order, including ties on the same date.
+  return entries.filter((entry) => entry.date && entry.date >= start && !entry.inBalance && (entry.type === 'C' || entry.type === 'D')).slice(0, MAX_UPCOMING);
+}
+
+export function buildUpcoming(entries: ParsedEntry[], useMainBalance: boolean, now = new Date()): string {
+  const rows = upcomingRows(entries, now);
+  if (!rows.length) return 'No upcoming credits or debits remain in this forecast from today onward.';
+  const lines = rows.map((entry) => {
+    const balance = runningBalance(entry, useMainBalance);
+    return (
+      fmt.date(entry.date) +
+      ' · ' +
+      displayName(entry.desc) +
+      ' · ' +
+      (entry.type === 'C' ? 'Credit ' : 'Debit ') +
+      fmt.curr(entry.amount) +
+      (balance === undefined ? '' : ' → projected balance ' + fmt.curr(balance))
+    );
+  });
+  if (useMainBalance) {
+    const lowest = rows.reduce<ParsedEntry | undefined>(
+      (low, entry) => (entry.mainBalance !== undefined && (!low || entry.mainBalance < low.mainBalance!) ? entry : low),
+      undefined,
+    );
+    if (lowest)
+      lines.push(
+        '',
+        'Lowest balance among these entries: ' + fmt.curr(lowest.mainBalance!) + ' after ' + displayName(lowest.desc) + ' on ' + fmt.date(lowest.date) + '.',
+      );
+  }
+  return lines.join('\n');
 }
 
 export function buildForecastBrief(entries: ParsedEntry[], balanceFlags: BalanceFlags, useMainBalance: boolean, scenarioName: string): string {
@@ -113,7 +140,7 @@ export function buildForecastBrief(entries: ParsedEntry[], balanceFlags: Balance
     for (const drain of drains) lines.push(drain);
   }
 
-  const upcoming = upcomingLines(entries, useMainBalance);
+  const upcoming = upcomingRows(entries, new Date()).map((entry) => formatMoneyLine(entry, useMainBalance));
   if (upcoming.length) {
     lines.push('Upcoming:');
     for (const line of upcoming) lines.push(line);
