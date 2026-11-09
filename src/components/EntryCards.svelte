@@ -502,9 +502,9 @@
       {/each}
     </div>
     <label>
-      <CategoryIcon id={groupFilter} /> Group
+      <CategoryIcon id={groupFilter} /> Category
       <select bind:this={groupSelect} bind:value={groupFilter}>
-        <option value="all">All groups{typeEntries.length ? ` (${typeEntries.length})` : ''}</option>
+        <option value="all">All categories{typeEntries.length ? ` (${typeEntries.length})` : ''}</option>
         {#each categories as category (category)}
           <option value={category.id}>
             {category.name}{groupCounts.has(category.id) ? ` (${groupCounts.get(category.id)})` : ''}
@@ -512,7 +512,7 @@
         {/each}
       </select>
     </label>
-    <button type="button" class="bulk-button" on:click={() => (bulkOpen = true)}>Bulk update</button>
+    <button type="button" class="bulk-button" on:click={() => (bulkOpen = true)}>Balances &amp; payments</button>
     <button type="button" class="add-entry" on:click={addEntry}>Add entry</button>
   </div>
 

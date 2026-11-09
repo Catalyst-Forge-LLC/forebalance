@@ -19,7 +19,6 @@
 
   $: summaryItems = (
     [
-      { key: 'goal', label: 'Goal reached', point: summary.firstGoal },
       { key: 'lowest', label: 'Lowest', point: summary.lowest },
       {
         key: 'uncomfortable',
@@ -28,6 +27,7 @@
       },
       { key: 'low', label: 'Low', point: summary.firstLow },
       { key: 'negative', label: 'Negative', point: summary.firstNegative, loud: true },
+      { key: 'goal', label: 'Goal', point: summary.firstGoal },
     ] satisfies SummaryItem[]
   ).filter((item) => item.point !== null);
 
@@ -56,7 +56,7 @@
         title="Jump to this date in the table"
         on:click={() => scrollTo(item.point)}
       >
-        {formatPoint(item.label, item.point!)}
+        {item.key === 'goal' ? 'Reached ' + fmt.curr(balanceFlags.above.goal) + ' goal · ' + fmt.date(item.point!.date) : formatPoint(item.label, item.point!)}
       </button>
     {/each}
     {#if useMainBalance && !summary.firstGoal}<span class="day-counts">Goal not reached in this window</span>{/if}

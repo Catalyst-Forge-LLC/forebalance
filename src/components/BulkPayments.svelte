@@ -17,7 +17,13 @@
   const rows = bulkPaymentRows(original, today);
   const groups = [...new Set(rows.map((r) => r.category))];
   let group =
-    initialGroup !== 'all' ? initialGroup : groups.includes('debt') ? 'debt' : (rows.find((r) => r.balanceEditable)?.category ?? groups[0] ?? 'unfiled');
+    initialGroup !== 'all'
+      ? initialGroup
+      : rows.some((r) => r.category === 'credit-cards' && r.balanceEditable)
+        ? 'credit-cards'
+        : groups.includes('debt')
+          ? 'debt'
+          : (rows.find((r) => r.balanceEditable)?.category ?? groups[0] ?? 'unfiled');
   const options = [...new Set([group, ...groups])];
   function startDrafts(category: string) {
     return rows.filter((r) => r.category === category).map((row) => ({ row, balance: row.balance, payment: row.payment }));
@@ -54,12 +60,13 @@
           >{#each options as id (id)}<option value={id}>{categoryName(id, categories)}</option>{/each}</select
         ></label
       >
+      {#if count}<small>Save or cancel these edits to switch category.</small>{/if}
     </header>
     <div class="rows">
       {#if drafts.length}
         <table aria-label="Balances and payments in {currency}">
           <colgroup><col /><col class="balance-col" /><col class="payment-col" /></colgroup>
-          <thead><tr><th scope="col">Entry</th><th scope="col">Balance today</th><th scope="col">Payment</th></tr></thead>
+          <thead><tr><th scope="col">Entry</th><th scope="col">Balance · {today}</th><th scope="col">Payment</th></tr></thead>
           <tbody>
             {#each drafts as d (d.row.index)}
               <tr>

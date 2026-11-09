@@ -174,11 +174,11 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
 </script>
 
 <div class="table-wrap">
-  <p class="edit-hint">
-    Click a row to edit. Uncheck a row to turn that line off. Same-day items already in the <code>B</code> line stay marked
-    <em>in balance</em>. <a href="#help">Help</a> has the rest.
-  </p>
-  <ThresholdLegend compact />
+  <details class="edit-hint">
+    <summary>Forecast symbols and editing</summary>
+    Select an entry to edit it. Same-day items included in the balance are marked <em>in balance</em>. <a href="#help">Help</a>
+    <ThresholdLegend compact />
+  </details>
   <!-- A focusable scroll region allows keyboard users to scroll the table without entering a row. -->
   <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
   <div class="month-scroll" role="region" aria-label="Forecast months" tabindex="0">
@@ -226,6 +226,14 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
                 </td>
                 <td class="desc">
                   {descriptionFor(entry)}
+                  {#if entry.type !== 'B'}<button
+                      type="button"
+                      class="disable-entry"
+                      on:click|stopPropagation={() => {
+                        editIndex = null;
+                        turnOff(entry);
+                      }}>{entry.recur ? 'Disable recurring entry' : 'Disable entry'}</button
+                    >{/if}
                   {#if entry.inBalanceEligible}
                     <label class="pending-toggle">
                       <input type="checkbox" bind:checked={editPending} />
@@ -284,15 +292,13 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
                 </td>
               {:else}
                 <td class="on-col">
-                  {#if entry.type !== 'B'}
-                    <input
-                      type="checkbox"
-                      checked
-                      aria-label="Line is on. Uncheck to turn {descriptionFor(entry)} off."
-                      title="Uncheck to turn this line off"
-                      on:click|stopPropagation={() => turnOff(entry)}
-                    />
-                  {/if}
+                  <button
+                    type="button"
+                    class="icon-btn"
+                    title={entry.recur ? 'Edit this occurrence' : 'Edit entry'}
+                    aria-label={(entry.recur ? 'Edit this occurrence' : 'Edit entry') + ' · ' + descriptionFor(entry)}
+                    on:click|stopPropagation={() => beginEdit(entry, i)}><Icon name="edit" size={16} /></button
+                  >
                 </td>
                 <td
                   >{fmt.date(entry.date)}{#if entry.overridden}<abbr title="This occurrence was adjusted">*</abbr>{/if}</td
@@ -343,8 +349,8 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
   .on-col {
     width: 1.6rem;
   }
-  .on-col input {
-    margin: 0;
+  .on-col button {
+    padding: 0.15rem;
   }
   .table-wrap {
     box-sizing: border-box;
@@ -368,6 +374,11 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
   .month-scroll:focus-visible {
     outline: 2px solid #a37c24;
     outline-offset: -2px;
+  }
+  .disable-entry {
+    display: block;
+    margin-top: 0.35rem;
+    font: inherit;
   }
   .edit-hint {
     flex-shrink: 0;
@@ -467,8 +478,8 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
     font-family: inherit;
   }
 
-  .edit-hint code {
-    font-size: 0.85em;
+  .edit-hint summary {
+    cursor: pointer;
   }
 
   table tr[id^='forecast-row-'] {
