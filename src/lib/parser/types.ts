@@ -67,6 +67,8 @@ export interface ParsedEntry {
   formattedDebit?: string;
   formattedBalance?: string;
   flag?: BalanceFlag;
+  debtReset?: boolean;
+  dated?: import('./lineExtras').DatedValue[];
   monthlyInterest?: number;
   subAccountRunningBal?: number;
   entryOrder?: number;

@@ -1,6 +1,21 @@
 import { DEFAULT_MIN_RATE, type PaymentStrategy } from '#lib/parser/types.ts';
 
+export interface DatedValue {
+  kind: 'debt' | 'pay';
+  date: string;
+  value: number;
+}
+export function datedValue(field: string): DatedValue | undefined {
+  const m = /^(debt|pay)@(\d{4}-\d{2}-\d{2})=(\d+(?:\.\d+)?)$/.exec(field.trim());
+  if (m && Number.isFinite(+m[3])) return { kind: m[1] as DatedValue['kind'], date: m[2], value: +m[3] };
+}
+export function latestDated(values: DatedValue[] | undefined, kind: DatedValue['kind'], date: string, inclusive = true) {
+  let latest: DatedValue | undefined;
+  for (const v of values ?? []) if (v.kind === kind && (v.date < date || (inclusive && v.date === date)) && (!latest || v.date >= latest.date)) latest = v;
+  return latest;
+}
 export interface LineExtras {
+  dated?: DatedValue[];
   accountSlot?: string;
   startingBal?: number;
   apr?: number;
@@ -43,6 +58,11 @@ export function isHttpUrl(value: string): boolean {
  */
 export function parseLineExtras(extras: string[]): LineExtras {
   const result: LineExtras = { unknown: [] };
+  const dated = extras.map(datedValue).filter((v): v is DatedValue => !!v);
+  if (dated.length) {
+    result.dated = dated;
+    extras = extras.filter((f) => !datedValue(f));
+  }
   if (extras[0]?.trim()) result.accountSlot = extras[0].trim();
   if (extras[1]?.trim() && isNumeric(extras[1])) result.startingBal = +extras[1];
   if (extras[2]?.trim() && isNumeric(extras[2])) result.apr = +extras[2];
@@ -151,5 +171,6 @@ export function formatLineExtras(extras: LineExtras): string[] {
 
   const fields = [...head, ...named];
   while (fields.length > 0 && fields[fields.length - 1] === '') fields.pop();
+  for (const v of extras.dated ?? []) fields.push(v.kind + '@' + v.date + '=' + v.value);
   return fields;
 }

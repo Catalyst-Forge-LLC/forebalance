@@ -52,9 +52,10 @@ export function debtOutlook(entries: ParsedEntry[], asOf: Date): DebtOutlook | n
   }
   if (payments.length === 0) return null;
 
-  const payoff = payments.find((payment) => payment.paidOff && payment.amount > 0) ?? null;
+  const lastReset = entries.findLast((row) => row.debtReset && row.date && row.date <= dayjs(asOf).endOf('day').toDate());
+  const payoff = payments.find((payment) => (!lastReset?.date || payment.date > lastReset.date) && payment.paidOff && payment.amount > 0) ?? null;
   const last = payments[payments.length - 1];
-  const beyondWindow = !payoff && last.remaining > 1;
+  const beyondWindow = !payoff && (lastReset?.date && lastReset.date > last.date ? Number(lastReset.amount) : last.remaining) > 1;
   const months = payoff ? Math.max(0, dayjs(payoff.date).startOf('month').diff(dayjs(asOf).startOf('month'), 'month')) : null;
 
   return {

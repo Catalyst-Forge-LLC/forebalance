@@ -198,117 +198,123 @@ ${account.interestRate ? `APR: ${account.interestRate}%<br>` : ''}`;
               <td>Balance</td>
             </tr>
           {/if}
-          <tr
-            id="forecast-row-{i}"
-            class:balance-reset={entry.type === 'B'}
-            class:editing={editIndex === i}
-            class:overridden={entry.overridden}
-            class:in-balance={entry.inBalance}
-            class="balance-{entry.flag}"
-            title={entry.inBalance
-              ? 'Already counted in the same-day balance line. Click to mark as not yet posted.'
-              : entry.pending && entry.inBalanceEligible
-                ? 'Marked not yet posted — this amount still applies after the balance.'
-                : entry.recur
-                  ? `Click to adjust occurrence #${entry.occurrenceIndex ?? 1} or the whole series`
-                  : 'Click to edit this line'}
-            on:click={() => beginEdit(entry, i)}
-          >
-            {#if editIndex === i}
-              <td></td>
-              <td>
-                <input type="date" bind:value={editDate} on:click|stopPropagation on:keydown={(e) => rowKeydown(e, entry)} />
-              </td>
-              <td class="desc">
-                {descriptionFor(entry)}
-                {#if entry.inBalanceEligible}
-                  <label class="pending-toggle">
-                    <input type="checkbox" bind:checked={editPending} />
-                    Not yet posted
-                  </label>
-                  <span class="occ">
-                    {#if editPending}
-                      Apply this amount after the balance.
-                    {:else}
-                      Already in today's balance.
-                    {/if}
-                  </span>
-                {/if}
-                {#if entry.recur}
-                  <div class="scope" role="group" aria-label="Apply edit to">
-                    <label>
-                      <input type="radio" bind:group={editScope} value="occurrence" />
-                      This one
-                    </label>
-                    <label>
-                      <input type="radio" bind:group={editScope} value="series" />
-                      Whole series
+          {#if entry.debtReset}<tr class="balance-reset" id="forecast-row-{i}"
+              ><td></td><td>{entry.formattedDate}</td><td class="desc">{entry.desc}</td><td class="num-col"></td><td class="num-col"></td><td align="right"
+                >{entry.formattedBalance}</td
+              ></tr
+            >{:else}
+            <tr
+              id="forecast-row-{i}"
+              class:balance-reset={entry.type === 'B'}
+              class:editing={editIndex === i}
+              class:overridden={entry.overridden}
+              class:in-balance={entry.inBalance}
+              class="balance-{entry.flag}"
+              title={entry.inBalance
+                ? 'Already counted in the same-day balance line. Click to mark as not yet posted.'
+                : entry.pending && entry.inBalanceEligible
+                  ? 'Marked not yet posted — this amount still applies after the balance.'
+                  : entry.recur
+                    ? `Click to adjust occurrence #${entry.occurrenceIndex ?? 1} or the whole series`
+                    : 'Click to edit this line'}
+              on:click={() => beginEdit(entry, i)}
+            >
+              {#if editIndex === i}
+                <td></td>
+                <td>
+                  <input type="date" bind:value={editDate} on:click|stopPropagation on:keydown={(e) => rowKeydown(e, entry)} />
+                </td>
+                <td class="desc">
+                  {descriptionFor(entry)}
+                  {#if entry.inBalanceEligible}
+                    <label class="pending-toggle">
+                      <input type="checkbox" bind:checked={editPending} />
+                      Not yet posted
                     </label>
                     <span class="occ">
-                      {#if editScope === 'series'}
-                        Rewrites the line. Drops #N exceptions.
+                      {#if editPending}
+                        Apply this amount after the balance.
                       {:else}
-                        Occurrence #{entry.occurrenceIndex ?? 1} only
+                        Already in today's balance.
                       {/if}
                     </span>
-                  </div>
-                {/if}
-              </td>
-              <td class="num-col" colspan={entry.type === 'B' ? 2 : 1} align="right">
-                {#if entry.type === 'C' || entry.type === 'B'}
-                  <input type="number" step="any" bind:value={editAmount} on:click|stopPropagation on:keydown={(e) => rowKeydown(e, entry)} />
-                {/if}
-              </td>
-              {#if entry.type !== 'B'}
-                <td class="num-col" align="right">
-                  {#if entry.type === 'D'}
+                  {/if}
+                  {#if entry.recur}
+                    <div class="scope" role="group" aria-label="Apply edit to">
+                      <label>
+                        <input type="radio" bind:group={editScope} value="occurrence" />
+                        This one
+                      </label>
+                      <label>
+                        <input type="radio" bind:group={editScope} value="series" />
+                        Whole series
+                      </label>
+                      <span class="occ">
+                        {#if editScope === 'series'}
+                          Rewrites the line. Drops #N exceptions.
+                        {:else}
+                          Occurrence #{entry.occurrenceIndex ?? 1} only
+                        {/if}
+                      </span>
+                    </div>
+                  {/if}
+                </td>
+                <td class="num-col" colspan={entry.type === 'B' ? 2 : 1} align="right">
+                  {#if entry.type === 'C' || entry.type === 'B'}
                     <input type="number" step="any" bind:value={editAmount} on:click|stopPropagation on:keydown={(e) => rowKeydown(e, entry)} />
                   {/if}
                 </td>
-              {/if}
-              <td class="edit-actions" align="right">
-                <button type="button" class="icon-btn" aria-label="Edit entry" title="Edit entry" on:click={(e) => openEntry(e, entry)}>
-                  <Icon name="edit" size={16} />
-                </button>
-                <button type="button" class="icon-btn" aria-label="Cancel" title="Cancel" on:click={cancelEdit}>
-                  <Icon name="x" size={16} />
-                </button>
-                <button type="button" class="icon-btn save" aria-label="Save" title="Save" on:click={(e) => saveEdit(e, entry)}>
-                  <Icon name="check" size={16} />
-                </button>
-              </td>
-            {:else}
-              <td class="on-col">
                 {#if entry.type !== 'B'}
-                  <input
-                    type="checkbox"
-                    checked
-                    aria-label="Line is on. Uncheck to turn {descriptionFor(entry)} off."
-                    title="Uncheck to turn this line off"
-                    on:click|stopPropagation={() => turnOff(entry)}
-                  />
+                  <td class="num-col" align="right">
+                    {#if entry.type === 'D'}
+                      <input type="number" step="any" bind:value={editAmount} on:click|stopPropagation on:keydown={(e) => rowKeydown(e, entry)} />
+                    {/if}
+                  </td>
                 {/if}
-              </td>
-              <td
-                >{fmt.date(entry.date)}{#if entry.overridden}<abbr title="This occurrence was adjusted">*</abbr>{/if}</td
-              >
-              <td class="desc"
-                ><Tooltip content={getAccountSummary(entry)}>{descriptionFor(entry)}</Tooltip>{#if entry.inBalance}
-                  <span class="in-balance-tag">in balance</span>{/if}{#if entry.pending && entry.inBalanceEligible}
-                  <span class="in-balance-tag pending-tag">not yet posted</span>{/if}</td
-              >
-              <td class="num-col" align="right"
-                >{#if entry.type === 'C'}{#if entry.inBalance}<s>{fmt.curr(entry.amount)}</s>{:else}{fmt.curr(entry.amount)}{/if}{/if}</td
-              >
-              <td class="num-col" align="right"
-                >{#if entry.type === 'D'}{#if entry.inBalance}<s>{fmt.curr(entry.amount)}</s>{:else}{fmt.curr(entry.amount)}{/if}{/if}</td
-              >
-              <td align="right"
-                >{flagIndicator(entry.flag)}{displayBalance(entry)}{#if flagLabel(entry.flag)}
-                  <span class="flag-word">{flagLabel(entry.flag)}</span>{/if}</td
-              >
-            {/if}
-          </tr>
+                <td class="edit-actions" align="right">
+                  <button type="button" class="icon-btn" aria-label="Edit entry" title="Edit entry" on:click={(e) => openEntry(e, entry)}>
+                    <Icon name="edit" size={16} />
+                  </button>
+                  <button type="button" class="icon-btn" aria-label="Cancel" title="Cancel" on:click={cancelEdit}>
+                    <Icon name="x" size={16} />
+                  </button>
+                  <button type="button" class="icon-btn save" aria-label="Save" title="Save" on:click={(e) => saveEdit(e, entry)}>
+                    <Icon name="check" size={16} />
+                  </button>
+                </td>
+              {:else}
+                <td class="on-col">
+                  {#if entry.type !== 'B'}
+                    <input
+                      type="checkbox"
+                      checked
+                      aria-label="Line is on. Uncheck to turn {descriptionFor(entry)} off."
+                      title="Uncheck to turn this line off"
+                      on:click|stopPropagation={() => turnOff(entry)}
+                    />
+                  {/if}
+                </td>
+                <td
+                  >{fmt.date(entry.date)}{#if entry.overridden}<abbr title="This occurrence was adjusted">*</abbr>{/if}</td
+                >
+                <td class="desc"
+                  ><Tooltip content={getAccountSummary(entry)}>{descriptionFor(entry)}</Tooltip>{#if entry.inBalance}
+                    <span class="in-balance-tag">in balance</span>{/if}{#if entry.pending && entry.inBalanceEligible}
+                    <span class="in-balance-tag pending-tag">not yet posted</span>{/if}</td
+                >
+                <td class="num-col" align="right"
+                  >{#if entry.type === 'C'}{#if entry.inBalance}<s>{fmt.curr(entry.amount)}</s>{:else}{fmt.curr(entry.amount)}{/if}{/if}</td
+                >
+                <td class="num-col" align="right"
+                  >{#if entry.type === 'D'}{#if entry.inBalance}<s>{fmt.curr(entry.amount)}</s>{:else}{fmt.curr(entry.amount)}{/if}{/if}</td
+                >
+                <td align="right"
+                  >{flagIndicator(entry.flag)}{displayBalance(entry)}{#if flagLabel(entry.flag)}
+                    <span class="flag-word">{flagLabel(entry.flag)}</span>{/if}</td
+                >
+              {/if}
+            </tr>
+          {/if}
           {#if showMonthFooter(i)}
             {@const { debtBalance, debtInterest, debtDetails } = runningBalanceMonthlySummary(i)}
             <tr class="month-summary">

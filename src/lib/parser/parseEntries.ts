@@ -1,10 +1,11 @@
 import dayjs from 'dayjs';
+import { localIsoDate } from '#lib/formatters/dates.ts';
 import { fmt } from '#lib/formatters/fmt.ts';
 import { applyBusinessDayShift } from '#lib/parser/businessDays.ts';
 import { applyOverrideToEntry, splitLineFields } from '#lib/parser/occurrenceEdit.ts';
 import { dayKey, getBalanceFlag, getRandomId, parseDate, sortEntries, raisedAmount, updateDateRecur, updateDescRecur } from '#lib/parser/recurrence.ts';
 import { parseAccountDisplay } from '#lib/parser/accountLabel.ts';
-import { parseLineExtras, resolvePayment } from '#lib/parser/lineExtras.ts';
+import { latestDated, parseLineExtras, resolvePayment } from '#lib/parser/lineExtras.ts';
 import { earliestBalanceDate, occurrenceIndexOnOrBefore } from '#lib/parser/rollRecurringStarts.ts';
 import { isEntryLineDisabled } from '#lib/parser/validateEntries.ts';
 import type { Account, AccountEntries, Accounts, BalanceFlags, ParsedEntry, ParseOptions, ParseResult } from '#lib/parser/types.ts';
@@ -71,6 +72,7 @@ function parseRawEntries(rawEntries: string, recurringEntries: Record<string, nu
         entryOrder: lineIndex,
         occurrenceIndex: 1,
         overrides,
+        dated: lineExtras.dated,
         strategy: lineExtras.strategy,
         minRate: lineExtras.minRate,
         payUrl: lineExtras.payUrl,
@@ -134,6 +136,7 @@ function parseRawEntries(rawEntries: string, recurringEntries: Record<string, nu
           parsedEntry.date &&
           balanceAnchor &&
           dayKey(parsedEntry.date) < dayKey(balanceAnchor) &&
+          !lineExtras.dated?.some((v) => v.kind === 'debt') &&
           !((lineExtras.startingBal ?? 0) > 0)
         ) {
           const landed = occurrenceIndexOnOrBefore(parsedEntry.date, recur, balanceAnchor);
@@ -240,12 +243,62 @@ export function parseEntries(rawEntries: string, monthsToForecast: number, balan
         queue.push(newEntry);
       }
     }
+  }
+  // Post snapshots after all scheduled transactions on their local date.
+  for (const source of parsedEntries) {
+    if (!source.accountId || source.accountId === mainAccount.id) continue;
+    for (const update of source.dated ?? []) {
+      if (update.kind !== 'debt') continue;
+      const date = dayjs(update.date).endOf('day').toDate();
+      if (date > endDate) continue;
+      tableEntries.push({
+        ...source,
+        id: getRandomId(),
+        type: 'B',
+        debtReset: true,
+        date,
+        amount: update.value,
+        desc: 'Reported debt balance',
+        recur: null,
+        rawRecur: undefined,
+        inBalance: false,
+      });
+    }
+  }
+  const anchored = new Set<string>();
+  const sortedTableEntries = sortEntries(tableEntries);
+  const accountEntries: AccountEntries = {};
+  accountEntries[mainAccount.id] = [];
 
+  for (const entry of sortedTableEntries) {
+    const account: Account = entry.accountId === undefined ? mainAccount : accounts[entry.accountId!];
+    if (!accountEntries[account.id]) {
+      accountEntries[account.id] = [];
+    }
+    if (entry.debtReset) {
+      anchored.add(account.id);
+      account.runningBal = +entry.amount;
+      entry.balance = entry.subAccountRunningBal = account.runningBal;
+      entry.mainBalance = mainAccount.runningBal;
+      entry.formattedDate = fmt.date(entry.date);
+      entry.formattedBalance = fmt.curr(account.runningBal);
+      accountEntries[account.id].push(entry);
+      continue;
+    }
+    const hasAmountOverride = entry.overrides?.[entry.occurrenceIndex ?? 1]?.amount !== undefined;
+    if (entry.type === 'D' && entry.date && entry.dated?.length && !hasAmountOverride) {
+      const date = localIsoDate(entry.date);
+      const rate = latestDated(entry.dated, 'pay', date, false);
+      if (rate) {
+        entry.baseAmount = rate.value;
+        entry.amount = entry.recur?.raise ? raisedAmount(rate.value, dayjs(rate.date).toDate(), entry.date, entry.recur) : rate.value;
+      }
+    }
     if (entry.accountId && entry.accountId !== mainAccount.id && !entry.inBalance) {
       const entryAccount = accounts[entry.accountId];
-      if (entryAccount && entryAccount.startingBal > 0) {
+      if (entryAccount && (entryAccount.startingBal > 0 || anchored.has(entryAccount.id))) {
         if (entryAccount.runningBal > 0) {
-          if (entry.strategy === 'min' || entry.strategy === 'pct') {
+          if ((entry.strategy === 'min' || entry.strategy === 'pct') && !hasAmountOverride) {
             entry.amount = resolvePayment(entry.strategy, +(entry.baseAmount ?? entry.amount), entryAccount.runningBal, entry.minRate);
           }
           const extra = +(entryAccount.extraPayment ?? 0);
@@ -261,35 +314,21 @@ export function parseEntries(rawEntries: string, monthsToForecast: number, balan
           }
           if (interestRate > 0) {
             const interest = (interestRate / 100 / 12) * entryAccount.runningBal;
-            const last = tableEntries.at(-1);
-            if (last) last.monthlyInterest = +interest;
+            entry.monthlyInterest = +interest;
             entryAccount.runningBal += interest;
           }
-          if (entryAccount.runningBal <= +entry.amount && entryAccount.runningBal > 1) {
+          if (entryAccount.runningBal <= +entry.amount && entryAccount.runningBal > 0) {
             entry.amount = entryAccount.runningBal;
             entry.flag = 'paid-off';
           }
           entryAccount.runningBal += entry.type === 'C' ? +entry.amount : -entry.amount;
-          const last = tableEntries.at(-1);
-          if (last) last.subAccountRunningBal = entryAccount.runningBal;
+          entry.subAccountRunningBal = entryAccount.runningBal;
         } else {
-          const last = tableEntries.at(-1);
-          if (last) last.subAccountRunningBal = 0;
+          entry.subAccountRunningBal = 0;
           entry.amount = 0;
           entry.flag = 'paid-off';
         }
       }
-    }
-  }
-
-  const sortedTableEntries = sortEntries(tableEntries);
-  const accountEntries: AccountEntries = {};
-  accountEntries[mainAccount.id] = [];
-
-  for (const entry of sortedTableEntries) {
-    const account: Account = entry.accountId === undefined ? mainAccount : accounts[entry.accountId!];
-    if (!accountEntries[account.id]) {
-      accountEntries[account.id] = [];
     }
     if (entry.inBalance) {
       // Already counted in the same-day B amount; leave the running balance alone.
