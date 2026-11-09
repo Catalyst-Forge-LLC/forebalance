@@ -19,6 +19,7 @@
 
   $: summaryItems = (
     [
+      { key: 'goal', label: 'Goal reached', point: summary.firstGoal },
       { key: 'lowest', label: 'Lowest', point: summary.lowest },
       {
         key: 'uncomfortable',
@@ -58,6 +59,7 @@
         {formatPoint(item.label, item.point!)}
       </button>
     {/each}
+    {#if useMainBalance && !summary.firstGoal}<span class="day-counts">Goal not reached in this window</span>{/if}
     {#if dayCountParts.length}
       <span class="day-counts">{dayCountParts.join(' · ')}</span>
     {:else if summary.lowest}

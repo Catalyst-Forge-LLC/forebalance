@@ -10,6 +10,7 @@ export interface SummaryPoint {
 export interface ForecastSummary {
   lowest: SummaryPoint | null;
   firstUncomfortable: SummaryPoint | null;
+  firstGoal: SummaryPoint | null;
   firstLow: SummaryPoint | null;
   firstNegative: SummaryPoint | null;
   daysBelowUncomfortable: number;
@@ -73,6 +74,7 @@ export function computeForecastSummary(entries: ParsedEntry[], balanceFlags: Bal
   if (!entries.length) {
     return {
       lowest: null,
+      firstGoal: null,
       firstUncomfortable: null,
       firstLow: null,
       firstNegative: null,
@@ -82,6 +84,7 @@ export function computeForecastSummary(entries: ParsedEntry[], balanceFlags: Bal
     };
   }
 
+  let firstGoal: SummaryPoint | null = null;
   let lowest: SummaryPoint | null = null;
 
   for (let rowIndex = 0; rowIndex < entries.length; rowIndex++) {
@@ -89,6 +92,7 @@ export function computeForecastSummary(entries: ParsedEntry[], balanceFlags: Bal
     if (!entry.date) continue;
     const balance = effectiveBalance(entry, useMainBalance);
     if (balance === undefined) continue;
+    if (useMainBalance && !firstGoal && balance >= balanceFlags.above.goal) firstGoal = { balance, date: entry.date, rowIndex };
     if (!lowest || balance < lowest.balance) {
       lowest = { balance, date: entry.date, rowIndex };
     }
@@ -98,6 +102,7 @@ export function computeForecastSummary(entries: ParsedEntry[], balanceFlags: Bal
 
   return {
     lowest,
+    firstGoal,
     firstUncomfortable: firstCrossingBelow(entries, balanceFlags.below.uncomfortable, useMainBalance),
     firstLow: firstCrossingBelow(entries, balanceFlags.below.low, useMainBalance),
     firstNegative: firstCrossingBelow(entries, balanceFlags.below.negative, useMainBalance),

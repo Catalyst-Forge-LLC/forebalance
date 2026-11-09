@@ -43,3 +43,11 @@ describe('computeForecastSummary', () => {
     expect(summary.daysBelowLow).toBe(0);
   });
 });
+
+it('finds the first checking row reaching the configured goal, including equality or an opening balance above goal', () => {
+  const rows = [entry(0, '2026-01-01', 4000), entry(1, '2026-01-02', 5000), entry(2, '2026-01-03', 5400)];
+  expect(computeForecastSummary(rows, balanceFlags).firstGoal?.rowIndex).toBe(1);
+  expect(computeForecastSummary(rows.slice(2), balanceFlags).firstGoal?.rowIndex).toBe(0);
+  expect(computeForecastSummary(rows.slice(0, 1), balanceFlags).firstGoal).toBeNull();
+  expect(computeForecastSummary(rows, balanceFlags, false).firstGoal).toBeNull();
+});
