@@ -28,6 +28,8 @@
   import Icon from '../components/Icon.svelte';
   import SetSwitcher from '../components/SetSwitcher.svelte';
   import ForecastMenu from '../components/ForecastMenu.svelte';
+  import type { EntrySet } from '#lib/data/entrySets.ts';
+  import ScenarioMerge from '../components/ScenarioMerge.svelte';
   import ScenarioCompare from '../components/ScenarioCompare.svelte';
 
   let accountEntries: AccountEntries | null = null;
@@ -94,6 +96,13 @@
     document.getElementById(`forecast-row-${rowIndex}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  let mergePair: { fork: EntrySet; original: EntrySet } | null = null;
+  function openMerge(id: string) {
+    const fork = $entrySetsStore.sets.find((s) => s.id === id);
+    const original = $entrySetsStore.sets.find((s) => s.id === fork?.parentId);
+    if (fork && original) mergePair = { fork, original };
+  }
+  $: activeScenario = getActiveSet($entrySetsStore);
   let compareOpen = false;
   let compareId = '';
 
@@ -162,6 +171,8 @@
   });
 </script>
 
+{#if mergePair}<ScenarioMerge fork={mergePair.fork} original={mergePair.original} onClose={() => (mergePair = null)} />{/if}
+
 <div class="content">
   <Tabs>
     <TabList>
@@ -178,7 +189,7 @@
         <Welcome entries={selectedEntries} {balanceFlags} useMainBalance={selectedIsMain} {forecastReady} scenarioPending={!entriesReady} />
       </TabPanel>
       <TabPanel>
-        <Entries></Entries>
+        <Entries onMerge={openMerge} />
       </TabPanel>
       <TabPanel showLoader={true}>
         <div class="forecast-column">
@@ -221,6 +232,11 @@
               others={otherSets.map((set) => ({ id: set.id, name: set.name }))}
               otherId={compareId}
               onPick={(id) => (compareId = id)}
+              onMerge={activeScenario.parentId === compareOther.id
+                ? () => openMerge(activeScenario.id)
+                : compareOther.parentId === activeScenario.id
+                  ? () => openMerge(compareOther.id)
+                  : undefined}
               onOpen={openCompared}
               onClose={() => (compareOpen = false)}
             />

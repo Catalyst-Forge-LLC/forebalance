@@ -410,3 +410,31 @@ test('link confirmation preserves the currency step, writes the file, and restor
   await page.getByRole('button', { name: 'Scenario actions' }).click();
   await expect(page.getByRole('menuitem', { name: 'Unlink qa.psv' })).toBeVisible();
 });
+
+test('selectively merge a fork into its original without changing the fork', async ({ page }) => {
+  await seed(page);
+  const menu = page.getByRole('button', { name: 'Scenario actions' });
+  await menu.click();
+  await page.getByRole('menuitem', { name: 'Fork what-if…' }).click();
+  await page.getByRole('button', { name: 'Fork', exact: true }).click();
+  const select = page.getByRole('combobox', { name: 'Scenario', exact: true });
+  const fork = await select.inputValue();
+  await page.getByRole('button', { name: 'Raw', exact: true }).click();
+  const editor = page.locator('.cm-content');
+  const child = raw.replace('|100|Rent', '|125|Rent') + '\nD|2026-10-05|40|Books';
+  await editor.fill(child);
+  await select.selectOption('a');
+  await page.getByRole('button', { name: 'Raw', exact: true }).click();
+  await editor.fill(raw.replace('2500', '3100'));
+  await select.selectOption(fork);
+  await menu.click();
+  await page.getByRole('menuitem', { name: 'Merge into original…' }).click();
+  const dialog = page.getByRole('dialog', { name: 'Merge into original' });
+  await dialog.getByRole('checkbox', { name: /Update · Rent/ }).check();
+  await dialog.getByRole('button', { name: 'Apply 1 change' }).click();
+  await page.getByRole('button', { name: 'Open original' }).click();
+  await expect(select).toHaveValue('a');
+  await expect
+    .poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('forebalance_entrySets')!).sets.map((s: { raw: string }) => s.raw)))
+    .toEqual([raw.replace('2500', '3100').replace('|100|Rent', '|125|Rent'), 'B-CHCK-main|2026-10-01|800|Other balance', child]);
+});

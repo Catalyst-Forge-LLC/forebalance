@@ -269,6 +269,8 @@
     pendingRestore = null;
     restoreOpen = false;
   }
+  export let onMerge: (id: string) => void = () => {};
+  $: mergeSource = $entrySetsStore.sets.find((s) => s.id === $entrySetsStore.activeId);
 </script>
 
 {#snippet editorMode()}
@@ -297,6 +299,9 @@
         {fsSupported}
         {linkedFileName}
         canRoll={rollPreview.changed > 0}
+        showMerge={!!mergeSource?.parentId}
+        canMerge={$entrySetsStore.sets.some((s) => s.id === mergeSource?.parentId)}
+        onMerge={() => onMerge($entrySetsStore.activeId)}
         {onClone}
         {onDelete}
         {onExport}

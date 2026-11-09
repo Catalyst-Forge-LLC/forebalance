@@ -4,6 +4,9 @@
   import { formatHistoryLabel, historySnippet, type EntryVersion } from '#lib/data/entryHistory.ts';
   import Icon from './Icon.svelte';
 
+  export let showMerge = false;
+  export let canMerge = false;
+  export let onMerge: () => void = () => {};
   export let canDelete = true;
   export let canRoll = false;
   export let fsSupported = false;
@@ -105,6 +108,9 @@
       <button type="button" role="menuitem" on:click={() => run(onClone)}>
         <Icon name="clone" /> Fork what-if…
       </button>
+      {#if showMerge}<button type="button" role="menuitem" disabled={!canMerge} on:click={() => run(onMerge)}
+          ><Icon name="clone" /> {canMerge ? 'Merge into original…' : 'Original scenario unavailable'}</button
+        >{/if}
       <button type="button" role="menuitem" disabled={!canDelete} on:click={() => run(onDelete)}>
         <Icon name="trash" /> Delete
       </button>

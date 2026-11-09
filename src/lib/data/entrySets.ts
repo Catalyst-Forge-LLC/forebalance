@@ -12,6 +12,7 @@ export interface EntrySet {
   templateId?: string;
   description?: string;
   parentId?: string | null;
+  forkBase?: string;
 }
 
 export interface EntrySetsState {
@@ -172,6 +173,7 @@ export function forkEntrySet(id: string, name: string, description = ''): EntryS
     name: uniqueSetName(name, state.sets),
     description: description.trim(),
     parentId: source.id,
+    forkBase: source.raw,
     raw: source.raw,
   };
   const next: EntrySetsState = {

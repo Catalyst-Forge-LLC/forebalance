@@ -11,6 +11,7 @@
   export let otherId = '';
   export let onPick: (id: string) => void = () => {};
   export let onOpen: (id: string) => void = () => {};
+  export let onMerge: (() => void) | undefined = undefined;
   export let onClose: () => void = () => {};
 
   function money(value: number | null): string {
@@ -43,6 +44,7 @@
       </select>
     </label>
     <button type="button" on:click={() => onOpen(otherId)}>Open this scenario</button>
+    {#if onMerge}<button type="button" on:click={onMerge}>Merge into original…</button>{/if}
     <button type="button" on:click={onClose} aria-label="Close comparison">×</button>
   </header>
 

@@ -123,7 +123,7 @@ Examples:
 
 The editor supports amount arithmetic, annual escalators, debt payment strategies, extra payments, and dated debt/payment updates. Categories (including Credit cards) support filtering and quick reassignment. Forecast supports non-color threshold markers, monthly scrolling, print and CSV export. Alt+1–6 switches tabs; scenario sharing uses a URL fragment. Old non-debt recurrences can skip ahead; rolling recurring starts remains available. Turning off a forecast row disables its source line; re-enable it in Entries.
 
-**Scenario merging is the remaining product candidate.** Fork and Compare already work. Before implementing a merge, establish whether people need to copy selected changes back often enough to justify it. Any design must address concurrent edits in the original and fork, including deletions, without silently overwriting either scenario.
+**Scenario merging:** Entries → Scenario actions → Merge into original opens a selective preview for a fork. Forecast → Compare offers the same action for a fork and its immediate parent. New forks capture their starting text; conflicting edits and older forks without a starting copy require manual review. Merging changes only the original, with its previous text available in Entries history.
 
 **Bank reconciliation is deferred.** A new checking balance entry already re-anchors the forecast. Matching projected transactions against a statement is a different feature; see [the reconciliation decision](forebalance-review-and-plan.md#13-reconciliation--what-it-means-deferred).
 
